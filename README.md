@@ -1,9 +1,9 @@
-# Beeatles/BeeSharp 🎵📝  
+# BeeSharp 🎵📝  
 
 **Um diário musical para registrar e compartilhar suas experiências com álbuns.**  
 
 ## 📌 Visão Geral  
-O **MusicLog** é uma plataforma onde você pode:  
+O **BeeSharp** é uma plataforma onde você pode:  
 - 📖 **Registrar** os álbuns que ouviu  
 - ⭐ **Avaliar** e resenhar seus favoritos  
 - 📊 **Criar listas** personalizadas (Top 10 do ano, melhores do gênero X, etc.)  
