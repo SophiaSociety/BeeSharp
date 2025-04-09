@@ -1,13 +1,13 @@
-# BeeSharp 🎵📝  
+# BeeSharp 🐝#️🎵  
 
 **Um diário musical para registrar e compartilhar suas experiências com álbuns.**  
 
 ## 📌 Visão Geral  
 O **BeeSharp** é uma plataforma onde você pode:  
 - 📖 **Registrar** os álbuns que ouviu  
-- ⭐ **Avaliar** e resenhar seus favoritos  
-- 📊 **Criar listas** personalizadas (Top 10 do ano, melhores do gênero X, etc.)  
-- 👥 **Seguir amigos** e descobrir novas recomendações  
+- ⭐ **Avaliar** e resenhar seus favoritos   
+- 👥 **Seguir amigos** e curtir resenhas
+- ✨ **Receber recomendações** com base no que você ouve e curte
 
 ## 🛠️ Tecnologias  
 - **Frontend:** Svelte
@@ -18,28 +18,24 @@ O **BeeSharp** é uma plataforma onde você pode:
 ✅ **Cadastro/login de usuários**  
 ✅ **Busca e adição de álbuns** (via integração com API do Spotify/Last.fm)  
 ✅ **Sistema de avaliação** (0 a 5 estrelas) e resenhas  
-✅ **Timeline pessoal** com histórico de escutas  
-🔜 **Listas customizáveis** (WIP)
-🔜 **Interação social** (seguir usuários, curtir resenhas)  
+✅ **Interação social** (seguir usuários, curtir resenhas)
+✅ **Algoritmo de recomendação** (receber recomendações baseadas nos gostos do usuário)
+🔜 **Avaliação de cada música do albúm** (avaliar não apenas álbuns, mas também suas músicas)
+🔜 **Listas customizáveis** (álbuns favoritos, etc.)
+🔜 **Timeline pessoal** com histórico de escutas
+🔜 **Estatísticas pessoais** (gráficos de gêneros mais ouvidos, gráfico de notas dadas)
 
+  
 ## 🌟 Diferenciais  
-- 📈 **Estatísticas pessoais** (gráficos de gêneros mais ouvidos, evolução de notas ao longo do tempo)  
-- 🎨 **Design minimalista** focado na experiência musical  
+- 📈 **Algoritmo de recomendação**: receba recomendações de álbuns com base nas suas avaliações e nos seus gêneros ouvidos. 
 
 ## 📂 Estrutura do Projeto  
 ```
-musiclog/  
+BeeSharp/  
 ├── frontend/          # Aplicação Svelte  
 ├── backend/           # Servidor Ktor  
 
-```
-
-## 🤝 Como Contribuir  
-1. Faça um fork do projeto  
-2. Crie uma branch (`git checkout -b feature/nova-funcionalidade`)  
-3. Commit suas mudanças (`git commit -m 'Adiciona X'`)  
-4. Push para a branch (`git push origin feature/nova-funcionalidade`)  
-5. Abra um Pull Request  
+``` 
 
 ## 📄 Licença  
 MIT (mais detalhes a definir)  
@@ -47,7 +43,7 @@ MIT (mais detalhes a definir)
 ---  
 **🎶 "A vida sem música seria um erro."** — Nietzsche  
 
-*Em desenvolvimento por [seu nome/equipe]. Previsão de lançamento: Q4 2024.*  
+*Em desenvolvimento por [SophiaThaiSociety]. Previsão de lançamento: S1 2025.*  
 
 ---  
 
