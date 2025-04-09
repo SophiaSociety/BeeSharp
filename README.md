@@ -18,13 +18,12 @@ O **BeeSharp** é uma plataforma onde você pode:
 ✅ **Cadastro/login de usuários**  
 ✅ **Busca e adição de álbuns** (via integração com API do Spotify/Last.fm)  
 ✅ **Sistema de avaliação** (0 a 5 estrelas) e resenhas  
-✅ **Interação social** (seguir usuários, curtir resenhas)
-✅ **Algoritmo de recomendação** (receber recomendações baseadas nos gostos do usuário)
-
-🔜 **Avaliação de cada música do albúm** (avaliar não apenas álbuns, mas também suas músicas)
-🔜 **Listas customizáveis** (álbuns favoritos, etc.)
-🔜 **Timeline pessoal** com histórico de escutas
-🔜 **Estatísticas pessoais** (gráficos de gêneros mais ouvidos, gráfico de notas dadas)
+✅ **Interação social** (seguir usuários, curtir resenhas)  
+✅ **Algoritmo de recomendação** (receber recomendações baseadas nos gostos do usuário)  
+🔜 **Avaliação de cada música do albúm** (avaliar não apenas álbuns, mas também suas músicas)  
+🔜 **Listas customizáveis** (álbuns favoritos, etc.)  
+🔜 **Timeline pessoal** com histórico de escutas  
+🔜 **Estatísticas pessoais** (gráficos de gêneros mais ouvidos, gráfico de notas dadas)  
 
   
 ## 🌟 Diferenciais  
