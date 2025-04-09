@@ -38,7 +38,7 @@ BeeSharp/
 ``` 
 
 ## 📄 Licença  
-MIT (mais detalhes a definir)  
+GPL (mais detalhes a definir)  
 
 ---  
 **🎶 "A vida sem música seria um erro."** — Nietzsche  
