@@ -1,0 +1,5 @@
+§2025-04-12 21:56:31.350 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active.
+¯2025-04-12 21:56:31.398 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - Connecting to postgres database at jdbc:postgresql://localhost:5432/ktor_digest_auth
+€2025-04-12 21:56:31.978 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - Application started in 0.653 seconds.
+y2025-04-12 21:56:31.983 [DefaultDispatcher-worker-3 @coroutine#4] INFO  io.ktor.test - Responding at http://localhost:80
+{2025-04-12 21:56:31.984 [DefaultDispatcher-worker-3 @coroutine#4] INFO  io.ktor.test - Responding at https://localhost:443
