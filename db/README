@@ -1,0 +1,62 @@
+# Database
+
+## Estrutura 
+```
+/BeeSharp
+├── docker-compose.yml         
+└── db
+    └── init
+        ├── db.sql      
+        └── mocks.sql      
+```  
+
+## Tecnologias Utilizadas
+- **PostgreSQL 17** via contêiner Docker
+- **Docker Compose V2** (plugin integrado ao Docker)
+- SQL puro para schema e dados de mock
+
+## Pré-requisitos
+1. **Docker** instalado e em execução  
+2. **Docker Compose plugin** (`docker compose`)  
+3. **psql** (cliente CLI PostgreSQL) opcional, para inspeção manual  
+4. Usuário adicionado ao grupo **docker** para executar sem `sudo`:  
+   ```bash
+   sudo usermod -aG docker $USER && newgrp docker
+   ```
+
+## Configuração e Inicialização do Banco
+1. **Clonar o repositório**  
+   ```bash
+   git clone https://github.com/SophiaSociety/BeeSharp.git
+   cd BeeSharp
+   ```
+
+3. **Subir o contêiner do Postgres**  
+   ```bash
+   docker compose up -d
+   ```
+   - O entrypoint executa em sequência todos os arquivos dentro de `db/init/`:
+     1. `db.sql` → cria tabelas, extensões e triggers
+     2. `mocks.sql`  → insere 10 registros de exemplo em cada tabela
+
+4. **Verificar status e logs**  
+   ```bash
+   docker compose ps       # Contêiner “db” deve estar Up
+   docker compose logs db  # Confirma execução dos scripts SQL
+   ```
+
+## Conectando ao Banco
+- **Via psql** (no host):
+  ```bash
+  docker exec -it beesharp-db  psql "postgresql://beesharp_user:supersecret@localhost:5432/beesharp"
+  ```
+
+## Validando a Instalação
+No prompt do `psql`, execute:
+```sql
+\dt                    -- lista todas as tabelas criadas
+SELECT COUNT(*) FROM Users;     -- deve retornar 10
+SELECT COUNT(*) FROM Albums;    -- deve retornar 10
+-- e o que mais você quiser ver! :)
+```  
+

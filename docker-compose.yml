@@ -1,0 +1,19 @@
+# version: '3.8'
+
+services:
+  db:
+    image: postgres:17
+    container_name: beesharp-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: beesharp_user
+      POSTGRES_PASSWORD: supersecret
+      POSTGRES_DB: beesharp
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d
+
+volumes:
+  db_data:
