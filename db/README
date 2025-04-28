@@ -33,7 +33,7 @@
 
 3. **Subir o contêiner do Postgres**  
    ```bash
-   docker compose up -d
+   docker-compose up -d
    ```
    - O entrypoint executa em sequência todos os arquivos dentro de `db/init/`:
      1. `db.sql` → cria tabelas, extensões e triggers
@@ -41,8 +41,8 @@
 
 4. **Verificar status e logs**  
    ```bash
-   docker compose ps       # Contêiner “db” deve estar Up
-   docker compose logs db  # Confirma execução dos scripts SQL
+   docker-compose ps       # Contêiner “db” deve estar Up
+   docker-compose logs db  # Confirma execução dos scripts SQL
    ```
 
 ## Conectando ao Banco
