@@ -2,13 +2,22 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="widt=device-width, initial-scale=1.0">
-        <title>Signup</title>
-<!--        <link rel="stylesheet" href="style.css"> -->
-    </head> 
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Login</title>
+        <!-- <link rel="stylesheet" href="style.css"> -->
+        <style>
+            .error-message {
+                color: red;
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+        </style>
+    </head>
     <body>
         <div class="wrapper">
-            <h1>Signup</h1>
+            <h1>Login</h1>
+            <!-- Mensagem de erro será exibida aqui -->
+            <div id="error-container" class="error-message" style="display: none;"></div>
             <form method="post" action="/login">
                 <div>
                     <label for="username-input">
@@ -17,20 +26,27 @@
                     <input type="text" name="username" id="username-input" placeholder="Username">
                 </div>
                 <div>
-                    <label for="email-input">
-                        <span>@</span>
-                    </label>
-                    <input type="text" name="email" id="email-input" placeholder="Email">
-                </div>
-                <div>
                     <label for="password-input">
                         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e3e3e3"><path d="M240-80q-33 0-56.5-23.5T160-160v-400q0-33 23.5-56.5T240-640h40v-80q0-83 58.5-141.5T480-920q83 0 141.5 58.5T680-720v80h40q33 0 56.5 23.5T800-560v400q0 33-23.5 56.5T720-80H240Zm240-200q33 0 56.5-23.5T560-360q0-33-23.5-56.5T480-440q-33 0-56.5 23.5T400-360q0 33 23.5 56.5T480-280ZM360-640h240v-80q0-50-35-85t-85-35q-50 0-85 35t-35 85v80Z"/></svg>
                     </label>
-                    <input type="text" name="password" id="password-input" placeholder="Password">
+                    <input type="password" name="password" id="password-input" placeholder="Password">
                 </div>
-                <button type="submit">Signup</button>
+                <button type="submit">Login</button>
             </form>
             <p>Don't have an Account? <a href="signup.html">Sign up</a></p>
-        </div>    
+        </div>
+
+        <script>
+            // Verifica se há um parâmetro de erro na URL
+            const params = new URLSearchParams(window.location.search);
+            const error = params.get("error");
+
+            if (error) {
+                // Exibe a mensagem de erro no contêiner
+                const errorContainer = document.getElementById("error-container");
+                errorContainer.textContent = decodeURIComponent(error);
+                errorContainer.style.display = "block";
+            }
+        </script>
     </body>
 </html>
