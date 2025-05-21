@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - Class com.example.ApplicationTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>Class com.example.ApplicationTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.example.html">com.example</a> &gt; ApplicationTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">1</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">1.113s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox failures" id="successRate">
+<div class="percent">0%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Failed tests</a>
+</li>
+<li>
+<a href="#tab1">Tests</a>
+</li>
+<li>
+<a href="#tab2">Standard output</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Failed tests</h2>
+<div class="test">
+<a name="testSignupSuccess"></a>
+<h3 class="failures">testSignupSuccess</h3>
+<span class="code">
+<pre>org.junit.ComparisonFailure: expected:&lt;[User testuser2 signed up successfully]&gt; but was:&lt;[Internal Server Error]&gt;
+	at org.junit.Assert.assertEquals(Assert.java:117)
+	at kotlin.test.junit.JUnitAsserter.assertEquals(JUnitSupport.kt:32)
+	at kotlin.test.AssertionsKt__AssertionsKt.assertEquals(Assertions.kt:63)
+	at kotlin.test.AssertionsKt.assertEquals(Unknown Source)
+	at kotlin.test.AssertionsKt__AssertionsKt.assertEquals$default(Assertions.kt:62)
+	at kotlin.test.AssertionsKt.assertEquals$default(Unknown Source)
+	at com.example.ApplicationTest$testSignupSuccess$1.invokeSuspend(ApplicationTest.kt:32)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:829)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+</pre>
+</span>
+</div>
+</div>
+<div id="tab1" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="failures">testSignupSuccess</td>
+<td class="failures">1.113s</td>
+<td class="failures">failed</td>
+</tr>
+</table>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>2025-04-28 21:23:49.970 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - No ktor.deployment.watch patterns specified, automatic reload is not active.
+2025-04-28 21:23:49.993 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - Connecting to postgres database at jdbc:postgresql://localhost:5432/beesharp?user=beesharp_user&amp;password=supersecret
+2025-04-28 21:23:50.230 [DefaultDispatcher-worker-2 @call-context#3] INFO  io.ktor.test - Application started in 0.277 seconds.
+2025-04-28 21:23:50.232 [DefaultDispatcher-worker-3 @coroutine#4] INFO  io.ktor.test - Responding at http://localhost:80
+2025-04-28 21:23:50.233 [DefaultDispatcher-worker-3 @coroutine#4] INFO  io.ktor.test - Responding at https://localhost:443
+2025-04-28 21:23:50.268 [DefaultDispatcher-worker-4 @request#3] INFO  io.ktor.test - Connecting to postgres database at jdbc:postgresql://localhost:5432/beesharp?user=beesharp_user&amp;password=supersecret
+2025-04-28 21:23:50.314 [DefaultDispatcher-worker-4 @request#3] ERROR io.ktor.test - Error inserting user into database
+org.postgresql.util.PSQLException: ERROR: duplicate key value violates unique constraint &quot;users_username_key&quot;
+  Detail: Key (username)=(testuser2) already exists.
+	at org.postgresql.core.v3.QueryExecutorImpl.receiveErrorResponse(QueryExecutorImpl.java:2733)
+	at org.postgresql.core.v3.QueryExecutorImpl.processResults(QueryExecutorImpl.java:2420)
+	at org.postgresql.core.v3.QueryExecutorImpl.execute(QueryExecutorImpl.java:372)
+	at org.postgresql.jdbc.PgStatement.executeInternal(PgStatement.java:517)
+	at org.postgresql.jdbc.PgStatement.execute(PgStatement.java:434)
+	at org.postgresql.jdbc.PgPreparedStatement.executeWithFlags(PgPreparedStatement.java:194)
+	at org.postgresql.jdbc.PgPreparedStatement.executeUpdate(PgPreparedStatement.java:155)
+	at com.example.SecurityKt$configureSecurity$2$2.invokeSuspend(Security.kt:73)
+	at com.example.SecurityKt$configureSecurity$2$2.invoke(Security.kt)
+	at com.example.SecurityKt$configureSecurity$2$2.invoke(Security.kt)
+	at io.ktor.server.routing.RoutingNode$buildPipeline$1$1.invokeSuspend(RoutingNode.kt:127)
+	at io.ktor.server.routing.RoutingNode$buildPipeline$1$1.invoke(RoutingNode.kt)
+	at io.ktor.server.routing.RoutingNode$buildPipeline$1$1.invoke(RoutingNode.kt)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceedLoop(DebugPipelineContext.kt:79)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceed(DebugPipelineContext.kt:57)
+	at io.ktor.util.pipeline.DebugPipelineContext.execute$ktor_utils(DebugPipelineContext.kt:63)
+	at io.ktor.util.pipeline.Pipeline.execute(Pipeline.kt:92)
+	at io.ktor.server.routing.RoutingRoot$executeResult$$inlined$execute$1.invokeSuspend(Pipeline.kt:510)
+	at io.ktor.server.routing.RoutingRoot$executeResult$$inlined$execute$1.invoke(Pipeline.kt)
+	at io.ktor.server.routing.RoutingRoot$executeResult$$inlined$execute$1.invoke(Pipeline.kt)
+	at io.ktor.util.debug.ContextUtilsKt.initContextInDebugMode(ContextUtils.kt:19)
+	at io.ktor.server.routing.RoutingRoot.executeResult(RoutingRoot.kt:208)
+	at io.ktor.server.routing.RoutingRoot.interceptor(RoutingRoot.kt:71)
+	at io.ktor.server.routing.RoutingRoot$Plugin$install$1.invokeSuspend(RoutingRoot.kt:154)
+	at io.ktor.server.routing.RoutingRoot$Plugin$install$1.invoke(RoutingRoot.kt)
+	at io.ktor.server.routing.RoutingRoot$Plugin$install$1.invoke(RoutingRoot.kt)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceedLoop(DebugPipelineContext.kt:79)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceed(DebugPipelineContext.kt:57)
+	at io.ktor.server.engine.BaseApplicationEngineKt$installDefaultTransformationChecker$1.invokeSuspend(BaseApplicationEngine.kt:119)
+	at io.ktor.server.engine.BaseApplicationEngineKt$installDefaultTransformationChecker$1.invoke(BaseApplicationEngine.kt)
+	at io.ktor.server.engine.BaseApplicationEngineKt$installDefaultTransformationChecker$1.invoke(BaseApplicationEngine.kt)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceedLoop(DebugPipelineContext.kt:79)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceed(DebugPipelineContext.kt:57)
+	at io.ktor.util.pipeline.DebugPipelineContext.execute$ktor_utils(DebugPipelineContext.kt:63)
+	at io.ktor.util.pipeline.Pipeline.execute(Pipeline.kt:92)
+	at io.ktor.server.testing.TestApplicationEngine$2$invokeSuspend$$inlined$execute$1.invokeSuspend(Pipeline.kt:510)
+	at io.ktor.server.testing.TestApplicationEngine$2$invokeSuspend$$inlined$execute$1.invoke(Pipeline.kt)
+	at io.ktor.server.testing.TestApplicationEngine$2$invokeSuspend$$inlined$execute$1.invoke(Pipeline.kt)
+	at io.ktor.util.debug.ContextUtilsKt.initContextInDebugMode(ContextUtils.kt:19)
+	at io.ktor.server.testing.TestApplicationEngine$2.invokeSuspend(TestApplicationEngine.kt:230)
+	at io.ktor.server.testing.TestApplicationEngine$2.invoke(TestApplicationEngine.kt)
+	at io.ktor.server.testing.TestApplicationEngine$2.invoke(TestApplicationEngine.kt)
+	at io.ktor.server.testing.TestApplicationEngine$1.invokeSuspend(TestApplicationEngine.kt:104)
+	at io.ktor.server.testing.TestApplicationEngine$1.invoke(TestApplicationEngine.kt)
+	at io.ktor.server.testing.TestApplicationEngine$1.invoke(TestApplicationEngine.kt)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceedLoop(DebugPipelineContext.kt:79)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceed(DebugPipelineContext.kt:57)
+	at io.ktor.server.engine.BaseApplicationResponse$Companion$setupFallbackResponse$1.invokeSuspend(BaseApplicationResponse.kt:349)
+	at io.ktor.server.engine.BaseApplicationResponse$Companion$setupFallbackResponse$1.invoke(BaseApplicationResponse.kt)
+	at io.ktor.server.engine.BaseApplicationResponse$Companion$setupFallbackResponse$1.invoke(BaseApplicationResponse.kt)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceedLoop(DebugPipelineContext.kt:79)
+	at io.ktor.util.pipeline.DebugPipelineContext.proceed(DebugPipelineContext.kt:57)
+	at io.ktor.util.pipeline.DebugPipelineContext.execute$ktor_utils(DebugPipelineContext.kt:63)
+	at io.ktor.util.pipeline.Pipeline.execute(Pipeline.kt:92)
+	at io.ktor.server.testing.TestApplicationEngine$handleRequest$2$invokeSuspend$$inlined$execute$1.invokeSuspend(Pipeline.kt:510)
+	at io.ktor.server.testing.TestApplicationEngine$handleRequest$2$invokeSuspend$$inlined$execute$1.invoke(Pipeline.kt)
+	at io.ktor.server.testing.TestApplicationEngine$handleRequest$2$invokeSuspend$$inlined$execute$1.invoke(Pipeline.kt)
+	at io.ktor.util.debug.ContextUtilsKt.initContextInDebugMode(ContextUtils.kt:19)
+	at io.ktor.server.testing.TestApplicationEngine$handleRequest$2.invokeSuspend(TestApplicationEngine.kt:229)
+	at io.ktor.server.testing.TestApplicationEngine$handleRequest$2.invoke(TestApplicationEngine.kt)
+	at io.ktor.server.testing.TestApplicationEngine$handleRequest$2.invoke(TestApplicationEngine.kt)
+	at kotlinx.coroutines.intrinsics.UndispatchedKt.startUndispatchedOrReturn(Undispatched.kt:43)
+	at kotlinx.coroutines.BuildersKt__Builders_commonKt.withContext(Builders.common.kt:166)
+	at kotlinx.coroutines.BuildersKt.withContext(Unknown Source)
+	at io.ktor.server.testing.TestApplicationEngine.handleRequest$ktor_server_test_host(TestApplicationEngine.kt:194)
+	at io.ktor.server.testing.TestApplicationEngine.handleRequest$ktor_server_test_host$default(TestApplicationEngine.kt:177)
+	at io.ktor.server.testing.client.TestHttpClientEngine.runRequest(TestHttpClientEngine.kt:89)
+	at io.ktor.server.testing.client.TestHttpClientEngine.execute(TestHttpClientEngine.kt:56)
+	at io.ktor.server.testing.client.DelegatingTestClientEngine.execute(DelegatingTestClientEngine.kt:58)
+	at io.ktor.server.testing.client.DelegatingTestClientEngine$execute$1.invokeSuspend(DelegatingTestClientEngine.kt)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:113)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:820)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.4</a> at Apr 28, 2025, 9:23:50 PM</p>
+</div>
+</div>
+</body>
+</html>
