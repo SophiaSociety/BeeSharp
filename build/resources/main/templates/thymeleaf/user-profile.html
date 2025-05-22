@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - [[${username}]]</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .profile-header {
+            margin-bottom: 20px;
+        }
+        .albums, .following {
+            margin-top: 20px;
+        }
+        .albums ul, .following ul {
+            list-style-type: none;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="profile-header">
+        <h1>[[${username}]]</h1>
+        <p>Email: [[${email}]]</p>
+    </div>
+
+    <div class="albums">
+        <h2>Favorite Albums</h2>
+        <ul>
+            <li th:each="album : ${albums}" th:text="${album}"></li>
+        </ul>
+    </div>
+
+    <div class="following">
+        <h2>Following</h2>
+        <ul>
+            <li th:each="person : ${following}" th:text="${person}"></li>
+        </ul>
+    </div>
+</body>
+</html>
