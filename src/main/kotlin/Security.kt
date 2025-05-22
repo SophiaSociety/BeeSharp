@@ -18,19 +18,18 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 fun Application.configureSecurity() {
     authentication {
-        val myRealm = "MyRealm"
         val dbConnection = this@configureSecurity.connectToPostgres(embedded = false) // Conexão com o banco de dados
 
         digest("myDigestAuth") {
-            digestProvider { userName, realm ->
-                // Consultar o banco de dados para obter o valor de ha1 do usuário
+            digestProvider { userName, _ -> // O parâmetro 'realm' não é usado
+                // Consultar o banco de dados para obter o valor de password_hash do usuário
                 dbConnection.prepareStatement(
-                    "SELECT ha1 FROM auth_users WHERE username = ?"
+                    "SELECT password_hash FROM users WHERE username = ?"
                 ).use { statement ->
                     statement.setString(1, userName)
                     val resultSet = statement.executeQuery()
                     if (resultSet.next()) {
-                        return@digestProvider resultSet.getString("ha1")?.toByteArray(Charsets.UTF_8)
+                        return@digestProvider resultSet.getString("password_hash")?.toByteArray(Charsets.UTF_8)
                     }
                 }
                 null // Retorna null se o usuário não for encontrado
@@ -47,12 +46,11 @@ fun Application.configureSecurity() {
         }
 
         post("/signup") {
-
             val params = call.receiveParameters()
             val username = params["username"] ?: ""
             val password = params["password"] ?: ""
             val repeatPassword = params["repeat-password"] ?: ""
-
+            val email = params["email"] ?: ""
 
             if (password != repeatPassword) {
                 call.respondText("Passwords do not match", status = HttpStatusCode.BadRequest)
@@ -60,18 +58,18 @@ fun Application.configureSecurity() {
             }
 
             val realm = "MyRealm"
-            val ha1 = "$username:$realm:$password".md5() // Calcula o valor de ha1
-
+            val passwordHash = "$username:$realm:$password".md5() // Calcula o hash da senha
 
             // Inserir o novo usuário no banco de dados
-            val dbConnection = connectToPostgres(embedded = false)            
+            val dbConnection = connectToPostgres(embedded = false)
 
             try {
                 dbConnection.prepareStatement(
-                    "INSERT INTO auth_users (username, ha1) VALUES (?, ?)"
+                    "INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)"
                 ).use { statement ->
                     statement.setString(1, username)
-                    statement.setString(2, ha1)
+                    statement.setString(2, passwordHash)
+                    statement.setString(3, email)
                     statement.executeUpdate()
                 }
             } catch (e: Exception) {
@@ -94,26 +92,24 @@ fun Application.configureSecurity() {
             }
 
             val realm = "MyRealm"
-            val inputHa1 = "$username:$realm:$password".md5() // Calcula o ha1 com base na entrada do usuário
+            val inputPasswordHash = "$username:$realm:$password".md5() // Calcula o hash da senha com base na entrada do usuário
             val dbConnection = connectToPostgres(embedded = false)
 
             // Verificar as credenciais no banco de dados
             dbConnection.prepareStatement(
-                "SELECT ha1 FROM auth_users WHERE username = ?"
+                "SELECT password_hash FROM users WHERE username = ?"
             ).use { statement ->
                 statement.setString(1, username)
                 val resultSet = statement.executeQuery()
                 if (resultSet.next()) {
-                    val storedHa1 = resultSet.getString("ha1")
+                    val storedPasswordHash = resultSet.getString("password_hash")
 
-                    if (storedHa1 == inputHa1) {
+                    if (storedPasswordHash == inputPasswordHash) {
                         call.respondText("Login successful", status = HttpStatusCode.OK)
                     } else {
-                        call.respondText("Invalid username or password", status = HttpStatusCode.Unauthorized)
-                    }
+                        call.respondRedirect("/static/login.html?error=Invalid%20username%20or%20password")                    }
                 } else {
-                    call.respondText("Invalid username or password", status = HttpStatusCode.Unauthorized)
-                }
+                    call.respondRedirect("/static/login.html?error=Invalid%20username%20or%20password")                }
             }
         }
     }
@@ -131,11 +127,8 @@ fun Application.connectToPostgres(embedded: Boolean): Connection {
         return DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "root", "")
     } else {
         // Configuração para o banco de dados PostgreSQL local
-        val url = "jdbc:postgresql://localhost:5432/ktor"
-        val user = "ktor_user" // Substitua por seu usuário do PostgreSQL
-        val password = "senha_ktor" // Substitua pela sua senha do PostgreSQL
-
+        val url = "jdbc:postgresql://localhost:5432/beesharp?user=beesharp_user&password=supersecret"
         log.info("Connecting to postgres database at $url")
-        return DriverManager.getConnection(url, user, password)
+        return DriverManager.getConnection(url)
     }
 }
