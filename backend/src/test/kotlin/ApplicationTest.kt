@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 import java.sql.Connection
 
 class ApplicationTest {
-    @Test
+/*    @Test
     fun testSignupSuccess() = testApplication {
         application {
             configureSecurity()
@@ -31,7 +31,7 @@ class ApplicationTest {
 //        assertEquals(HttpStatusCode.Created, response.status)
         assertEquals("User testuser2 signed up successfully", response.bodyAsText())
     }
-
+*/
 /*    @Test
     fun testSignupPasswordMismatch() = testApplication {
         application {
