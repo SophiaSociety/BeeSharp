@@ -1,3 +1,6 @@
+<script>
+    import { push } from 'svelte-spa-router';
+</script>
 <style>
     :global(html, body) {
         margin: 0;
@@ -114,18 +117,16 @@
  
 </style>
 
-
 <div class="landing-page">
     <nav class="navbar-landing">
         <div class="navbar-container">
             <div class="logo-component">
                 <img src="/logocomtexto.png" alt="BeeSharp Logo" />
-
             </div>
             <div class="nav-links">
                 <a href="/albuns">ÁLBUNS</a>
-                <a href="/criar-conta">CRIAR CONTA</a>
-                <a href="/login">LOGIN</a>
+                <a href="/criar-conta" on:click|preventDefault={() => push('/criar-conta')}>CRIAR CONTA</a>
+                <a href="/login" on:click|preventDefault={() => push('/login')}>LOGIN</a>
             </div>
         </div>
     </nav>
@@ -137,8 +138,9 @@
                 Descubra novos sons que combinam com você.<br />
                 Compartilhe seus favoritos com seus amigos.<br />
             </h1>
-
-            <button class="btn-primary">Entre agora :)</button>
+            <a href="/login" on:click|preventDefault={() => push('/login')}>
+                <button class="btn-primary">Entre agora :)</button>
+            </a>
             <p class="subheading">Para todos que amam música.</p>
         </div>
     </main>
