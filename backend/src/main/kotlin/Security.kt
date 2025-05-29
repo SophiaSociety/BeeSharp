@@ -43,7 +43,7 @@ fun Application.configureSecurity() {
                 val principal = call.principal<UserIdPrincipal>()!!
                 call.respondText("Hello ${principal.name}")
             }
-        }
+        }    
 
         post("/signup") {
             val params = call.receiveParameters()
@@ -51,18 +51,18 @@ fun Application.configureSecurity() {
             val password = params["password"] ?: ""
             val repeatPassword = params["repeat-password"] ?: ""
             val email = params["email"] ?: ""
+            println("Dados recebidos: $username, $email")
+
 
             if (password != repeatPassword) {
-                call.respondText("Passwords do not match", status = HttpStatusCode.BadRequest)
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Passwords do not match"))
                 return@post
             }
 
             val realm = "MyRealm"
-            val passwordHash = "$username:$realm:$password".md5() // Calcula o hash da senha
+            val passwordHash = "$username:$realm:$password".md5()
 
-            // Inserir o novo usuário no banco de dados
             val dbConnection = connectToPostgres(embedded = false)
-
             try {
                 dbConnection.prepareStatement(
                     "INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)"
@@ -74,28 +74,29 @@ fun Application.configureSecurity() {
                 }
             } catch (e: Exception) {
                 log.error("Error inserting user into database", e)
-                call.respondText("Internal Server Error", status = HttpStatusCode.InternalServerError)
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Internal Server Error"))
                 return@post
             }
 
-            call.respondText("User $username signed up successfully", status = HttpStatusCode.Created)
+            call.respond(HttpStatusCode.Created, mapOf("message" to "User $username signed up successfully"))
         }
 
         post("/login") {
             val params = call.receiveParameters()
             val username = params["username"] ?: ""
             val password = params["password"] ?: ""
+            println("Dados recebidos: $username")
+
 
             if (username.isBlank() || password.isBlank()) {
-                call.respondText("Username and password must not be empty", status = HttpStatusCode.BadRequest)
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Username and password must not be empty"))
                 return@post
             }
 
             val realm = "MyRealm"
-            val inputPasswordHash = "$username:$realm:$password".md5() // Calcula o hash da senha com base na entrada do usuário
+            val inputPasswordHash = "$username:$realm:$password".md5()
             val dbConnection = connectToPostgres(embedded = false)
 
-            // Verificar as credenciais no banco de dados
             dbConnection.prepareStatement(
                 "SELECT password_hash FROM users WHERE username = ?"
             ).use { statement ->
@@ -105,13 +106,16 @@ fun Application.configureSecurity() {
                     val storedPasswordHash = resultSet.getString("password_hash")
 
                     if (storedPasswordHash == inputPasswordHash) {
-                        call.respondText("Login successful", status = HttpStatusCode.OK)
+                        call.respond(HttpStatusCode.OK, mapOf("message" to "Login successful"))
                     } else {
-                        call.respondRedirect("/static/login.html?error=Invalid%20username%20or%20password")                    }
+                        call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
+                    }
                 } else {
-                    call.respondRedirect("/static/login.html?error=Invalid%20username%20or%20password")                }
+                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
+                }
             }
         }
+        
     }
 }
 
