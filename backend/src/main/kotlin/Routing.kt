@@ -27,8 +27,8 @@ fun Application.configureRouting() {
         
         // Rota dinâmica para o perfil do usuário
         get("/{username}") {
-            val username = call.parameters["username"] ?: return@get call.respondText(
-                "Username not provided", status = HttpStatusCode.BadRequest
+            val username = call.parameters["username"] ?: return@get call.respond(
+                HttpStatusCode.BadRequest, mapOf("error" to "Username not provided")
             )
 
             val dbConnection = connectToPostgres(embedded = false)
@@ -50,7 +50,7 @@ fun Application.configureRouting() {
             }
 
             if (userInfo == null) {
-                call.respondText("User not found", status = HttpStatusCode.NotFound)
+                call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
                 return@get
             }
 
@@ -85,13 +85,15 @@ fun Application.configureRouting() {
                 followingList
             }
 
-            // Renderizar o template com os dados do usuário
-            call.respond(ThymeleafContent("user-profile", mapOf(
-                "username" to username as Any,
-                "email" to (userInfo["email"] as Any),
-                "albums" to albums as Any,
-                "following" to following as Any
-            )))
+            // Responder com JSON
+            call.respond(
+                mapOf(
+                    "username" to username,
+                    "email" to userInfo["email"],
+                    "albums" to albums,
+                    "following" to following
+                )
+            )
         }
     }
 }
