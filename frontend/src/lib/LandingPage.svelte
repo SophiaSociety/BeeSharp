@@ -1,29 +1,36 @@
 <script>
+    import Login from './Login.svelte';
+    let showLogin = false;
     import { push } from 'svelte-spa-router';
 </script>
+
 <style>
     :global(html, body) {
+        height: 100%;
+        min-height: 100vh;
+        width: 100%;
+        min-width: 100vw;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
-        overflow: auto;
-        background-color: #1C1C1C;
-
-        background-image: linear-gradient(180deg,rgba(0, 0, 0, 0) 0%, rgba(28, 28, 28, 1) 60%),  
-        linear-gradient(rgba(28,28,28,0.05), rgba(28,28,28,0.5)), url('/imagemm.jpg');
-
-        background-size: 100% 100%, 100% 100%, min(100vw, 2000px);    /* altura = 100vh, largura proporcional */
-        background-repeat: no-repeat;
-        background-attachment: scroll;   /* rola junto com o conteúdo */
-        background-position: center center, center center, center -400px;
     }
 
     .landing-page {
-        position: relative;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        min-height: 100vh;
+        min-width: 100vw;
         z-index: 0;
-        min-height: 120vh;
         display: flex;
         flex-direction: column;
+        background-image: linear-gradient(180deg,rgba(0, 0, 0, 0) 0%, rgba(28, 28, 28, 1) 60%),
+            linear-gradient(rgba(28,28,28,0.05), rgba(28,28,28,0.5)), url('/imagemm.jpg');
+        background-size: cover, cover, cover;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        background-position: center center;
     }
 
     .navbar-landing {
@@ -124,9 +131,9 @@
                 <img src="/logocomtexto.png" alt="BeeSharp Logo" />
             </div>
             <div class="nav-links">
-                <a href="/albuns">ÁLBUNS</a>
+                <a href="/albuns" on:click|preventDefault={() => push('/albuns')}   >ÁLBUNS</a>
                 <a href="/criar-conta" on:click|preventDefault={() => push('/criar-conta')}>CRIAR CONTA</a>
-                <a href="/login" on:click|preventDefault={() => push('/login')}>LOGIN</a>
+                <a href="/login" on:click|preventDefault={() => showLogin = true}>LOGIN</a>
             </div>
         </div>
     </nav>
@@ -138,9 +145,7 @@
                 Descubra novos sons que combinam com você.<br />
                 Compartilhe seus favoritos com seus amigos.<br />
             </h1>
-            <a href="/login" on:click|preventDefault={() => push('/login')}>
-                <button class="btn-primary">Entre agora :)</button>
-            </a>
+            <button class="btn-primary" on:click={() => showLogin = true}>Entre agora :)</button>
             <p class="subheading">Para todos que amam música.</p>
         </div>
     </main>
@@ -149,4 +154,8 @@
         <p>© BeeSharp Limited. Feito por estudantes do IME USP apaixonados por música. 
             Dados da API do Spotify.</p>
     </footer>
+
+    {#if showLogin}
+        <Login onClose={() => showLogin = false} />
+    {/if}
 </div>

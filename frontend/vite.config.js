@@ -9,6 +9,7 @@ export default defineConfig({
       '/login': 'http://localhost:8080',
       '/signup': 'http://localhost:8080'
 
-    }
+    },
+    clearScreen: false
   }
 })
