@@ -17,6 +17,13 @@ import java.sql.DriverManager
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 
 fun Application.configureSerialization() {
+        install(ContentNegotiation) {
+        json(
+            kotlinx.serialization.json.Json {
+                prettyPrint = true
+            }
+        )
+    }
     routing {
         get("/json/kotlinx-serialization") {
                 call.respond(mapOf("hello" to "world"))

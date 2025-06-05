@@ -64,10 +64,13 @@ fun Application.configureRouting() {
                 val resultSet = statement.executeQuery()
                 val albumList = mutableListOf<Int>()
                 if (resultSet.next()) {
-                    albumList.add(resultSet.getInt("album_id1"))
-                    albumList.add(resultSet.getInt("album_id2"))
-                    albumList.add(resultSet.getInt("album_id3"))
-                    albumList.add(resultSet.getInt("album_id4"))
+                    val ids = listOf(
+                        resultSet.getInt("album_id1").takeIf { !resultSet.wasNull() },
+                        resultSet.getInt("album_id2").takeIf { !resultSet.wasNull() },
+                        resultSet.getInt("album_id3").takeIf { !resultSet.wasNull() },
+                        resultSet.getInt("album_id4").takeIf { !resultSet.wasNull() }
+                    )
+                    albumList.addAll(ids.filterNotNull())
                 }
                 albumList
             }
