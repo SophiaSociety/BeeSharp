@@ -1,4 +1,4 @@
-package com.example
+package com.beesharp.backend.config
 
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*

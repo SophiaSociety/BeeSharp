@@ -1,8 +1,13 @@
-package com.example
+package com.beesharp.backend
 
 import io.ktor.server.application.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.http.*
+import org.jetbrains.exposed.sql.Database
+
+import com.beesharp.backend.config.configureSerialization
+import com.beesharp.backend.config.configureSecurity
+import com.beesharp.backend.config.configureTemplating
 
 fun main(args: Array<String>) {
     io.ktor.server.netty.EngineMain.main(args)
@@ -21,5 +26,15 @@ fun Application.module() {
     configureSerialization()
     configureSecurity()
     configureTemplating()
+    configureDatabases()
     configureRouting()
+}
+
+fun Application.configureDatabases() {
+    Database.connect(
+        url = "jdbc:postgresql://localhost:5432/beesharp",
+        driver = "org.postgresql.Driver",
+        user = "beesharp_user",
+        password = "supersecret"
+    )
 }
