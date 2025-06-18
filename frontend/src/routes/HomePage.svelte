@@ -1,19 +1,6 @@
-<nav class="navbar-homepage">
-    <div class="navbar-container">
-        <div class="logo-component">
-            <img src="/logocomtexto.png" alt="BeeSharp Logo" />
-        </div>
-        <div class="nav-links">
-            <a href="/perfil">MEU PERFIL</a>
-            <a href="/albuns">MEUS ÁLBUNS</a>
-            <a href="/amigos">AMIGOS</a>
-        </div>
-    </div>
-</nav>
-
-<h2 class="carousel-title">Recomendações para você</h2>
-
 <script>
+    import { push } from 'svelte-spa-router';
+
     let albuns = [
         { titulo: "Álbum 1", artista: "Artista 1", capa: "/capa1.jpg" },
         { titulo: "Álbum 2", artista: "Artista 2", capa: "/capa2.jpg" },
@@ -34,6 +21,22 @@
     }
 </script>
 
+
+<nav class="navbar-homepage">
+    <div class="navbar-container">
+        <div class="logo-component">
+            <img src="/logocomtexto.png" alt="BeeSharp Logo" />
+        </div>
+        <div class="nav-links">
+            <a href="/perfil" on:click|preventDefault={() => push('/perfil')}>MEU PERFIL</a>
+            <a href="/albuns">MEUS ÁLBUNS</a>
+            <a href="/amigos">AMIGOS</a>
+        </div>
+    </div>
+</nav>
+
+<h2 class="carousel-title">Recomendações para você</h2>
+
 <div class="carousel">
     <button on:click={prev} disabled={current === 0}>&lt;</button>
     <div class="carousel-track">
@@ -49,19 +52,6 @@
 </div>
 
 <style>
-    :global(html, body) {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        overflow: auto;
-        background-color: #1C1C1C;
-        background-size: 100% 100%, 100% 100%, min(100vw, 2000px);
-        background-image: none !important;
-        background-repeat: no-repeat;
-        background-attachment: scroll;
-        background-position: center center, center center, center -400px;
-    }
-
     .navbar-homepage {
         position: fixed;
         top: 0;
@@ -72,7 +62,8 @@
         justify-content: space-between;
         align-items:center;
         padding: 0 1.5rem;
-        background: #481D24;
+        height: 60px;
+        min-height: 60px;
     }
 
     .navbar-container {
@@ -84,7 +75,7 @@
     }
 
     .logo-component img {
-        height: 72px;
+        height: 60px;
         cursor: pointer;
     }
 
@@ -94,12 +85,13 @@
         color: white;
         font-family: 'Familjen Grotesk', sans-serif;
         font-weight: bold;
-        font-size: 16px;
+        font-size: 14px;
         letter-spacing: 0.1em;
         text-decoration: none;
         white-space: nowrap;
         overflow-x: auto;
     }
+
     .carousel {
         display: flex;
         align-items: center;
