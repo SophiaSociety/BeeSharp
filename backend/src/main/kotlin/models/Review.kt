@@ -3,6 +3,10 @@ package com.beesharp.backend.models
 import org.jetbrains.exposed.sql.Table
 import java.time.LocalDateTime
 import org.jetbrains.exposed.sql.javatime.datetime
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Contextual
+
+
 
 object Reviews : Table() {
     val id = integer("id").autoIncrement()
@@ -14,11 +18,13 @@ object Reviews : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
+@Serializable
 data class Review(
     val id: Int,
     val userId: Int,
     val albumId: Int,
     val content: String,
     val rating: Int,
+    @Contextual
     val createdAt: LocalDateTime
 )

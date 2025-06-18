@@ -1,6 +1,8 @@
 package com.beesharp.backend.models
 
 import org.jetbrains.exposed.sql.Table
+import kotlinx.serialization.Serializable
+
 
 object Albums : Table() {
     val id = integer("id").autoIncrement()
@@ -11,6 +13,7 @@ object Albums : Table() {
     override val primaryKey = PrimaryKey(id)
 }
 
+@Serializable
 data class Album(
     val id: Int,
     val title: String,
