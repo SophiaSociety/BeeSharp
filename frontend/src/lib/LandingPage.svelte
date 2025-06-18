@@ -5,14 +5,6 @@
 </script>
 
 <style>
-    :global(html, body) {
-        height: 100%;
-        min-height: 100vh;
-        width: 100%;
-        min-width: 100vw;
-        margin: 0;
-        padding: 0;
-    }
 
     .landing-page {
         position: fixed;
