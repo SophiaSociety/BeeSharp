@@ -81,5 +81,18 @@ class UserRepository {
             .select { UserFollows.followerId eq userId }
             .map { it[Users.username] }
     }
+    fun followUser(followerId: Int, userIdToFollow: Int): Boolean = transaction {
+        // Verifica se já existe o follow
+        val exists = UserFollows.select {
+            (UserFollows.followerId eq followerId) and (UserFollows.userId eq userIdToFollow)
+        }.count() > 0
 
+        if (exists) return@transaction false
+
+        UserFollows.insert {
+            it[UserFollows.followerId] = followerId
+            it[UserFollows.userId] = userIdToFollow
+        }
+        true
+    }
 }

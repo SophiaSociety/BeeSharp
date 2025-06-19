@@ -125,17 +125,6 @@ fun Application.configureRouting() {
                 val reviews = reviewRepo.getReviewsByAlbum(albumId)
                 call.respond(reviews)
             }
-
-            post {
-                val body = call.receive<Map<String, String>>()
-                val userId = body["userId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
-                val albumId = body["albumId"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
-                val content = body["content"] ?: return@post call.respond(HttpStatusCode.BadRequest)
-                val rating = body["rating"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
-
-                val newId = reviewRepo.addReview(userId, albumId, content, rating)
-                call.respond(HttpStatusCode.Created, mapOf("id" to newId))
-            }
         }
 
     }
