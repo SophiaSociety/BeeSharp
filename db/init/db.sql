@@ -62,8 +62,8 @@ CREATE TABLE Reviews (
     album_id       INT    NOT NULL,
     user_id        INT    NOT NULL,
     rating         INT NOT NULL CHECK (rating >= 0 AND rating <= 5),
-    review    TEXT,
-    creation_date  DATE   NOT NULL,
+    content      TEXT NOT NULL,
+    created_at   TIMESTAMP NOT NULL DEFAULT NOW(),
     modified_date  DATE   NOT NULL,
     FOREIGN KEY (user_id)  REFERENCES Users(id)  ON DELETE CASCADE,
     FOREIGN KEY (album_id) REFERENCES Albums(id) ON DELETE CASCADE

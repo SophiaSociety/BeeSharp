@@ -82,17 +82,17 @@ INSERT INTO ListeningHistory (user_id, album_id) VALUES
 (7,9),
 (8,10);
 
-INSERT INTO Reviews (album_id, user_id, rating, review, creation_date, modified_date) VALUES
-(1,1,5,'Incrível álbum!','2025-04-20','2025-04-20'),
-(2,1,4,'Gostei muito.','2025-04-20','2025-04-20'),
-(3,2,5,'Clássico eterno.','2025-04-21','2025-04-21'),
-(4,2,3,'Bom, mas não genial.','2025-04-21','2025-04-21'),
-(5,3,4,'Ótimas faixas.','2025-04-22','2025-04-22'),
-(6,4,2,'Não curti tanto.','2025-04-22','2025-04-22'),
-(7,5,5,'Excelente produção.','2025-04-23','2025-04-23'),
-(8,6,3,'Médio.','2025-04-23','2025-04-23'),
-(9,7,4,'Vale a pena ouvir.','2025-04-24','2025-04-24'),
-(10,8,5,'Meu favorito!','2025-04-24','2025-04-24');
+INSERT INTO Reviews (album_id, user_id, rating, content, created_at, modified_date) VALUES
+(1,1,5,'Incrível álbum!','2025-04-20 10:00:00','2025-04-20'),
+(2,1,4,'Gostei muito.','2025-04-20 11:00:00','2025-04-20'),
+(3,2,5,'Clássico eterno.','2025-04-21 09:30:00','2025-04-21'),
+(4,2,3,'Bom, mas não genial.','2025-04-21 14:00:00','2025-04-21'),
+(5,3,4,'Ótimas faixas.','2025-04-22 08:15:00','2025-04-22'),
+(6,4,2,'Não curti tanto.','2025-04-22 17:45:00','2025-04-22'),
+(7,5,5,'Excelente produção.','2025-04-23 12:00:00','2025-04-23'),
+(8,6,3,'Médio.','2025-04-23 15:20:00','2025-04-23'),
+(9,7,4,'Vale a pena ouvir.','2025-04-24 16:10:00','2025-04-24'),
+(10,8,5,'Meu favorito!','2025-04-24 18:00:00','2025-04-24');
 
 
 INSERT INTO Commentaries (review_id, user_id, commentary, creation_date, modified_date) VALUES

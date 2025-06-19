@@ -1,4 +1,4 @@
-package com.example
+package com.beesharp.backend.config
 
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -15,6 +15,7 @@ import io.ktor.util.*
 import java.sql.Connection
 import java.sql.DriverManager
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
+import com.beesharp.backend.*
 
 fun Application.configureSecurity() {
     authentication {
@@ -25,7 +26,7 @@ fun Application.configureSecurity() {
                 // Consultar o banco de dados para obter o valor de password_hash do usuário
                 dbConnection.prepareStatement(
                     "SELECT password_hash FROM users WHERE username = ?"
-                ).use { statement ->
+                ).use { statement: java.sql.PreparedStatement ->
                     statement.setString(1, userName)
                     val resultSet = statement.executeQuery()
                     if (resultSet.next()) {
@@ -123,16 +124,4 @@ fun Application.configureSecurity() {
 fun String.md5(): String {
     val bytes = java.security.MessageDigest.getInstance("MD5").digest(this.toByteArray())
     return bytes.joinToString("") { "%02x".format(it) }
-}
-fun Application.connectToPostgres(embedded: Boolean): Connection {
-    Class.forName("org.postgresql.Driver")
-    if (embedded) {
-        log.info("Using embedded H2 database for testing; replace this flag to use postgres")
-        return DriverManager.getConnection("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1", "root", "")
-    } else {
-        // Configuração para o banco de dados PostgreSQL local
-        val url = "jdbc:postgresql://localhost:5432/beesharp?user=beesharp_user&password=supersecret"
-        log.info("Connecting to postgres database at $url")
-        return DriverManager.getConnection(url)
-    }
 }
