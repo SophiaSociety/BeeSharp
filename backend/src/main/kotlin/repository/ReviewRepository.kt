@@ -7,6 +7,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 import com.beesharp.backend.models.Review
 import com.beesharp.backend.models.Reviews
+import com.beesharp.backend.models.Albums
 
 class ReviewRepository {
 
@@ -37,13 +38,30 @@ class ReviewRepository {
     }
 
     fun addReview(userId: Int, albumId: Int, content: String, rating: Int): Int = transaction {
-        Reviews.insert {
+        val reviewId = Reviews.insert {
             it[Reviews.userId] = userId
             it[Reviews.albumId] = albumId
             it[Reviews.content] = content
             it[Reviews.rating] = rating
             it[Reviews.createdAt] = LocalDateTime.now()
         } get Reviews.id
+
+        // 2. Busca todas as notas do álbum
+        val ratings = Reviews.slice(Reviews.rating)
+            .select { Reviews.albumId eq albumId }
+            .map { it[Reviews.rating] }
+
+        // 3. Calcula média e quantidade
+        val reviewCount = ratings.size
+        val average = if (reviewCount > 0) ratings.average() else 0.0
+
+        // 4. Atualiza o álbum
+        Albums.update({ Albums.id eq albumId }) {
+            it[Albums.averageRating] = average.toBigDecimal()
+            it[Albums.reviewsCount] = reviewCount
+        }
+
+        reviewId
     }
 
     fun deleteReview(id: Int): Boolean = transaction {
