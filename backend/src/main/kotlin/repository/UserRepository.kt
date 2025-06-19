@@ -75,7 +75,10 @@ class UserRepository {
     }
 
     fun getFollowing(userId: Int): List<String> = transaction {
-        (UserFollows innerJoin Users).select { UserFollows.userId eq userId }
+        UserFollows
+            .join(Users, JoinType.INNER, UserFollows.userId, Users.id)
+            .slice(Users.username)
+            .select { UserFollows.followerId eq userId }
             .map { it[Users.username] }
     }
 
