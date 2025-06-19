@@ -34,6 +34,19 @@ class AlbumRepository {
             }.singleOrNull()
     }
 
+    fun searchAlbumsByName(partialName: String): List<Album> = transaction {
+        Albums.select { Albums.title.lowerCase() like "%${partialName.lowercase()}%" }
+            .map {
+                Album(
+                    id = it[Albums.id],
+                    title = it[Albums.title],
+                    artist = it[Albums.artist],
+                    reviewsCount = it[Albums.reviewsCount],
+                    averageRating = it[Albums.averageRating].toDouble()
+                )
+            }
+    }
+
     fun addAlbum(title: String, artist: String?): Int = transaction {
         Albums.insert {
             it[Albums.title] = title
