@@ -53,23 +53,14 @@ fun Application.configureSecurity() {
                 return@post
             }
 
-            val dbConnection = connectToPostgres(embedded = false)
-            try {
-                dbConnection.prepareStatement(
-                    "INSERT INTO users (username, password_hash, email) VALUES (?, ?, ?)"
-                ).use { statement ->
-                    statement.setString(1, username)
-                    statement.setString(2, password.md5())
-                    statement.setString(3, email)
-                    statement.executeUpdate()
-                }
-            } catch (e: Exception) {
-                log.error("Error inserting user into database", e)
-                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Internal Server Error"))
+            val userRepo = UserRepository()
+            if (userRepo.existsByUsernameOrEmail(username, email)) {
+                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username or email already exists"))
                 return@post
             }
 
-            call.respond(HttpStatusCode.Created, mapOf("message" to "User $username signed up successfully"))
+            val userId = userRepo.addUser(username, password.md5(), email)
+            call.respond(HttpStatusCode.Created, mapOf("message" to "User $username signed up successfully", "id" to userId))
         }
 
         post("/login") {
@@ -83,29 +74,26 @@ fun Application.configureSecurity() {
                 return@post
             }
 
-            val dbConnection = connectToPostgres(embedded = false)
-            dbConnection.prepareStatement(
-                "SELECT password_hash FROM users WHERE username = ?"
-            ).use { statement ->
-                statement.setString(1, username)
-                val resultSet = statement.executeQuery()
-                if (resultSet.next()) {
-                    val storedPasswordHash = resultSet.getString("password_hash")
-                    if (storedPasswordHash == password.md5()) {
-                        // Gera o token JWT
-                        val token = JWT.create()
-                            .withAudience(jwtAudience)
-                            .withIssuer(jwtIssuer)
-                            .withClaim("username", username)
-                            .withExpiresAt(Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24h
-                            .sign(Algorithm.HMAC256(jwtSecret))
-                        call.respond(HttpStatusCode.OK, mapOf("token" to token))
-                    } else {
-                        call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
-                    }
-                } else {
-                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
-                }
+            val userRepo = UserRepository()
+            val user = userRepo.getUserByUsername(username)
+
+            if (user == null) {
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
+                return@post
+            }
+
+            if (user.passwordHash == password.md5()) {
+                // Gera o token JWT
+                val token = JWT.create()
+                    .withAudience(jwtAudience)
+                    .withIssuer(jwtIssuer)
+                    .withClaim("username", username)
+                    .withClaim("userId", user.id)
+                    .withExpiresAt(Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24h
+                    .sign(Algorithm.HMAC256(jwtSecret))
+                call.respond(HttpStatusCode.OK, mapOf("token" to token))
+            } else {
+                call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "Invalid username or password"))
             }
         }
 
@@ -116,50 +104,38 @@ fun Application.configureSecurity() {
                 val username = principal.payload.getClaim("username").asString()
                 call.respondText("Hello $username, you are authenticated via JWT!")
             }
-            post("/follow/{usernameToFollow}") {
+            post("/follow/{userIdToFollow}") {
                 val principal = call.principal<JWTPrincipal>()!!
-                val followerUsername = principal.payload.getClaim("username").asString()
-                val usernameToFollow = call.parameters["usernameToFollow"]
+                val userIdAgent = principal.payload.getClaim("userId").asInt() // O ID do usuário autenticado deve estar no JWT!
+                val userIdToFollow = call.parameters["userIdToFollow"]?.toIntOrNull()
 
-                if (usernameToFollow.isNullOrBlank()) {
-                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Username to follow not provided"))
+                if (userIdToFollow == null) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "User ID to follow not provided or invalid"))
                     return@post
                 }
 
-                val userRepo = UserRepository()
-                val follower = userRepo.getUserByUsername(followerUsername)
-                val followed = userRepo.getUserByUsername(usernameToFollow)
-
-                if (follower == null || followed == null) {
-                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
-                    return@post
-                }
-
-                // Evita seguir a si mesmo
-                if (follower.id == followed.id) {
+                if (userIdAgent == userIdToFollow) {
                     call.respond(HttpStatusCode.BadRequest, mapOf("error" to "You cannot follow yourself"))
                     return@post
                 }
 
-                // Adiciona o follow (implemente esse método no UserRepository se ainda não existir)
-                val success = userRepo.followUser(follower.id, followed.id)
+                val userRepo = UserRepository()
+                val followed = userRepo.getUserById(userIdToFollow)
+                if (followed == null) {
+                    call.respond(HttpStatusCode.NotFound, mapOf("error" to "User to follow not found"))
+                    return@post
+                }
+
+                val success = userRepo.followUser(userIdAgent, userIdToFollow)
                 if (success) {
-                    call.respond(HttpStatusCode.OK, mapOf("message" to "Now following $usernameToFollow"))
+                    call.respond(HttpStatusCode.OK, mapOf("message" to "Now following user with id $userIdToFollow"))
                 } else {
                     call.respond(HttpStatusCode.Conflict, mapOf("error" to "Already following or error occurred"))
                 }
             }
             post("/review") {
                 val principal = call.principal<JWTPrincipal>()!!
-                val username = principal.payload.getClaim("username").asString()
-
-                val userRepo = UserRepository()
-                val reviewRepo = ReviewRepository()
-                val user = userRepo.getUserByUsername(username)
-                if (user == null) {
-                    call.respond(HttpStatusCode.Unauthorized, mapOf("error" to "User not found"))
-                    return@post
-                }
+                val userIdAgent = principal.payload.getClaim("userId").asInt() // O ID do usuário autenticado deve estar no JWT!
 
                 val params = call.receiveParameters()
                 val albumId = params["albumId"]?.toIntOrNull()
@@ -171,7 +147,8 @@ fun Application.configureSecurity() {
                     return@post
                 }
 
-                val newId = reviewRepo.addReview(user.id, albumId, content, rating)
+                val reviewRepo = ReviewRepository()
+                val newId = reviewRepo.addReview(userIdAgent, albumId, content, rating)
                 call.respond(HttpStatusCode.Created, mapOf("id" to newId))
             }
         }

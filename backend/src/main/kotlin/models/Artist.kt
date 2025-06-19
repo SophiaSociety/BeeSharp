@@ -4,19 +4,15 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.sql.Table
 
 // tabela do banco
-object Users : Table() {
+object Artists : Table() {
     val id = integer("id").autoIncrement()
-    val username = varchar("username", 255)
-    val passwordHash = varchar("password_hash", 255)
-    val email = varchar("email", 255)
+    val name = varchar("name", 255).uniqueIndex()
     override val primaryKey = PrimaryKey(id)
 }
 
 // classe de dados
 @Serializable
-data class User(
+data class Artist(
     val id: Int,
-    val username: String,
-    val email: String,
-    val passwordHash: String
+    val name: String
 )

@@ -16,7 +16,8 @@ class UserRepository {
             User(
                 id = it[Users.id],
                 username = it[Users.username],
-                email = it[Users.email]
+                email = it[Users.email],
+                passwordHash = ""
             )
         }
     }
@@ -27,7 +28,8 @@ class UserRepository {
                 User(
                     id = it[Users.id],
                     username = it[Users.username],
-                    email = it[Users.email]
+                    email = it[Users.email],
+                    passwordHash = ""
                 )
             }
             .singleOrNull()
@@ -51,15 +53,32 @@ class UserRepository {
         } > 0
     }
 
+    fun existsByUsernameOrEmail(username: String, email: String): Boolean = transaction {
+        Users.select { (Users.username eq username) or (Users.email eq email) }.count() > 0
+    }
+
     fun getUserByUsername(username: String): User? = transaction {
         Users.select { Users.username eq username }
             .map {
                 User(
                     id = it[Users.id],
                     username = it[Users.username],
-                    email = it[Users.email]
+                    email = it[Users.email],
+                    passwordHash = it[Users.passwordHash]
                 )
-            }.singleOrNull()
+            }
+            .singleOrNull()
+    }
+
+    fun searchUsersByUsername(partialName: String): List<User> = transaction {
+        Users.select { Users.username.lowerCase() like "%${partialName.lowercase()}%" }
+            .map { User(
+                        id = it[Users.id], 
+                        username = it[Users.username],
+                        email = it[Users.email],
+                        passwordHash = ""
+                    )
+                }
     }
 
     fun getFavoriteAlbums(userId: Int): List<Int> = transaction {

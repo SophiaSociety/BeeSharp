@@ -19,6 +19,7 @@ import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
 import com.beesharp.backend.repository.UserRepository
 import com.beesharp.backend.repository.AlbumRepository
 import com.beesharp.backend.repository.ReviewRepository
+import com.beesharp.backend.repository.ArtistRepository
 import com.beesharp.backend.*
 import com.beesharp.backend.models.User
 import kotlinx.serialization.Serializable
@@ -36,6 +37,7 @@ fun Application.configureRouting() {
     val userRepo = UserRepository()
     val albumRepo = AlbumRepository()
     val reviewRepo = ReviewRepository()
+    val artistRepo = ArtistRepository()
 
     routing {
         get("/{username}") {
@@ -126,6 +128,34 @@ fun Application.configureRouting() {
                 call.respond(reviews)
             }
         }
-
+        route("/search"){
+            get("/albums") {
+                val query = call.request.queryParameters["query"]
+                if (query.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "Query parameter is required")
+                    return@get
+                }
+                val results = albumRepo.searchAlbumsByName(query)
+                call.respond(results)
+            }
+            get("/users") {
+                val query = call.request.queryParameters["query"]
+                if (query.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "Query parameter is required")
+                    return@get
+                }
+                val results = userRepo.searchUsersByUsername(query)
+                call.respond(results)
+            }
+            get("/artists") {
+                val query = call.request.queryParameters["query"]
+                if (query.isNullOrBlank()) {
+                    call.respond(HttpStatusCode.BadRequest, "Query parameter is required")
+                    return@get
+                }
+                val results = artistRepo.searchArtistsByName(query)
+                call.respond(results)
+            }
+        }
     }
 }

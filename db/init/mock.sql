@@ -106,3 +106,27 @@ INSERT INTO Commentaries (review_id, user_id, commentary, creation_date, modifie
 (6,4,'Entendo seu ponto.','2025-04-22','2025-04-22'),
 (7,5,'Excelente escolha.','2025-04-23','2025-04-23'),
 (8,6,'Comentário interessante.','2025-04-23','2025-04-23');
+
+-- Artistas
+INSERT INTO Artists (name) VALUES
+('Pink Floyd'),
+('The Beatles'),
+('Michael Jackson'),
+('AC/DC'),
+('Fleetwood Mac'),
+('Eagles'),
+('Led Zeppelin'),
+('Nirvana');
+
+-- Ligação Artistas-Álbuns
+INSERT INTO ArtistAlbums (artist_id, album_id) VALUES
+(1, 1), -- Pink Floyd - Dark Side of the Moon
+(1, 8), -- Pink Floyd - The Wall
+(2, 2), -- The Beatles - Abbey Road
+(2, 9), -- The Beatles - Sgt. Pepper's Lonely Hearts Club Band
+(3, 3), -- Michael Jackson - Thriller
+(4, 4), -- AC/DC - Back in Black
+(5, 5), -- Fleetwood Mac - Rumours
+(6, 6), -- Eagles - Hotel California
+(7, 7), -- Led Zeppelin - Led Zeppelin IV
+(8,10); -- Nirvana - Nevermind

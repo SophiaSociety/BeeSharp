@@ -80,3 +80,18 @@ CREATE TABLE Commentaries (
     FOREIGN KEY (review_id)     REFERENCES Reviews(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id)  REFERENCES Users(id)   ON DELETE CASCADE
 );
+
+-- 7) Artistas
+CREATE TABLE Artists (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- 8) Ligação Artistas-Álbuns (muitos-para-muitos)
+CREATE TABLE ArtistAlbums (
+    artist_id INT NOT NULL,
+    album_id INT NOT NULL,
+    FOREIGN KEY (artist_id) REFERENCES Artists(id) ON DELETE CASCADE,
+    FOREIGN KEY (album_id) REFERENCES Albums(id) ON DELETE CASCADE,
+    PRIMARY KEY (artist_id, album_id)
+);
