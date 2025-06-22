@@ -21,8 +21,13 @@ import com.beesharp.backend.repository.AlbumRepository
 import com.beesharp.backend.repository.ReviewRepository
 import com.beesharp.backend.repository.ArtistRepository
 import com.beesharp.backend.*
-import com.beesharp.backend.models.User
+import com.beesharp.backend.models.Users
 import kotlinx.serialization.Serializable
+
+import io.ktor.http.content.*
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.statements.api.ExposedBlob
 
 @Serializable
 data class UserProfileResponse(
@@ -155,6 +160,58 @@ fun Application.configureRouting() {
                 }
                 val results = artistRepo.searchArtistsByName(query)
                 call.respond(results)
+            }
+        }
+
+        // upload da imagem de perfil
+        post("/upload/user-photo/{userId}") {
+            val userId = call.parameters["userId"]?.toIntOrNull()
+            if (userId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                return@post
+            }
+
+            val multipart = call.receiveMultipart()
+            var imageBytes: ByteArray? = null
+
+            multipart.forEachPart { part ->
+                if (part is PartData.FileItem) {
+                    imageBytes = part.streamProvider().readBytes()
+                }
+                part.dispose()
+            }
+
+            if (imageBytes != null) {
+                transaction {
+                    Users.update({ Users.id eq userId }) {
+                        it[Users.profileImage] = ExposedBlob(imageBytes!!)
+                    }
+                }
+                call.respond(HttpStatusCode.OK, "Profile image uploaded successfully")
+            } else {
+                call.respond(HttpStatusCode.BadRequest, "No image file received")
+            }
+        }
+
+        // retorna a imagem de perfil
+        get("/user-photo/{userId}") {
+            val userId = call.parameters["userId"]?.toIntOrNull()
+            if (userId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                return@get
+            }
+
+            val imageBlob = transaction {
+                Users
+                    .select { Users.id eq userId }
+                    .mapNotNull { it[Users.profileImage]?.bytes }
+                    .singleOrNull()
+            }
+
+            if (imageBlob != null) {
+                call.respondBytes(imageBlob, ContentType.Image.JPEG)
+            } else {
+                call.respond(HttpStatusCode.NotFound, "No profile image found")
             }
         }
     }
