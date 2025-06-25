@@ -5,12 +5,13 @@
     import Signup from './routes/Signup.svelte';
     import HomePage from './routes/HomePage.svelte';
     import ProfilePage from './routes/ProfilePage.svelte';
+    import AlbumsOverview from './routes/AlbumsOverview.svelte';
 
     const routes = {
         '/': LandingPage,
         '/login': Login,
         '/criar-conta': Signup,
-        '/albuns': HomePage,
+        '/albuns':  AlbumsOverview,
         '/perfil': ProfilePage
     };
 </script>
