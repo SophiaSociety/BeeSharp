@@ -9,6 +9,7 @@ object Users : Table() {
     val username = varchar("username", 255)
     val passwordHash = varchar("password_hash", 255)
     val email = varchar("email", 255)
+    val profileImage = blob("profile_image").nullable()
     override val primaryKey = PrimaryKey(id)
 }
 

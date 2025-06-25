@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+    <style>
+        body {
+            background: #0a0a0a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 2rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .test-section {
+            background: #1a1a1a;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border: 1px solid #3a3a3a;
+        }
+        
+        .test-section h3 {
+            color: #FFC857;
+            margin-top: 0;
+        }
+        
+        button {
+            background: #FFC857;
+            color: #0a0a0a;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        button:hover {
+            background: #e6b84f;
+        }
+        
+        .result {
+            background: #2a2a2a;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        
+        .success {
+            border-left: 4px solid #255F85;
+        }
+        
+        .error {
+            border-left: 4px solid #C5283D;
+        }
+        
+        input {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #ffffff;
+            padding: 0.5rem;
+            border-radius: 4px;
+            margin: 0.25rem;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <h1>BeeSharp Login Test</h1>
+    
+    <div class="test-section">
+        <h3>1. Backend Connection Test</h3>
+        <p>Test if the backend server is running on localhost:8080</p>
+        <button onclick="testBackendConnection()">Test Backend Connection</button>
+        <div id="connection-result" class="result" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>2. Login Test</h3>
+        <p>Test login functionality (you need valid credentials)</p>
+        <div>
+            <input type="text" id="test-username" placeholder="Username" value="testuser">
+            <input type="password" id="test-password" placeholder="Password" value="testpass">
+        </div>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="login-result" class="result" style="display: none;"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>3. Current Auth Status</h3>
+        <p>Check if user is currently logged in</p>
+        <button onclick="checkAuthStatus()">Check Auth Status</button>
+        <button onclick="clearAuth()">Clear Auth</button>
+        <div id="auth-result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function testBackendConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing connection...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('http://localhost:8080/health', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                
+                if (response.ok) {
+                    resultDiv.textContent = `✅ Backend is running!\nStatus: ${response.status}\nURL: http://localhost:8080`;
+                    resultDiv.className = 'result success';
+                } else {
+                    resultDiv.textContent = `⚠️ Backend responded but with error\nStatus: ${response.status}\nStatusText: ${response.statusText}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Cannot connect to backend\nError: ${error.message}\n\nMake sure your Ktor backend is running on http://localhost:8080`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        async function testLogin() {
+            const resultDiv = document.getElementById('login-result');
+            const username = document.getElementById('test-username').value;
+            const password = document.getElementById('test-password').value;
+            
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = 'Testing login...';
+            resultDiv.className = 'result';
+            
+            try {
+                const response = await fetch('http://localhost:8080/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Accept': 'application/json'
+                    },
+                    body: new URLSearchParams({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    resultDiv.textContent = `✅ Login successful!\nToken: ${data.token}\n\nToken will be stored in localStorage.`;
+                    resultDiv.className = 'result success';
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('username', username);
+                } else {
+                    resultDiv.textContent = `❌ Login failed\nStatus: ${response.status}\nError: ${data.error || 'Unknown error'}\n\nResponse: ${JSON.stringify(data, null, 2)}`;
+                    resultDiv.className = 'result error';
+                }
+            } catch (error) {
+                resultDiv.textContent = `❌ Network error during login\nError: ${error.message}`;
+                resultDiv.className = 'result error';
+            }
+        }
+        
+        function checkAuthStatus() {
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.style.display = 'block';
+            
+            const token = localStorage.getItem('authToken');
+            const username = localStorage.getItem('username');
+            
+            if (token) {
+                resultDiv.textContent = `✅ User is logged in\nUsername: ${username}\nToken: ${token}`;
+                resultDiv.className = 'result success';
+            } else {
+                resultDiv.textContent = `ℹ️ No user logged in\nNo auth token found in localStorage`;
+                resultDiv.className = 'result';
+            }
+        }
+        
+        function clearAuth() {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('username');
+            
+            const resultDiv = document.getElementById('auth-result');
+            resultDiv.style.display = 'block';
+            resultDiv.textContent = '🗑️ Auth data cleared from localStorage';
+            resultDiv.className = 'result';
+        }
+        
+        // Auto-check auth status on page load
+        window.addEventListener('load', checkAuthStatus);
+    </script>
+</body>
+</html>
