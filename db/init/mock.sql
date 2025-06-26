@@ -46,17 +46,68 @@ INSERT INTO UserFollows (user_id, follower_id) VALUES
 (9,10),
 (10,1);
 
-INSERT INTO Albums (title, artist) VALUES
-('Dark Side of the Moon','Pink Floyd'),
-('Abbey Road','The Beatles'),
-('Thriller','Michael Jackson'),
-('Back in Black','AC/DC'),
-('Rumours','Fleetwood Mac'),
-('Hotel California', 'Eagles'),
-('Led Zeppelin IV','Led Zeppelin'),
-('The Wall', 'Pink Floyd'),
-('Sgt. Pepper''s Lonely Hearts Club Band','The Beatles'),
-('Nevermind', 'Nirvana');
+-- Exemplo: INSERT INTO Albums (title, artist, reviews_count, average_rating) VALUES ...
+INSERT INTO Albums (title, artist, reviews_count, average_rating) VALUES
+('Dark Side of the Moon','Pink Floyd', 10, 4.8),
+('The Wall','Pink Floyd', 12, 4.7),
+('Wish You Were Here','Pink Floyd', 8, 4.9),
+('Abbey Road','The Beatles', 15, 4.9),
+('Sgt. Pepper''s Lonely Hearts Club Band','The Beatles', 13, 4.8),
+('Revolver','The Beatles', 9, 4.6),
+('Thriller','Michael Jackson', 20, 4.9),
+('Bad','Michael Jackson', 11, 4.5),
+('Off the Wall','Michael Jackson', 7, 4.4),
+('Back in Black','AC/DC', 14, 4.7),
+('Highway to Hell','AC/DC', 10, 4.6),
+('Powerage','AC/DC', 6, 4.3),
+('Rumours','Fleetwood Mac', 13, 4.8),
+('Tusk','Fleetwood Mac', 7, 4.2),
+('Mirage','Fleetwood Mac', 5, 4.0),
+('Hotel California','Eagles', 12, 4.8),
+('Desperado','Eagles', 6, 4.1),
+('One of These Nights','Eagles', 8, 4.3),
+('Led Zeppelin IV','Led Zeppelin', 16, 4.9),
+('Physical Graffiti','Led Zeppelin', 9, 4.7),
+('Houses of the Holy','Led Zeppelin', 8, 4.6),
+('Nevermind','Nirvana', 15, 4.8),
+('In Utero','Nirvana', 10, 4.5),
+('Bleach','Nirvana', 5, 4.0),
+('A Night at the Opera','Queen', 11, 4.7),
+('News of the World','Queen', 8, 4.4),
+('The Game','Queen', 7, 4.3),
+('OK Computer','Radiohead', 14, 4.9),
+('Kid A','Radiohead', 10, 4.7),
+('In Rainbows','Radiohead', 9, 4.8),
+('Heroes','David Bowie', 6, 4.2),
+('Let''s Dance','David Bowie', 5, 4.0),
+('Hunky Dory','David Bowie', 7, 4.5),
+('The Joshua Tree','U2', 12, 4.6),
+('Achtung Baby','U2', 8, 4.4),
+('War','U2', 6, 4.1),
+('Sticky Fingers','The Rolling Stones', 10, 4.5),
+('Let It Bleed','The Rolling Stones', 9, 4.4),
+('Exile on Main St.','The Rolling Stones', 8, 4.3),
+('Blonde on Blonde','Bob Dylan', 7, 4.2),
+('Highway 61 Revisited','Bob Dylan', 6, 4.1),
+('Blood on the Tracks','Bob Dylan', 8, 4.4),
+('Who''s Next','The Who', 9, 4.5),
+('Tommy','The Who', 7, 4.2),
+('Quadrophenia','The Who', 6, 4.0),
+('Master of Puppets','Metallica', 13, 4.8),
+('Ride the Lightning','Metallica', 10, 4.7),
+('Black Album','Metallica', 12, 4.6),
+('Californication','Red Hot Chili Peppers', 11, 4.5),
+('By the Way','Red Hot Chili Peppers', 8, 4.3),
+('Stadium Arcadium','Red Hot Chili Peppers', 7, 4.2),
+('L.A. Woman','The Doors', 9, 4.4),
+('Strange Days','The Doors', 6, 4.1),
+('Morrison Hotel','The Doors', 5, 4.0),
+('AM','Arctic Monkeys', 10, 4.6),
+('Favourite Worst Nightmare','Arctic Monkeys', 8, 4.4),
+('Whatever People Say I Am, That''s What I''m Not','Arctic Monkeys', 9, 4.5),
+('(What''s the Story) Morning Glory?','Oasis', 12, 4.7),
+('Definitely Maybe','Oasis', 7, 4.3),
+('Be Here Now','Oasis', 5, 4.0);
 
 INSERT INTO AlbumFavorites (album_id1, album_id2, album_id3, album_id4, user_id) VALUES
 (1,2,3,4,1),
@@ -92,7 +143,62 @@ INSERT INTO Reviews (album_id, user_id, rating, content, created_at, modified_da
 (7,5,5,'Excelente produção.','2025-04-23 12:00:00','2025-04-23'),
 (8,6,3,'Médio.','2025-04-23 15:20:00','2025-04-23'),
 (9,7,4,'Vale a pena ouvir.','2025-04-24 16:10:00','2025-04-24'),
-(10,8,5,'Meu favorito!','2025-04-24 18:00:00','2025-04-24');
+(10,8,5,'Meu favorito!','2025-04-24 18:00:00','2025-04-24')
+
+(1,1,5,'Obra-prima do Pink Floyd!','2025-04-20 10:00:00','2025-04-20'),
+(1,2,4,'Muito bom, mas prefiro The Wall.','2025-04-20 11:00:00','2025-04-20'),
+(1,3,5,'Clássico absoluto.','2025-04-20 12:00:00','2025-04-20'),
+(1,4,5,'Sempre me emociono ouvindo.','2025-04-20 13:00:00','2025-04-20'),
+(1,5,4,'Excelente produção.','2025-04-20 14:00:00','2025-04-20'),
+(1,6,5,'Melhor álbum da banda.','2025-04-20 15:00:00','2025-04-20'),
+(1,7,5,'Impossível enjoar.','2025-04-20 16:00:00','2025-04-20'),
+(1,8,4,'Muito bom, mas superestimado.','2025-04-20 17:00:00','2025-04-20'),
+(1,9,5,'Faixas perfeitas.','2025-04-20 18:00:00','2025-04-20'),
+(1,10,5,'Meu favorito da vida.','2025-04-20 19:00:00','2025-04-20'),
+
+(2,1,4,'The Wall é incrível do início ao fim.','2025-04-21 10:00:00','2025-04-21'),
+(2,2,5,'Melhor conceito de álbum.','2025-04-21 11:00:00','2025-04-21'),
+(2,3,5,'Faixas marcantes demais.','2025-04-21 12:00:00','2025-04-21'),
+(2,4,4,'Gosto muito, mas prefiro DSOTM.','2025-04-21 13:00:00','2025-04-21'),
+(2,5,5,'Obra de arte.','2025-04-21 14:00:00','2025-04-21'),
+(2,6,5,'Pink Floyd no auge.','2025-04-21 15:00:00','2025-04-21'),
+(2,7,4,'Algumas faixas são longas demais.','2025-04-21 16:00:00','2025-04-21'),
+(2,8,5,'Sempre volto a ouvir.','2025-04-21 17:00:00','2025-04-21'),
+(2,9,5,'Álbum essencial.','2025-04-21 18:00:00','2025-04-21'),
+(2,10,5,'Top 3 da banda.','2025-04-21 19:00:00','2025-04-21'),
+
+(3,1,5,'Wish You Were Here é emocionante.','2025-04-22 10:00:00','2025-04-22'),
+(3,2,5,'Shine On You Crazy Diamond é perfeita.','2025-04-22 11:00:00','2025-04-22'),
+(3,3,4,'Muito bom, mas não é meu favorito.','2025-04-22 12:00:00','2025-04-22'),
+(3,4,5,'Letra e melodia incríveis.','2025-04-22 13:00:00','2025-04-22'),
+(3,5,5,'Pink Floyd sempre surpreende.','2025-04-22 14:00:00','2025-04-22'),
+(3,6,4,'Gosto mais do The Wall.','2025-04-22 15:00:00','2025-04-22'),
+(3,7,5,'Álbum para ouvir inteiro.','2025-04-22 16:00:00','2025-04-22'),
+(3,8,5,'Faixas longas, mas valem a pena.','2025-04-22 17:00:00','2025-04-22'),
+(3,9,5,'Recomendo para todos.','2025-04-22 18:00:00','2025-04-22'),
+(3,10,5,'Obra-prima.','2025-04-22 19:00:00','2025-04-22'),
+
+(4,1,5,'Beatles no auge!','2025-04-23 10:00:00','2025-04-23'),
+(4,2,4,'Abbey Road é clássico.','2025-04-23 11:00:00','2025-04-23'),
+(4,3,5,'Faixas inesquecíveis.','2025-04-23 12:00:00','2025-04-23'),
+(4,4,5,'Sempre atual.','2025-04-23 13:00:00','2025-04-23'),
+(4,5,4,'Muito bom, mas prefiro Revolver.','2025-04-23 14:00:00','2025-04-23'),
+(4,6,5,'Beatles são geniais.','2025-04-23 15:00:00','2025-04-23'),
+(4,7,5,'Melhor álbum deles.','2025-04-23 16:00:00','2025-04-23'),
+(4,8,4,'Ótima produção.','2025-04-23 17:00:00','2025-04-23'),
+(4,9,5,'Recomendo demais.','2025-04-23 18:00:00','2025-04-23'),
+(4,10,5,'Top 5 da minha vida.','2025-04-23 19:00:00','2025-04-23'),
+
+(5,1,4,'Sgt. Pepper é revolucionário.','2025-04-24 10:00:00','2025-04-24'),
+(5,2,5,'Beatles sempre inovando.','2025-04-24 11:00:00','2025-04-24'),
+(5,3,5,'Álbum histórico.','2025-04-24 12:00:00','2025-04-24'),
+(5,4,4,'Muito criativo.','2025-04-24 13:00:00','2025-04-24'),
+(5,5,5,'Obra-prima da música.','2025-04-24 14:00:00','2025-04-24'),
+(5,6,4,'Prefiro Abbey Road, mas esse é ótimo.','2025-04-24 15:00:00','2025-04-24'),
+(5,7,5,'Beatles nunca decepcionam.','2025-04-24 16:00:00','2025-04-24'),
+(5,8,5,'Faixas incríveis.','2025-04-24 17:00:00','2025-04-24'),
+(5,9,4,'Muito bom mesmo.','2025-04-24 18:00:00','2025-04-24'),
+(5,10,5,'Top 10 da história.','2025-04-24 19:00:00','2025-04-24');
 
 
 INSERT INTO Commentaries (review_id, user_id, commentary, creation_date, modified_date) VALUES
@@ -116,17 +222,39 @@ INSERT INTO Artists (name) VALUES
 ('Fleetwood Mac'),
 ('Eagles'),
 ('Led Zeppelin'),
-('Nirvana');
+('Nirvana'),
+('Queen'),
+('Radiohead'),
+('David Bowie'),
+('U2'),
+('The Rolling Stones'),
+('Bob Dylan'),
+('The Who'),
+('Metallica'),
+('Red Hot Chili Peppers'),
+('The Doors'),
+('Arctic Monkeys'),
+('Oasis');
 
--- Ligação Artistas-Álbuns
+-- Ligação Artistas-Álbuns (3 álbuns por artista)
 INSERT INTO ArtistAlbums (artist_id, album_id) VALUES
-(1, 1), -- Pink Floyd - Dark Side of the Moon
-(1, 8), -- Pink Floyd - The Wall
-(2, 2), -- The Beatles - Abbey Road
-(2, 9), -- The Beatles - Sgt. Pepper's Lonely Hearts Club Band
-(3, 3), -- Michael Jackson - Thriller
-(4, 4), -- AC/DC - Back in Black
-(5, 5), -- Fleetwood Mac - Rumours
-(6, 6), -- Eagles - Hotel California
-(7, 7), -- Led Zeppelin - Led Zeppelin IV
-(8,10); -- Nirvana - Nevermind
+(1, 1), (1, 2), (1, 3),
+(2, 4), (2, 5), (2, 6),
+(3, 7), (3, 8), (3, 9),
+(4,10), (4,11), (4,12),
+(5,13), (5,14), (5,15),
+(6,16), (6,17), (6,18),
+(7,19), (7,20), (7,21),
+(8,22), (8,23), (8,24),
+(9,25), (9,26), (9,27),
+(10,28), (10,29), (10,30),
+(11,31), (11,32), (11,33),
+(12,34), (12,35), (12,36),
+(13,37), (13,38), (13,39),
+(14,40), (14,41), (14,42),
+(15,43), (15,44), (15,45),
+(16,46), (16,47), (16,48),
+(17,49), (17,50), (17,51),
+(18,52), (18,53), (18,54),
+(19,55), (19,56), (19,57),
+(20,58), (20,59), (20,60);
