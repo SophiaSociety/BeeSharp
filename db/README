@@ -37,7 +37,7 @@
    ```
    - O entrypoint executa em sequência todos os arquivos dentro de `db/init/`:
      1. `db.sql` → cria tabelas, extensões e triggers
-     2. `mocks.sql`  → insere 10 registros de exemplo em cada tabela
+     2. `mocks.sql`  → insere registros de exemplo em cada tabela
 
 4. **Verificar status e logs**  
    ```bash
@@ -59,4 +59,9 @@ SELECT COUNT(*) FROM Users;     -- deve retornar 10
 SELECT COUNT(*) FROM Albums;    -- deve retornar 10
 -- e o que mais você quiser ver! :)
 ```  
+
+## Desconectar do Banco
+   ```bash
+   docker-compose down -v
+   ```
 

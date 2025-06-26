@@ -143,7 +143,7 @@ INSERT INTO Reviews (album_id, user_id, rating, content, created_at, modified_da
 (7,5,5,'Excelente produção.','2025-04-23 12:00:00','2025-04-23'),
 (8,6,3,'Médio.','2025-04-23 15:20:00','2025-04-23'),
 (9,7,4,'Vale a pena ouvir.','2025-04-24 16:10:00','2025-04-24'),
-(10,8,5,'Meu favorito!','2025-04-24 18:00:00','2025-04-24')
+(10,8,5,'Meu favorito!','2025-04-24 18:00:00','2025-04-24'),
 
 (1,1,5,'Obra-prima do Pink Floyd!','2025-04-20 10:00:00','2025-04-20'),
 (1,2,4,'Muito bom, mas prefiro The Wall.','2025-04-20 11:00:00','2025-04-20'),
@@ -155,7 +155,6 @@ INSERT INTO Reviews (album_id, user_id, rating, content, created_at, modified_da
 (1,8,4,'Muito bom, mas superestimado.','2025-04-20 17:00:00','2025-04-20'),
 (1,9,5,'Faixas perfeitas.','2025-04-20 18:00:00','2025-04-20'),
 (1,10,5,'Meu favorito da vida.','2025-04-20 19:00:00','2025-04-20'),
-
 (2,1,4,'The Wall é incrível do início ao fim.','2025-04-21 10:00:00','2025-04-21'),
 (2,2,5,'Melhor conceito de álbum.','2025-04-21 11:00:00','2025-04-21'),
 (2,3,5,'Faixas marcantes demais.','2025-04-21 12:00:00','2025-04-21'),
@@ -212,6 +211,18 @@ INSERT INTO Commentaries (review_id, user_id, commentary, creation_date, modifie
 (6,4,'Entendo seu ponto.','2025-04-22','2025-04-22'),
 (7,5,'Excelente escolha.','2025-04-23','2025-04-23'),
 (8,6,'Comentário interessante.','2025-04-23','2025-04-23');
+
+INSERT INTO ReviewLikes (review_id, user_id) VALUES
+(1, 2),
+(1, 3),
+(1, 4),
+(2, 1),
+(2, 4),
+(3, 1),
+(3, 2),
+(3, 5),
+(4, 2),
+(5, 3);
 
 -- Artistas
 INSERT INTO Artists (name) VALUES

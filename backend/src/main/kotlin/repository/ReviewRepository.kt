@@ -1,40 +1,54 @@
 package com.beesharp.backend.repository
 
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
-import java.time.LocalDateTime
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.insertIgnore
+import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.ResultRow
 
-import com.beesharp.backend.models.Review
-import com.beesharp.backend.models.Reviews
-import com.beesharp.backend.models.Albums
+import java.time.LocalDate
+import java.time.LocalDateTime
+
+import com.beesharp.backend.dto.*
+import com.beesharp.backend.models.*
+
+import org.jetbrains.exposed.dao.id.EntityID
 
 class ReviewRepository {
 
-    fun getAllReviews(): List<Review> = transaction {
-        Reviews.selectAll().map {
-            Review(
+    fun getAllReviews(): List<ReviewFullDTO> = transaction {
+        (Reviews innerJoin Users).selectAll().map {
+            ReviewFullDTO(
                 id = it[Reviews.id],
                 userId = it[Reviews.userId],
+                username = it[Users.username],
                 albumId = it[Reviews.albumId],
                 content = it[Reviews.content],
                 rating = it[Reviews.rating],
-                createdAt = it[Reviews.createdAt]
+                createdAt = it[Reviews.createdAt],
+                comments = getComments(it[Reviews.id]), 
+                likesCount = getLikesCount(it[Reviews.id]) 
             )
         }
     }
 
-    fun getReviewsByAlbum(albumId: Int): List<Review> = transaction {
-        Reviews.select { Reviews.albumId eq albumId }.map {
-            Review(
-                id = it[Reviews.id],
-                userId = it[Reviews.userId],
-                albumId = it[Reviews.albumId],
-                content = it[Reviews.content],
-                rating = it[Reviews.rating],
-                createdAt = it[Reviews.createdAt]
-            )
-        }
+    fun getReviewsByAlbum(albumId: Int): List<ReviewFullDTO> = transaction {
+        (Reviews innerJoin Users)
+            .select { Reviews.albumId eq albumId }
+            .map {
+                ReviewFullDTO(
+                    id = it[Reviews.id],
+                    userId = it[Reviews.userId],
+                    username = it[Users.username],
+                    albumId = it[Reviews.albumId],
+                    content = it[Reviews.content],
+                    rating = it[Reviews.rating],
+                    createdAt = it[Reviews.createdAt],
+                    comments = getComments(it[Reviews.id]), 
+                    likesCount = getLikesCount(it[Reviews.id]) 
+                )
+            }
     }
 
     fun addReview(userId: Int, albumId: Int, content: String, rating: Int): Int = transaction {
@@ -67,4 +81,64 @@ class ReviewRepository {
     fun deleteReview(id: Int): Boolean = transaction {
         Reviews.deleteWhere { Reviews.id eq id } > 0
     }
+
+    fun addComment(reviewId: Int, userId: Int, content: String): Int = transaction {
+        val insertedId = Commentaries.insert {
+            it[review] = reviewId
+            it[Commentaries.user] = userId
+            it[commentary] = content
+            it[creationDate] = LocalDate.now()
+            it[modifiedDate] = LocalDate.now()
+        } get Commentaries.id
+
+        insertedId
+    }
+
+    fun getComments(reviewId: Int): List<ReviewCommentDTO> = transaction {
+        (Commentaries innerJoin Users)
+            .select { Commentaries.review eq reviewId }
+            .map {
+                ReviewCommentDTO(
+                    id = it[Commentaries.id],
+                    reviewId = it[Commentaries.review],
+                    userId = it[Commentaries.user],
+                    commentary = it[Commentaries.commentary],
+                    creationDate = it[Commentaries.creationDate],
+                    modifiedDate = it[Commentaries.modifiedDate],
+                    username = it[Users.username] // novo campo preenchido
+                )
+            }
+    }
+
+
+    fun likeReview(reviewId: Int, userId: Int): Boolean = transaction {
+        ReviewLikes.insertIgnore {
+            it[review] = reviewId
+            it[ReviewLikes.user] = userId
+        }.insertedCount > 0
+    }
+
+    fun getLikesCount(reviewId: Int): Int = transaction {
+        ReviewLikes.select { ReviewLikes.review eq reviewId}.count().toInt()
+    }
+
+
+    fun getFullReview(reviewId: Int): ReviewFullDTO? = transaction {
+        val row = (Reviews innerJoin Users)
+            .select { Reviews.id eq reviewId }
+            .singleOrNull() ?: return@transaction null
+
+        ReviewFullDTO(
+            id = row[Reviews.id],
+            userId = row[Reviews.userId],
+            username = row[Users.username],
+            albumId = row[Reviews.albumId],
+            content = row[Reviews.content],
+            rating = row[Reviews.rating],
+            createdAt = row[Reviews.createdAt],
+            comments = getComments(row[Reviews.id]),
+            likesCount = getLikesCount(row[Reviews.id])
+        )
+    }
+
 }

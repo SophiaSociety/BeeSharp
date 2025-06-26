@@ -82,13 +82,23 @@ CREATE TABLE Commentaries (
     FOREIGN KEY (user_id)  REFERENCES Users(id)   ON DELETE CASCADE
 );
 
--- 7) Artistas
+-- 7) Curtidas em resenhas
+CREATE TABLE ReviewLikes (
+    id         SERIAL PRIMARY KEY,
+    review_id  INT NOT NULL,
+    user_id    INT NOT NULL,
+    FOREIGN KEY (review_id) REFERENCES Reviews(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)   REFERENCES Users(id)   ON DELETE CASCADE,
+    CONSTRAINT unique_like_per_user_review UNIQUE (review_id, user_id)
+);
+
+-- 8) Artistas
 CREATE TABLE Artists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE
 );
 
--- 8) Ligação Artistas-Álbuns (muitos-para-muitos)
+-- 9) Ligação Artistas-Álbuns (muitos-para-muitos)
 CREATE TABLE ArtistAlbums (
     artist_id INT NOT NULL,
     album_id INT NOT NULL,

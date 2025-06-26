@@ -14,6 +14,9 @@ import com.beesharp.backend.*
 import com.beesharp.backend.repository.UserRepository
 import com.beesharp.backend.repository.ReviewRepository
 
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import com.beesharp.backend.models.Users
+
 private const val jwtIssuer = "beesharp"
 private const val jwtAudience = "beesharp-users"
 private const val jwtRealm = "beesharp"
@@ -150,6 +153,33 @@ fun Application.configureSecurity() {
                 val reviewRepo = ReviewRepository()
                 val newId = reviewRepo.addReview(userIdAgent, albumId, content, rating)
                 call.respond(HttpStatusCode.Created, mapOf("id" to newId))
+            }
+            delete("/review/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                
+                val reviewRepo = ReviewRepository()
+                val deleted = reviewRepo.deleteReview(id)
+                if (deleted) call.respond(HttpStatusCode.OK)
+                else call.respond(HttpStatusCode.NotFound)
+            }
+
+            post("/review/{id}/comments") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asInt()
+                val content = call.receiveParameters()["content"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+
+                val reviewRepo = ReviewRepository()
+                val commentId = reviewRepo.addComment(reviewId, userId, content)
+                call.respond(HttpStatusCode.Created, mapOf("comment_id" to commentId))
+            }
+
+            post("/review/{id}/like") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asInt()
+
+                val reviewRepo = ReviewRepository()
+                val liked = reviewRepo.likeReview(reviewId, userId)
+                call.respond(if (liked) HttpStatusCode.OK else HttpStatusCode.Conflict)
             }
         }
     }
