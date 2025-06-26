@@ -34,6 +34,36 @@ class AlbumRepository {
             }.singleOrNull()
     }
 
+    fun getHotAlbums(): List<Album> = transaction {
+        Albums.selectAll()
+            .orderBy(Albums.reviewsCount, SortOrder.DESC)
+            .limit(10)
+            .map {
+                Album(
+                    id = it[Albums.id],
+                    title = it[Albums.title],
+                    artist = it[Albums.artist],
+                    reviewsCount = it[Albums.reviewsCount],
+                    averageRating = it[Albums.averageRating].toDouble()
+                )
+            }
+    }
+    
+    fun getTopRatedAlbums(limit: Int = 10): List<Album> = transaction {
+        Albums.selectAll()
+            .orderBy(Albums.averageRating, SortOrder.DESC)
+            .limit(limit)
+            .map {
+                Album(
+                    id = it[Albums.id],
+                    title = it[Albums.title],
+                    artist = it[Albums.artist],
+                    reviewsCount = it[Albums.reviewsCount],
+                    averageRating = it[Albums.averageRating].toDouble()
+                )
+            }
+    }
+
     fun searchAlbumsByName(partialName: String): List<Album> = transaction {
         Albums.select { Albums.title.lowerCase() like "%${partialName.lowercase()}%" }
             .map {
