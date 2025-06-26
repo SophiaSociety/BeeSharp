@@ -22,6 +22,7 @@ import com.beesharp.backend.repository.ReviewRepository
 import com.beesharp.backend.repository.ArtistRepository
 import com.beesharp.backend.*
 import com.beesharp.backend.models.Users
+import com.beesharp.backend.models.Album
 import kotlinx.serialization.Serializable
 
 import io.ktor.http.content.*
@@ -36,6 +37,11 @@ data class UserProfileResponse(
     val albums: List<Int>,
     val following: List<String>
 )
+
+var hotAlbumsCache: Pair<Long, List<Album>>? = null
+const val HOT_ALBUMS_CACHE_TTL = 5 * 60 * 1000 // 5 minutos
+var topRatedAlbumsCache: Pair<Long, List<Album>>? = null
+const val TOP_RATED_ALBUMS_CACHE_TTL = 5 * 60 * 1000 // 5 minutos
 
 fun Application.configureRouting() {
 
@@ -109,6 +115,31 @@ fun Application.configureRouting() {
                 val album = id?.let { albumRepo.getAlbumById(it) }
                 if (album != null) call.respond(album)
                 else call.respond(HttpStatusCode.NotFound)
+            }
+
+            get("/hot") {
+                val now = System.currentTimeMillis()
+                val cached = hotAlbumsCache
+                if (cached != null && now - cached.first < HOT_ALBUMS_CACHE_TTL) {
+                    call.respond(cached.second)
+                } else {
+                    val hotAlbums = albumRepo.getHotAlbums()
+                    hotAlbumsCache = now to hotAlbums
+                    call.respond(hotAlbums)
+                }
+            }
+
+            get("/top-rated") {
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val now = System.currentTimeMillis()
+                val cached = topRatedAlbumsCache
+                if (cached != null && now - cached.first < TOP_RATED_ALBUMS_CACHE_TTL) {
+                    call.respond(cached.second.take(limit))
+                } else {
+                    val topRated = albumRepo.getTopRatedAlbums(limit)
+                    topRatedAlbumsCache = now to topRated
+                    call.respond(topRated)
+                }
             }
 
             post {
