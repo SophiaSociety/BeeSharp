@@ -41,6 +41,11 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:0.45.0")
     implementation("org.jetbrains.exposed:exposed-java-time:0.45.0")
 
+
+    testImplementation("io.ktor:ktor-client-content-negotiation:2.3.7")
+    testImplementation("io.ktor:ktor-serialization-kotlinx-json:2.3.7")
+
+
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.kotlin.test.junit)
 }
