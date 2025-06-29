@@ -69,13 +69,9 @@
     
     function handleAlbumClick(album) {
         console.log('Album clicked:', album.title)
-        // Navigate to album detail page
+        push(`/album/${album.id}`)
     }
-    
-    function handleViewAllClick() {
-        console.log('View all top albums clicked')
-        // Navigate to top 100 albums page
-    }
+
     
     function renderStars(rating) {
         const fullStars = Math.floor(rating)
@@ -378,7 +374,7 @@
                         <Award size={24} />
                         <h2>Top Álbuns</h2>
                     </div>
-                    <button class="view-all-btn" onclick={handleViewAllClick}>
+                    <button class="view-all-btn" onclick={() => push('/top100')}>
                         Ver Tudo
                         <ArrowRight size={16} />
                     </button>
@@ -976,68 +972,6 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(197, 40, 61, 0.3);
     }
-
-    /* Stats Section */
-    .stats-section {
-        background: #1d232a;
-        border-radius: 16px;
-        padding: 3rem 2rem;
-        margin: 4rem 0;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        align-items: center;
-    }
-
-    .stat-card {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-align: left;
-    }
-
-    .stat-logo {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        margin: 0;
-    }
-
-    .stats-logo {
-        height: 80px;
-        width: auto;
-        object-fit: contain;
-        transition: transform 0.3s ease;
-    }
-
-    .stats-logo:hover {
-        transform: scale(1.1) rotate(5deg);
-    }
-
-    .stat-icon {
-        color: #FFC857;
-        background: rgba(255, 200, 87, 0.1);
-        padding: 1rem;
-        border-radius: 12px;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: white;
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: #9ca3af;
-        margin-top: 0.25rem;
-    }
-
 
     /* Star Rating Styles */
     :global(.star-filled) {

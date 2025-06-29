@@ -6,13 +6,18 @@
     import HomePage from './routes/HomePage.svelte';
     import ProfilePage from './routes/ProfilePage.svelte';
     import AlbumsOverview from './routes/AlbumsOverview.svelte';
+    import TopPage from './routes/TopPage.svelte';
+    import Album from './routes/Album.svelte';
 
     const routes = {
         '/': LandingPage,
         '/login': Login,
         '/criar-conta': Signup,
         '/albuns':  AlbumsOverview,
-        '/perfil': ProfilePage
+        '/top100': TopPage,
+        '/perfil': ProfilePage,
+        '/profile/:username': ProfilePage,
+        '/album/:id': Album
     };
 </script>
 
