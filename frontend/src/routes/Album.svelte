@@ -4,29 +4,20 @@
   import Login from '../lib/Login.svelte'
   import ReviewSubmissionModal from './ReviewSubmissionModal.svelte'
   import { onMount } from 'svelte'
-  
+
   // Props to receive album ID from route
   export let params = {}
-  
+
   let showLoginModal = false
   function openLoginModal() { showLoginModal = true }
   function closeLoginModal() { showLoginModal = false }
-  
-  // Album data
-  let album = {
-    id: 1,
-    title: "OK Computer",
-    artist: "Radiohead",
-    year: "1997",
-    genre: "Rock Alternativo",
-    duration: "53:21",
-    averageRating: 4.6,
-    totalRatings: 12847,
-    image: "/imagemm.jpg",
-    description: "OK Computer é o terceiro álbum de estúdio da banda inglesa de rock Radiohead, lançado em 21 de junho de 1997. O álbum marcou uma mudança do som rock alternativo de seus álbuns anteriores The Bends (1995) e Pablo Honey (1993), apresentando uma abordagem mais experimental incorporando influências da música eletrônica, jazz, música clássica e krautrock."
-  }
-  
-  // Rating distribution data (0.5 to 5.0 stars) - reversed order like Letterboxd
+
+  // Album data (inicial vazio)
+  let album = null
+  let loading = true
+  let error = ''
+
+  // Rating distribution data (mock, pode ser atualizado depois)
   let ratingDistribution = [
     { stars: 0.5, count: 64, percentage: 0.5 },
     { stars: 1.0, count: 129, percentage: 1 },
@@ -39,8 +30,8 @@
     { stars: 4.5, count: 3212, percentage: 25 },
     { stars: 5.0, count: 3211, percentage: 25 }
   ]
-  
-  // Friends' reviews
+
+  // Friends' reviews e topReviews permanecem mockados por enquanto
   let friendsReviews = [
     {
       id: 1,
@@ -76,8 +67,6 @@
       userDisliked: false
     }
   ]
-  
-  // Top reviews
   let topReviews = [
     {
       id: 4,
@@ -104,9 +93,9 @@
       verified: false
     }
   ]
-  
+
   let showReviewModal = false
-  
+
   function renderStars(rating) {
     const stars = []
     for (let i = 1; i <= 5; i++) {
@@ -120,7 +109,7 @@
     }
     return stars
   }
-  
+
   function handleLike(reviewId, isFromFriends = true) {
     const reviews = isFromFriends ? friendsReviews : topReviews
     const review = reviews.find(r => r.id === reviewId)
@@ -211,11 +200,20 @@
     push(`/profile/${cleanUsername}`)
   }
 
-  onMount(() => {
-    // Load album data based on ID from params
+  onMount(async () => {
     if (params?.id) {
-      console.log('Carregando álbum com ID:', params.id)
-      // Aqui você buscaria os dados do álbum da API
+      loading = true
+      error = ''
+      try {
+        const response = await fetch(`http://localhost:8080/albums/${params.id}`)
+        if (!response.ok) throw new Error('Álbum não encontrado')
+        album = await response.json()
+      } catch (e) {
+        error = e.message
+        album = null
+      } finally {
+        loading = false
+      }
     }
   })
 </script>
@@ -243,217 +241,232 @@
 <div class="album-detail-page">
   <main class="main-content">
     <div class="container">
-      <!-- Album Hero Section -->
-      <section class="album-hero">
-        <div class="album-cover-container">
-          <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" class="album-cover" />
+      {#if loading}
+        <div class="loading-state">
+          <p>Carregando álbum...</p>
         </div>
-        
-        <div class="album-info">
-          <div class="album-header">
-            <h1 class="album-title">{album.title}</h1>
-            <div class="album-meta">
-              <span class="album-artist">{album.artist}</span>
-              <span class="album-year">{album.year}</span>
-              <span class="album-genre">{album.genre}</span>
-              <span class="album-duration">{album.duration}</span>
-            </div>
+      {:else if error}
+        <div class="error-state">
+          <p style="color:red">{error}</p>
+        </div>
+      {:else if album}
+        <!-- Album Hero Section -->
+        <section class="album-hero">
+          <div class="album-cover-container">
+            <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" class="album-cover" />
           </div>
           
-          <div class="album-rating-section">
-            <!-- Rating and Actions Column + Distribution Column -->
-            <div class="rating-layout">
-              <div class="rating-and-action-column">
-                <div class="average-rating">
-                  <div class="rating-display">
-                    <div class="stars-large">
-                      {#each renderStars(album.averageRating) as star (star.key)}
+          <div class="album-info">
+            <div class="album-header">
+              <h1 class="album-title">{album.title}</h1>
+              <div class="album-meta">
+                <span class="album-artist">{album.artist}</span>
+                <span class="album-year">{album.year}</span>
+                <span class="album-genre">{album.genre}</span>
+                <span class="album-duration">{album.duration}</span>
+              </div>
+            </div>
+            
+            <div class="album-rating-section">
+              <!-- Rating and Actions Column + Distribution Column -->
+              <div class="rating-layout">
+                <div class="rating-and-action-column">
+                  <div class="average-rating">
+                    <div class="rating-display">
+                      <div class="stars-large">
+                        {#each renderStars(album.averageRating) as star (star.key)}
+                          {#if star.type === 'full'}
+                            <Star size={24} class="star-filled" />
+                          {:else if star.type === 'half'}
+                            <div class="star-half-container">
+                              <Star size={24} class="star-empty" />
+                              <div class="star-half-overlay">
+                                <Star size={24} class="star-filled" />
+                              </div>
+                            </div>
+                          {:else}
+                            <Star size={24} class="star-empty" />
+                          {/if}
+                        {/each}
+                      </div>
+                      <span class="rating-number">{album.averageRating}</span>
+                    </div>
+                    <p class="rating-count">{album.totalRatings?.toLocaleString() || 0} avaliações</p>
+                  </div>
+                  
+                  <!-- Review Button -->
+                  <div class="album-actions">
+                    <button class="review-btn" onclick={openReviewModal} aria-label="Escrever uma review">
+                      <Plus size={20} />
+                      Avaliar
+                    </button>
+                  </div>
+                </div>
+                
+                <!-- Rating Distribution -->
+                <div class="rating-distribution-compact">
+                  <div class="rating-bars-vertical">
+                    {#each ratingDistribution as rating (rating.stars)}
+                      <div class="rating-bar-vertical" title="{rating.count.toLocaleString()} avaliações com {rating.stars} estrelas">
+                        <div class="rating-bar-fill-vertical" style="height: {rating.percentage * 6}px;"></div>
+                        <div class="rating-label-vertical">{rating.stars}</div>
+                      </div>
+                    {/each}
+                  </div>
+                </div>
+              </div>
+            </div>
+            {#if album.description}
+              <div class="album-description" style="margin-top:1.5rem;color:#d1d5db;">
+                <p>{album.description}</p>
+              </div>
+            {/if}
+          </div>
+        </section>
+
+        <!-- Friends' Reviews -->
+        <section class="reviews-section">
+          <div class="section-header">
+            <h2 class="section-title">
+              <User size={24} />
+              Reviews dos Amigos
+            </h2>
+          </div>
+          
+          <div class="reviews-list">
+            {#each friendsReviews as review (review.id)}
+              <div class="review-card">
+                <div class="review-header">
+                  <div class="user-info" onclick={() => goToProfile(review.user.username)} title="Ver perfil de {review.user.name}">
+                    <img src={review.user.avatar || "/placeholder.svg"} alt={review.user.name} class="user-avatar clickable" />
+                    <div class="user-details">
+                      <h4 class="user-name clickable">{review.user.name}</h4>
+                      <p class="user-username clickable">{review.user.username}</p>
+                    </div>
+                  </div>
+                  <div class="review-rating">
+                    <div class="stars-container">
+                      {#each renderStars(review.rating) as star (star.key)}
                         {#if star.type === 'full'}
-                          <Star size={24} class="star-filled" />
+                          <Star size={16} class="star-filled" />
                         {:else if star.type === 'half'}
                           <div class="star-half-container">
-                            <Star size={24} class="star-empty" />
+                            <Star size={16} class="star-empty" />
                             <div class="star-half-overlay">
-                              <Star size={24} class="star-filled" />
+                              <Star size={16} class="star-filled" />
                             </div>
                           </div>
                         {:else}
-                          <Star size={24} class="star-empty" />
+                          <Star size={16} class="star-empty" />
                         {/if}
                       {/each}
                     </div>
-                    <span class="rating-number">{album.averageRating}</span>
+                    <span class="review-date">{review.date}</span>
                   </div>
-                  <p class="rating-count">{album.totalRatings.toLocaleString()} avaliações</p>
                 </div>
                 
-                <!-- Review Button -->
-                <div class="album-actions">
-                  <button class="review-btn" onclick={openReviewModal} aria-label="Escrever uma review">
-                    <Plus size={20} />
-                    Avaliar
+                {#if review.comment}
+                  <div class="review-content">
+                    <p>{review.comment}</p>
+                  </div>
+                {/if}
+                
+                <div class="review-actions">
+                  <button 
+                    class="action-btn like-btn {review.userLiked ? 'active' : ''}"
+                    onclick={() => handleLike(review.id, true)}
+                    aria-label="Curtir review"
+                  >
+                    <ThumbsUp size={16} />
+                    <span>{review.likes}</span>
+                  </button>
+                  <button 
+                    class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
+                    onclick={() => handleDislike(review.id, true)}
+                    aria-label="Não curtir review"
+                  >
+                    <ThumbsDown size={16} />
+                    <span>{review.dislikes}</span>
                   </button>
                 </div>
               </div>
-              
-              <!-- Rating Distribution -->
-              <div class="rating-distribution-compact">
-                <div class="rating-bars-vertical">
-                  {#each ratingDistribution as rating (rating.stars)}
-                    <div class="rating-bar-vertical" title="{rating.count.toLocaleString()} avaliações com {rating.stars} estrelas">
-                      <div class="rating-bar-fill-vertical" style="height: {rating.percentage * 6}px;"></div>
-                      <div class="rating-label-vertical">{rating.stars}</div>
-                    </div>
-                  {/each}
-                </div>
-              </div>
-            </div>
+            {/each}
           </div>
-        </div>
-      </section>
+        </section>
 
-      <!-- Friends' Reviews -->
-      <section class="reviews-section">
-        <div class="section-header">
-          <h2 class="section-title">
-            <User size={24} />
-            Reviews dos Amigos
-          </h2>
-        </div>
-        
-        <div class="reviews-list">
-          {#each friendsReviews as review (review.id)}
-            <div class="review-card">
-              <div class="review-header">
-                <div class="user-info" onclick={() => goToProfile(review.user.username)} title="Ver perfil de {review.user.name}">
-                  <img src={review.user.avatar || "/placeholder.svg"} alt={review.user.name} class="user-avatar clickable" />
-                  <div class="user-details">
-                    <h4 class="user-name clickable">{review.user.name}</h4>
-                    <p class="user-username clickable">{review.user.username}</p>
+        <!-- Top Reviews -->
+        <section class="reviews-section top-reviews">
+          <div class="section-header">
+            <h2 class="section-title">
+              <TrendingUp size={24} />
+              Reviews Mais Bem Avaliadas
+            </h2>
+          </div>
+          
+          <div class="reviews-list">
+            {#each topReviews as review (review.id)}
+              <div class="review-card">
+                <div class="review-header">
+                  <div class="user-info" onclick={() => goToProfile(review.user.username)} title="Ver perfil de {review.user.name}">
+                    <img src={review.user.avatar || "/placeholder.svg"} alt={review.user.name} class="user-avatar clickable" />
+                    <div class="user-details">
+                      <h4 class="user-name clickable">
+                        {review.user.name}
+                        {#if review.verified}
+                          <span class="verified-badge">✓</span>
+                        {/if}
+                      </h4>
+                      <p class="user-username clickable">{review.user.username}</p>
+                    </div>
                   </div>
-                </div>
-                <div class="review-rating">
-                  <div class="stars-container">
-                    {#each renderStars(review.rating) as star (star.key)}
-                      {#if star.type === 'full'}
-                        <Star size={16} class="star-filled" />
-                      {:else if star.type === 'half'}
-                        <div class="star-half-container">
-                          <Star size={16} class="star-empty" />
-                          <div class="star-half-overlay">
-                            <Star size={16} class="star-filled" />
+                  <div class="review-rating">
+                    <div class="stars-container">
+                      {#each renderStars(review.rating) as star (star.key)}
+                        {#if star.type === 'full'}
+                          <Star size={16} class="star-filled" />
+                        {:else if star.type === 'half'}
+                          <div class="star-half-container">
+                            <Star size={16} class="star-empty" />
+                            <div class="star-half-overlay">
+                              <Star size={16} class="star-filled" />
+                            </div>
                           </div>
-                        </div>
-                      {:else}
-                        <Star size={16} class="star-empty" />
-                      {/if}
-                    {/each}
+                        {:else}
+                          <Star size={16} class="star-empty" />
+                        {/if}
+                      {/each}
+                    </div>
+                    <span class="review-date">{review.date}</span>
                   </div>
-                  <span class="review-date">{review.date}</span>
                 </div>
-              </div>
-              
-              {#if review.comment}
+                
                 <div class="review-content">
                   <p>{review.comment}</p>
                 </div>
-              {/if}
-              
-              <div class="review-actions">
-                <button 
-                  class="action-btn like-btn {review.userLiked ? 'active' : ''}"
-                  onclick={() => handleLike(review.id, true)}
-                  aria-label="Curtir review"
-                >
-                  <ThumbsUp size={16} />
-                  <span>{review.likes}</span>
-                </button>
-                <button 
-                  class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
-                  onclick={() => handleDislike(review.id, true)}
-                  aria-label="Não curtir review"
-                >
-                  <ThumbsDown size={16} />
-                  <span>{review.dislikes}</span>
-                </button>
-              </div>
-            </div>
-          {/each}
-        </div>
-      </section>
-
-      <!-- Top Reviews -->
-      <section class="reviews-section top-reviews">
-        <div class="section-header">
-          <h2 class="section-title">
-            <TrendingUp size={24} />
-            Reviews Mais Bem Avaliadas
-          </h2>
-        </div>
-        
-        <div class="reviews-list">
-          {#each topReviews as review (review.id)}
-            <div class="review-card">
-              <div class="review-header">
-                <div class="user-info" onclick={() => goToProfile(review.user.username)} title="Ver perfil de {review.user.name}">
-                  <img src={review.user.avatar || "/placeholder.svg"} alt={review.user.name} class="user-avatar clickable" />
-                  <div class="user-details">
-                    <h4 class="user-name clickable">
-                      {review.user.name}
-                      {#if review.verified}
-                        <span class="verified-badge">✓</span>
-                      {/if}
-                    </h4>
-                    <p class="user-username clickable">{review.user.username}</p>
-                  </div>
-                </div>
-                <div class="review-rating">
-                  <div class="stars-container">
-                    {#each renderStars(review.rating) as star (star.key)}
-                      {#if star.type === 'full'}
-                        <Star size={16} class="star-filled" />
-                      {:else if star.type === 'half'}
-                        <div class="star-half-container">
-                          <Star size={16} class="star-empty" />
-                          <div class="star-half-overlay">
-                            <Star size={16} class="star-filled" />
-                          </div>
-                        </div>
-                      {:else}
-                        <Star size={16} class="star-empty" />
-                      {/if}
-                    {/each}
-                  </div>
-                  <span class="review-date">{review.date}</span>
+                
+                <div class="review-actions">
+                  <button 
+                    class="action-btn like-btn {review.userLiked ? 'active' : ''}"
+                    onclick={() => handleLike(review.id, false)}
+                    aria-label="Curtir review"
+                  >
+                    <ThumbsUp size={16} />
+                    <span>{review.likes}</span>
+                  </button>
+                  <button 
+                    class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
+                    onclick={() => handleDislike(review.id, false)}
+                    aria-label="Não curtir review"
+                  >
+                    <ThumbsDown size={16} />
+                    <span>{review.dislikes}</span>
+                  </button>
                 </div>
               </div>
-              
-              <div class="review-content">
-                <p>{review.comment}</p>
-              </div>
-              
-              <div class="review-actions">
-                <button 
-                  class="action-btn like-btn {review.userLiked ? 'active' : ''}"
-                  onclick={() => handleLike(review.id, false)}
-                  aria-label="Curtir review"
-                >
-                  <ThumbsUp size={16} />
-                  <span>{review.likes}</span>
-                </button>
-                <button 
-                  class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
-                  onclick={() => handleDislike(review.id, false)}
-                  aria-label="Não curtir review"
-                >
-                  <ThumbsDown size={16} />
-                  <span>{review.dislikes}</span>
-                </button>
-              </div>
-            </div>
-          {/each}
-        </div>
-      </section>
+            {/each}
+          </div>
+        </section>
+      {/if}
     </div>
   </main>
 
