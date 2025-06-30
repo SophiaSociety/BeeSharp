@@ -22,10 +22,14 @@
     }
     
     function renderStars(rating) {
-        const fullStars = Math.floor(rating)
-        const hasHalfStar = rating % 1 !== 0
-        const emptyStars = 5 - Math.ceil(rating)
-        
+        let safeRating = Number(rating)
+        if (isNaN(safeRating) || safeRating < 0) safeRating = 0
+        if (safeRating > 5) safeRating = 5
+
+        const fullStars = Math.floor(safeRating)
+        const hasHalfStar = safeRating % 1 !== 0
+        const emptyStars = 5 - Math.ceil(safeRating)
+
         return {
             fullStars: Array(fullStars).fill(0),
             hasHalfStar,
@@ -215,10 +219,10 @@
                                     <p class="album-artist">{album.artist}</p>
                                     <div class="album-rating">
                                         <div class="stars-container">
-                                            {#each renderStars(parseFloat(album.rating)).fullStars as _}
+                                            {#each renderStars(Number(album.rating)).fullStars as _}
                                                 <Star size={14} class="star-filled" />
                                             {/each}
-                                            {#if renderStars(parseFloat(album.rating)).hasHalfStar}
+                                            {#if renderStars(Number(album.rating)).hasHalfStar}
                                                 <div class="star-half">
                                                     <Star size={14} class="star-empty" />
                                                     <div class="star-half-fill">
@@ -226,7 +230,7 @@
                                                     </div>
                                                 </div>
                                             {/if}
-                                            {#each renderStars(parseFloat(album.rating)).emptyStars as _}
+                                            {#each renderStars(Number(album.rating)).emptyStars as _}
                                                 <Star size={14} class="star-empty" />
                                             {/each}
                                         </div>
