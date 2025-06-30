@@ -163,6 +163,23 @@ fun Application.configureRouting() {
                 val reviews = reviewRepo.getReviewsByAlbum(albumId)
                 call.respond(reviews)
             }
+
+            get("/{id}/comments") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                call.respond(reviewRepo.getComments(reviewId))
+            }
+
+            get("/{id}/likes") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val count = reviewRepo.getLikesCount(reviewId)
+                call.respond(mapOf("likes" to count))
+            }
+
+            get("/{id}/full") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val full = reviewRepo.getFullReview(reviewId) ?: return@get call.respond(HttpStatusCode.NotFound)
+                call.respond(full)
+            }
         }
         route("/search"){
             get("/albums") {
