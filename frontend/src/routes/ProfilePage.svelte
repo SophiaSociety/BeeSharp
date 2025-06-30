@@ -1,6 +1,21 @@
 <script>
-  import { Star, Heart, Calendar, Music, Users, MessageSquare, ListMusic } from 'lucide-svelte'
+  import { Star, Heart, Calendar, Music, Users, MessageSquare, ListMusic, ThumbsUp, ThumbsDown } from 'lucide-svelte'
+  import { push } from 'svelte-spa-router'
+  import Login from '../lib/Login.svelte'
   
+  let showLoginModal = $state(false)
+  function openLoginModal() { showLoginModal = true }
+  function closeLoginModal() { showLoginModal = false }
+  
+    let listenedAlbums = $state([
+        { id: 1, title: "DAMN.", artist: "Kendrick Lamar", year: "2017", rating: 4.5 },
+        { id: 2, title: "Currents", artist: "Tame Impala", year: "2015", rating: 4.0 },
+        { id: 3, title: "In Rainbows", artist: "Radiohead", year: "2007", rating: 5.0 },
+        { id: 4, title: "MBDTF", artist: "Kanye West", year: "2010", rating: 4.5 },
+        { id: 5, title: "Funeral", artist: "Arcade Fire", year: "2004", rating: 3.5 },
+        { id: 6, title: "The Suburbs", artist: "Arcade Fire", year: "2010", rating: 4.0 },
+    ])
+
     let favoriteAlbums = $state([
         { id: 1, title: "OK Computer", artist: "Radiohead", year: "1997" },
         { id: 2, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015" },
@@ -18,6 +33,10 @@
         review: "A bold artistic statement that showcases Tyler's growth as both a producer and songwriter. The cohesive narrative and lush production make this a standout album.",
         date: "2 days ago",
         liked: true,
+        likes: 15,
+        dislikes: 2,
+        userLiked: false,
+        userDisliked: false
         },
         {
         id: 2,
@@ -28,6 +47,10 @@
         review: "Swift's indie folk pivot is surprisingly successful, with introspective lyrics and stripped-down production that feels both intimate and cinematic.",
         date: "1 week ago",
         liked: false,
+        likes: 8,
+        dislikes: 1,
+        userLiked: false,
+        userDisliked: false
         },
         {
         id: 3,
@@ -38,6 +61,10 @@
         review: "A deeply personal and vulnerable album that showcases Mac's incredible talent. Every track feels essential and the production is absolutely gorgeous.",
         date: "2 weeks ago",
         liked: true,
+        likes: 23,
+        dislikes: 0,
+        userLiked: true,
+        userDisliked: false
         },
     ])
 
@@ -53,26 +80,72 @@
         }
     }
 
+    function handleLike(reviewId) {
+        const review = recentReviews.find(r => r.id === reviewId)
+        if (review) {
+            if (review.userLiked) {
+                review.likes--
+                review.userLiked = false
+            } else {
+                if (review.userDisliked) {
+                    review.dislikes--
+                    review.userDisliked = false
+                }
+                review.likes++
+                review.userLiked = true
+            }
+            recentReviews = [...recentReviews]
+        }
+    }
+
+    function handleDislike(reviewId) {
+        const review = recentReviews.find(r => r.id === reviewId)
+        if (review) {
+            if (review.userDisliked) {
+                review.dislikes--
+                review.userDisliked = false
+            } else {
+                if (review.userLiked) {
+                    review.likes--
+                    review.userLiked = false
+                }
+                review.dislikes++
+                review.userDisliked = true
+            }
+            recentReviews = [...recentReviews]
+        }
+    }
+
     function handleFollow() {
         console.log('Follow clicked')
     }
 
     function handleAlbumClick(album) {
         console.log('Album clicked:', album.title)
+        // Navegar para a página do álbum
+        push('/album')
     }
 </script>
 
-<nav class="navbar-homepage">
+<nav class="navbar-albums">
     <div class="navbar-container">
         <div class="logo-component">
-            <img src="/logocomtexto.png" alt="BeeSharp Logo" />
+            <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+                <img src="/logocomtexto.png" alt="BeeSharp Logo" />
+            </button>
         </div>
         <div class="nav-links">
-            <a href="/albuns">MEUS ÁLBUNS</a>
-            <a href="/amigos">AMIGOS</a>
+            <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
+            <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
         </div>
     </div>
 </nav>
+
+{#if showLoginModal}
+    <div class="login-popup-overlay">
+        <Login onClose={closeLoginModal} isModal={true} />
+    </div>
+{/if}
 
 <div class="app">
   <!-- Header -->
@@ -122,18 +195,6 @@
     </div>
   </header>
 
-  <!-- Navigation -->
-  <nav class="navigation">
-    <div class="container">
-      <div class="nav-tabs">
-        <button class="nav-tab active">Perfil</button>
-        <button class="nav-tab">Álbuns</button>
-        <button class="nav-tab">Reviews</button>
-        <button class="nav-tab">Likes</button>
-      </div>
-    </div>
-  </nav>
-
   <main class="main">
     <div class="container">
       <!-- Stats Bar -->
@@ -173,7 +234,9 @@
               <div class="album-cover">
                 <img src="/placeholder.svg?height=200&width=200" alt="{album.title} by {album.artist}" />
                 <div class="album-overlay">
-                  <Heart size={32} />
+                  <div class="play-button">
+                    <Heart size={24} />
+                  </div>
                 </div>
               </div>
               <div class="album-info">
@@ -185,60 +248,129 @@
         </div>
       </section>
 
+      <!-- Listened Albums -->
+      <section class="section">
+        <div class="section-header">
+          <div class="section-title">
+            <Music size={20} />
+            <h2>Álbuns Escutados</h2>
+          </div>
+          <button class="view-all">Ver todos</button>
+        </div>
+
+        <div class="albums-grid">
+          {#each listenedAlbums as album (album.id)}
+            <button class="album-card" onclick={() => handleAlbumClick(album)}>
+              <div class="album-cover">
+                <img src="/placeholder.svg?height=200&width=200" alt="{album.title} by {album.artist}" />
+                <div class="album-overlay">
+                  <div class="play-button">
+                    <Music size={24} />
+                  </div>
+                </div>
+              </div>
+              <div class="album-info">
+                <p class="album-title">{album.title}</p>
+                <p class="album-artist">{album.artist} • {album.year}</p>
+                <div class="album-rating">
+                  <div class="stars-small">
+                    {#each renderStars(album.rating).fullStars as _}
+                      <Star size={14} class="star-filled" />
+                    {/each}
+                    {#if renderStars(album.rating).hasHalfStar}
+                      <div class="star-half-small">
+                        <Star size={14} class="star-empty" />
+                        <div class="star-half-fill-small">
+                          <Star size={14} class="star-filled" />
+                        </div>
+                      </div>
+                    {/if}
+                    {#each renderStars(album.rating).emptyStars as _}
+                      <Star size={14} class="star-empty" />
+                    {/each}
+                  </div>
+                </div>
+              </div>
+            </button>
+          {/each}
+        </div>
+      </section>
+
       <div class="separator"></div>
 
-      <!-- Recent Reviews -->
+      <!-- All Reviews -->
       <section class="section">
         <div class="section-header">
           <div class="section-title">
             <MessageSquare size={20} />
-            <h2>Reviews Recentes</h2>
+            <h2>Reviews</h2>
           </div>
-          <button class="view-all">Ver todos</button>
+          <button class="view-all">Ver todas</button>
         </div>
 
         <div class="reviews-list">
           {#each recentReviews as review (review.id)}
             <div class="review-card">
-              <button class="review-album">
-                <img src="/placeholder.svg?height=64&width=64" alt="{review.title} by {review.artist}" />
-              </button>
-
-              <div class="review-content">
-                <div class="review-header">
-                  <div class="review-info">
-                    <button class="review-title">{review.title}</button>
-                    <p class="review-artist">{review.artist} • {review.year}</p>
-                  </div>
-
-                  <div class="review-rating">
-                    <div class="stars">
-                      {#each renderStars(review.rating).fullStars as _}
-                        <Star size={16} class="star-filled" />
-                      {/each}
-                      {#if renderStars(review.rating).hasHalfStar}
-                        <div class="star-half">
-                          <Star size={16} class="star-empty" />
-                          <div class="star-half-fill">
-                            <Star size={16} class="star-filled" />
-                          </div>
-                        </div>
-                      {/if}
-                      {#each renderStars(review.rating).emptyStars as _}
-                        <Star size={16} class="star-empty" />
-                      {/each}
-                    </div>
-                    {#if review.liked}
-                      <Heart size={16} class="heart-liked" />
-                    {/if}
-                  </div>
+              <div class="review-layout">
+                <div class="album-info-review">
+                  <button class="album-image-button" onclick={() => handleAlbumClick(review)} aria-label="Ver álbum {review.title}">
+                    <img src="/placeholder.svg?height=120&width=120" alt="{review.title} by {review.artist}" class="album-avatar" />
+                  </button>
                 </div>
-
-                <p class="review-text">{review.review}</p>
-
-                <div class="review-date">
-                  <Calendar size={16} />
-                  <span>{review.date}</span>
+                
+                <div class="review-content-wrapper">
+                  <div class="review-header">
+                    <div class="album-details">
+                      <button class="album-name-button" onclick={() => handleAlbumClick(review)} aria-label="Ver álbum {review.title}">
+                        <h4 class="album-name">{review.title}</h4>
+                      </button>
+                      <p class="album-artist-year">{review.artist} • {review.year}</p>
+                    </div>
+                    <div class="review-rating">
+                      <div class="stars-container">
+                        {#each renderStars(review.rating).fullStars as _}
+                          <Star size={16} class="star-filled" />
+                        {/each}
+                        {#if renderStars(review.rating).hasHalfStar}
+                          <div class="star-half-container">
+                            <Star size={16} class="star-empty" />
+                            <div class="star-half-overlay">
+                              <Star size={16} class="star-filled" />
+                            </div>
+                          </div>
+                        {/if}
+                        {#each renderStars(review.rating).emptyStars as _}
+                          <Star size={16} class="star-empty" />
+                        {/each}
+                      </div>
+                      <span class="review-date">{review.date}</span>
+                    </div>
+                  </div>
+                  
+                  {#if review.review}
+                    <div class="review-content">
+                      <p>{review.review}</p>
+                    </div>
+                  {/if}
+                  
+                  <div class="review-actions">
+                    <button 
+                      class="action-btn like-btn {review.userLiked ? 'active' : ''}"
+                      onclick={() => handleLike(review.id)}
+                      aria-label="Curtir review"
+                    >
+                      <ThumbsUp size={16} />
+                      <span>{review.likes}</span>
+                    </button>
+                    <button 
+                      class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
+                      onclick={() => handleDislike(review.id)}
+                      aria-label="Não curtir review"
+                    >
+                      <ThumbsDown size={16} />
+                      <span>{review.dislikes}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -250,75 +382,147 @@
 </div>
 
 <style>
-    .navbar-homepage {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 100;
-        display: flex;
-        justify-content: space-between;
-        align-items:center;
-        padding: 0 1.5rem;
-        background: #131313;
-        height: 60px; 
-        min-height: 60px;
-    }
+  /* Global Styles */
+  :global(body) {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #14181c;
+    color: white;
+    display: block !important;
+    place-items: unset !important;
+  }
 
-    .navbar-container {
-        width: 1500px;
-        margin: 0 auto;
-        display: flex;
-        justify-content:space-between;
-        align-items: center;
-    }
+  :global(#app) {
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+  }
 
-    .logo-component img {
-        height: 60px;
-        cursor: pointer;
-    }
+  /* Navbar - identical to Album.svelte */
+  .navbar-albums {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    background: #255F85;
+    height: 80px;
+    min-height: 80px;
+    box-shadow: 0 4px 15px rgba(37, 95, 133, 0.3);
+    transition: all 0.3s ease;
+    overflow: visible;
+  }
 
-    .nav-links a {
-        margin-left: 1.5rem;
-        margin-right: 3.5rem;
-        color: white;
-        font-family: 'Familjen Grotesk', sans-serif;
-        font-weight: bold;
-        font-size: 14px;
-        letter-spacing: 0.1em;
-        text-decoration: none;
-        white-space: nowrap;
-        overflow-x: auto;
-    }
+  .navbar-container {
+    width: 1500px;
+    max-width: 100vw;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
 
-    :global(body) {
-        margin: 0;
-        padding: 0;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        background-color: #181b20;
-        color: white;
-    }
+  .logo-component img {
+    height: 72px;
+    transition: all 0.3s ease;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
+  }
 
-    .app {
-        min-height: 100vh;
-        background-color: #14181c;
-        margin-top: 72px;
-        border-radius: 1.5rem;
-    }
+  .logo-component img:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.2));
+  }
 
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 1rem;
-    }
+  .logo-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
+  }
 
-    /* Header Styles */
-    .header {
-        background-color: #232a33;
-        border-bottom: 1px solid #374151;
-        padding: 2rem 1.5rem;
-        border-radius: 1.5rem 1.5rem 0 0;
-    }
+  .logo-button:hover {
+    opacity: 0.8;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+  }
+
+  .nav-links a {
+    margin-left: 1.5rem;
+    margin-right: 3.5rem;
+    color: white;
+    font-family: 'Familjen Grotesk', sans-serif;
+    font-weight: bold;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.2s;
+    position: relative;
+    z-index: 2;
+  }
+
+  .nav-login-btn {
+    margin-left: 1.5rem;
+    margin-right: 3.5rem;
+    background: none;
+    border: none;
+    color: white;
+    font-family: 'Familjen Grotesk', sans-serif;
+    font-weight: bold;
+    font-size: 16px;
+    letter-spacing: 0.1em;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color 0.2s;
+    position: relative;
+    z-index: 2;
+  }
+
+  .login-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app {
+    min-height: 100vh;
+    background-color: #14181c;
+    margin-top: 80px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  /* Header Styles */
+  .header {
+    background-color: #232a33;
+    border-bottom: 1px solid #374151;
+    padding: 2rem 1.5rem;
+  }
 
     .profile-info {
         display: flex;
@@ -356,6 +560,7 @@
         margin: 0;
         font-size: 1.5rem;
         font-weight: bold;
+        font-family: 'Familjen Grotesk', sans-serif;
     }
 
     .username {
@@ -386,376 +591,515 @@
         text-align: justify
     }
 
+    /* Stats Styles */
     .stats {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        font-size: 0.875rem;
-        color: #9ca3af;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    font-size: 0.875rem;
+    color: #9ca3af;
+  }
+
+  .stat {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  .stat-number {
+    font-weight: 500;
+    color: white;
+  }
+
+  /* Main Content Styles */
+  .main {
+    padding: 2rem 0;
+  }
+
+  .section {
+    margin-bottom: 3rem;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #C5283D;
+  }
+
+  .section-title h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: white;
+    font-family: 'Familjen Grotesk', sans-serif;
+  }
+
+  .view-all {
+    font-size: 0.875rem;
+    color: #FFC857;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  /* Stats Bar */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background-color: #2c3440;
+    border-radius: 0.375rem;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    font-family: 'Familjen Grotesk', sans-serif;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: #9ca3af;
+  }
+
+  /* Albums Grid - styled like AlbumsOverview.svelte */
+  .albums-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+  }
+
+  .album-card {
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+    transition: transform 0.2s ease;
+  }
+
+  .album-card:hover {
+    transform: translateY(-4px);
+  }
+
+  .album-cover {
+    position: relative;
+    aspect-ratio: 1;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: #374151;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .album-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease;
+  }
+
+  .album-card:hover .album-cover img {
+    transform: scale(1.05);
+  }
+
+  .album-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: white;
+  }
+
+  .album-card:hover .album-overlay {
+    background: rgba(0, 0, 0, 0.6);
+  }
+
+  .play-button {
+    background: #255F85;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    transform: scale(0);
+    transition: transform 0.2s ease;
+  }
+
+  .album-card:hover .play-button {
+    transform: scale(1);
+  }
+
+  .album-info {
+    padding: 0.5rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .album-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    margin: 0 0 0.25rem 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .album-artist {
+    color: #9ca3af;
+    margin: 0;
+    font-size: 0.8125rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .album-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .stars-small {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+  }
+
+  .star-half-small {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .star-half-fill-small {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    overflow: hidden;
+  }
+
+  /* Separator */
+  .separator {
+    height: 1px;
+    background-color: #374151;
+    margin: 2rem 0;
+  }
+
+  /* Reviews */
+  .reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .review-card {
+    background: #1d232a;
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid #374151;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    min-height: 200px;
+  }
+
+  .review-card:hover {
+    border-color: #4b5563;
+  }
+
+  .review-layout {
+    display: flex;
+    gap: 1.5rem;
+    height: 100%;
+    align-items: stretch;
+    min-height: 180px;
+  }
+
+  .album-info-review {
+    flex-shrink: 0;
+    width: 150px;
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+  }
+
+  .album-image-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    height: 150px;
+    width: 150px;
+    display: flex;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+  }
+
+  .album-image-button:hover {
+    transform: scale(1.02);
+  }
+
+  .album-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 2px solid #374151;
+    display: block;
+    aspect-ratio: 1;
+  }
+
+  .review-content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .album-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .album-name-button {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.2s ease;
+  }
+
+  .album-name-button:hover .album-name {
+    color: #FFC857;
+  }
+
+  .album-name {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+    color: white;
+    font-family: 'Familjen Grotesk', sans-serif;
+  }
+
+  .album-artist-year {
+    font-size: 0.875rem;
+    color: #9ca3af;
+    margin: 0;
+  }
+
+  .review-rating {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.25rem;
+  }
+
+  .stars-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .star-half-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .star-half-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    overflow: hidden;
+  }
+
+  .review-date {
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .review-content {
+    margin-bottom: 0;
+  }
+
+  .review-content p {
+    color: #d1d5db;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .review-actions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #374151;
+    margin-top: auto;
+  }
+
+  .action-btn {
+    background: none;
+    border: 1px solid #374151;
+    color: #9ca3af;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    font-family: 'Familjen Grotesk', sans-serif;
+  }
+
+  .action-btn:hover {
+    border-color: #4b5563;
+    color: white;
+  }
+
+  .action-btn.active.like-btn {
+    border-color: #FFC857;
+    color: #FFC857;
+    background: rgba(255, 200, 87, 0.1);
+  }
+
+  .action-btn.active.dislike-btn {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  /* Star Rating Styles */
+  :global(.star-filled) {
+    fill: #FFC857;
+    color: #FFC857;
+  }
+
+  :global(.star-empty) {
+    fill: none;
+    color: #374151;
+  }
+
+  /* Responsive Design */
+  @media (min-width: 768px) {
+    .profile-info {
+      flex-direction: row;
     }
 
-    .stat {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
+    .user-header {
+      flex-direction: row;
+      align-items: center;
     }
 
-    .stat-number {
-        font-weight: 500;
-        color: white;
-    }
-
-    /* Navigation Styles */
-    .navigation {
-        background-color: #1d232a;
-        border-bottom: 1px solid #374151;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .nav-tabs {
-        display: flex;
-        overflow-x: auto;
-    }
-
-    .nav-tab {
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: #9ca3af;
-        background: none;
-        border: none;
-        cursor: pointer;
-        transition: color 0.2s;
-        border-bottom: 2px solid transparent;
-    }
-
-    .nav-tab:hover {
-        color: white;
-    }
-
-    .nav-tab.active {
-        color: #FFC857;
-        border-bottom-color: #FFC857;
-    }
-
-    /* Main Content Styles */
-    .main {
-        padding: 2rem 0;
-    }
-
-    .section {
-        margin-bottom: 3rem;
-    }
-
-    .section-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 1.5rem;
-    }
-
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        color: #C5283D;
-    }
-
-    .section-title h2 {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: bold;
-        color: white;
-    }
-
-    .view-all {
-        font-size: 0.875rem;
-        color: #FFC857;
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-decoration: underline;
-    }
-
-    /* Stats Bar */
-    .stats-bar {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-
-    .stat-card {
-        background-color: #2c3440;
-        border-radius: 0.375rem;
-        padding: 1rem;
-        text-align: center;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: white;
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: #9ca3af;
-    }
-
-    /* Albums Grid */
-    .albums-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 1rem;
-    }
-
-    .album-card {
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-align: left;
-    }
-
-    .album-cover {
-        position: relative;
-        aspect-ratio: 1;
-        margin-bottom: 0.5rem;
-        overflow: hidden;
-        border-radius: 0.375rem;
-        background-color: #374151;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-
-    .album-cover img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.2s;
-    }
-
-    .album-card:hover .album-cover img {
-        transform: scale(1.05);
-    }
-
-    .album-overlay {
-        position: absolute;
-        inset: 0;
-        background-color: rgba(0, 0, 0, 0);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s;
-        color: white;
-    }
-
-    .album-card:hover .album-overlay {
-        background-color: rgba(0, 0, 0, 0.4);
-    }
-
-    .album-info {
-        font-size: 0.875rem;
-    }
-
-    .album-title {
-        font-weight: 500;
-        color: white;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .album-artist {
-        color: #9ca3af;
-        margin: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    /* Separator */
-    .separator {
-        height: 1px;
-        background-color: #374151;
-        margin: 2rem 0;
-    }
-
-    /* Reviews */
-    .reviews-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .review-card {
-        background-color: #2c3440;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        display: flex;
-        gap: 1rem;
-    }
-
-    .review-album {
-        flex-shrink: 0;
-        background: none;
-        border: none;
-        cursor: pointer;
-    }
-
-    .review-album img {
-        width: 135px;
-        height: 135px;
-        aspect-ratio: 1 / 1;
-        border-radius: 0.375rem;
-        background-color: #374151;
-        object-fit: cover;
-        transition: transform 0.2s;
-        display: block;
-    }
-
-    .review-album:hover img {
-        transform: scale(1.05);
-    }
-
-    .review-content {
-        flex: 1;
-        min-width: 0;
+    .follow-btn {
+      margin-left: auto;
     }
 
     .review-header {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
+      flex-direction: row;
+      align-items: flex-start;
     }
 
-    .review-info {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+    .stats-bar {
+      grid-template-columns: repeat(4, 1fr);
     }
 
-    .review-title {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: white;
-        background: none;
-        border: none;
-        cursor: pointer;
-        text-align: left;
-        padding: 0;
-        transition: color 0.2s;
-        outline: none;
-        width: 100%;
-        text-align: left;
+    .albums-grid {
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+  }
+
+  @media (max-width: 767px) {
+    .albums-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
 
-    .review-title:focus,
-    .review-title:active {
-        color: #FFC857;
-        background: rgba(255, 200, 87, 0.12); /* leve destaque amarelo translúcido */
+    .review-layout {
+      flex-direction: column;
+      gap: 1rem;
     }
 
-    .review-title:hover {
-        color: #FFC857;
+    .album-info-review {
+      width: 150px;
+      height: auto;
+      margin: 0 auto;
     }
 
-    .review-artist {
-        color: #9ca3af;
-        margin: 0;
+    .album-avatar {
+      aspect-ratio: 1;
+      width: 150px;
+      height: 150px;
+    }
+
+    .album-image-button {
+      width: 150px;
+      height: 150px;
+      flex: none;
+    }
+
+    .review-header {
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
     .review-rating {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
+      align-items: flex-start;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .review-card {
+      padding: 1rem;
     }
 
-    .stars {
-        display: flex;
-        align-items: center;
-        gap: 0.125rem;
+    .album-info-review {
+      width: 120px;
     }
 
-    .star-half {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        height: 18px;
+    .album-avatar {
+      width: 120px;
+      height: 120px;
     }
 
-    .star-half-fill {
-        position: absolute;
-        top: 0;
-        left: 0;
-        overflow: hidden;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        clip-path: inset(0 50% 0 0);
+    .album-image-button {
+      width: 120px;
+      height: 120px;
     }
-
-    :global(.star-filled) {
-        fill: #FFC587;
-        color: #FFC587;
-    }
-
-    :global(.star-empty) {
-    fill: none;
-    color: #6b7280;
-    }
-
-    :global(.heart-liked) {
-        fill: #C5283D;
-        color: #C5283D;
-    }
-
-    .review-text {
-        color: #d1d5db;
-        line-height: 1.6;
-        margin-bottom: 0.75rem;
-        text-align: justify;
-    }
-
-    .review-date {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.875rem;
-        color: #9ca3af;
-    }
-
-    /* Responsive Design */
-    @media (min-width: 768px) {
-        .profile-info {
-        flex-direction: row;
-        }
-
-        .user-header {
-        flex-direction: row;
-        align-items: center;
-        }
-
-        .follow-btn {
-        margin-left: auto;
-        }
-
-        .review-header {
-        flex-direction: row;
-        align-items: flex-start;
-        }
-
-        .stats-bar {
-        grid-template-columns: repeat(4, 1fr);
-        }
-
-        .albums-grid {
-        grid-template-columns: repeat(4, 1fr);
-        }
-    }
+  }
 </style>
