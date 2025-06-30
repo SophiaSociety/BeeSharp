@@ -92,7 +92,7 @@ fun Application.configureSecurity() {
                     .withIssuer(jwtIssuer)
                     .withClaim("username", username)
                     .withClaim("userId", user.id)
-                    .withExpiresAt(Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24h
+                    .withClaim("exp", (System.currentTimeMillis() / 1000) + (24 * 60 * 60)) // 24h in seconds
                     .sign(Algorithm.HMAC256(jwtSecret))
                 call.respond(HttpStatusCode.OK, mapOf("token" to token))
             } else {

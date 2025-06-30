@@ -18,11 +18,15 @@
 
     // Check if user is already logged in
     $effect(() => {
-        if (getAuthToken()) {
+        const token = getAuthToken();
+        if (token && !isTokenExpired(token)) {
             if (isModal && onClose) {
                 onClose();
             }
-            push('/albuns'); // Redirect to albums page
+            push('/albuns');
+        } else if (token && isTokenExpired(token)) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('username');
         }
     });
 
@@ -123,6 +127,17 @@
                 onClose(); // Close modal first
             }
             push('/criar-conta'); // Navigate to signup page
+        }
+    }
+
+    function isTokenExpired(token) {
+        if (!token) return true;
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            // exp está em segundos desde epoch
+            return (payload.exp * 1000) < Date.now();
+        } catch (e) {
+            return true;
         }
     }
 </script>
