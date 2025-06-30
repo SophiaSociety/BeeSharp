@@ -9,36 +9,54 @@
     function openLoginModal() { showLoginModal = true }
     function closeLoginModal() { showLoginModal = false }
     
-    // Mock data for hot albums
-    let hotAlbums = [
-        { id: 1, title: "The Tortured Poets Department", artist: "Taylor Swift", year: "2024", rating: 4.2, image: "/placeholder.svg?height=300&width=300" },
-        { id: 2, title: "Hit Me Hard and Soft", artist: "Billie Eilish", year: "2024", rating: 4.5, image: "/placeholder.svg?height=300&width=300" },
-        { id: 3, title: "Brat", artist: "Charli XCX", year: "2024", rating: 4.3, image: "/placeholder.svg?height=300&width=300" },
-        { id: 4, title: "Short n' Sweet", artist: "Sabrina Carpenter", year: "2024", rating: 4.1, image: "/placeholder.svg?height=300&width=300" },
-        { id: 5, title: "Eternal Sunshine", artist: "Ariana Grande", year: "2024", rating: 4.0, image: "/placeholder.svg?height=300&width=300" },
-        { id: 6, title: "The Rise and Fall of a Midwest Princess - Special Deluxe Edition", artist: "Chappell Roan", year: "2023", rating: 4.4, image: "/placeholder.svg?height=300&width=300" },
-        { id: 7, title: "Guts (Spilled)", artist: "Olivia Rodrigo", year: "2023", rating: 4.2, image: "/placeholder.svg?height=300&width=300" },
-        { id: 8, title: "Did you know that there's a tunnel under Ocean Blvd", artist: "Lana Del Rey", year: "2023", rating: 4.1, image: "/placeholder.svg?height=300&width=300" },
-        { id: 9, title: "The Record", artist: "boygenius", year: "2023", rating: 4.6, image: "/placeholder.svg?height=300&width=300" },
-        { id: 10, title: "Genesis", artist: "RAYE", year: "2023", rating: 4.3, image: "/placeholder.svg?height=300&width=300" }
-    ]
+    let hotAlbums = []
+    let topRatedAlbums = []
+    let loadingHot = true
+    let loadingTop = true
+    let errorHot = ''
+    let errorTop = ''
     
-    // Mock data for top-rated albums
-    let topRatedAlbums = [
-        { id: 1, title: "OK Computer", artist: "Radiohead", year: "1997", rating: 4.8, image: "/placeholder.svg?height=200&width=200" },
-        { id: 2, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015", rating: 4.7, image: "/placeholder.svg?height=200&width=200" },
-        { id: 3, title: "The Dark Side of the Moon", artist: "Pink Floyd", year: "1973", rating: 4.9, image: "/placeholder.svg?height=200&width=200" },
-        { id: 4, title: "Abbey Road", artist: "The Beatles", year: "1969", rating: 4.8, image: "/placeholder.svg?height=200&width=200" },
-        { id: 5, title: "Blonde", artist: "Frank Ocean", year: "2016", rating: 4.6, image: "/placeholder.svg?height=200&width=200" },
-        { id: 6, title: "Nevermind", artist: "Nirvana", year: "1991", rating: 4.5, image: "/placeholder.svg?height=200&width=200" },
-        { id: 7, title: "The Velvet Underground & Nico", artist: "The Velvet Underground", year: "1967", rating: 4.7, image: "/placeholder.svg?height=200&width=200" },
-        { id: 8, title: "Pet Sounds", artist: "The Beach Boys", year: "1966", rating: 4.6, image: "/placeholder.svg?height=200&width=200" }
-    ]
-    
-    function handleSearch(event) {
+    let searchResults = []
+    let searching = false
+    let searchError = ''
+    let showResults = false
+
+    async function handleSearch(event) {
         event.preventDefault()
-        console.log('Searching for:', searchQuery)
-        // Implement search functionality
+        searching = true
+        searchError = ''
+        showResults = false
+        searchResults = []
+
+        try {
+            const [albumsRes, usersRes, artistsRes] = await Promise.all([
+                fetch(`http://localhost:8080/search/albums?query=${encodeURIComponent(searchQuery)}`),
+                fetch(`http://localhost:8080/search/users?query=${encodeURIComponent(searchQuery)}`),
+                fetch(`http://localhost:8080/search/artists?query=${encodeURIComponent(searchQuery)}`)
+            ])
+
+            if (!albumsRes.ok || !usersRes.ok || !artistsRes.ok) {
+                throw new Error('Erro ao buscar resultados')
+            }
+
+            const [albums, users, artists] = await Promise.all([
+                albumsRes.json(),
+                usersRes.json(),
+                artistsRes.json()
+            ])
+
+            // Marque cada tipo para renderização
+            const albumResults = albums.map(a => ({ ...a, _type: 'album' }))
+            const userResults = users.map(u => ({ ...u, _type: 'user' }))
+            const artistResults = artists.map(ar => ({ ...ar, _type: 'artist' }))
+
+            searchResults = [...albumResults, ...artistResults, ...userResults]
+            showResults = true
+        } catch (e) {
+            searchError = e.message
+        } finally {
+            searching = false
+        }
     }
     
     function nextCarousel() {
@@ -51,13 +69,9 @@
     
     function handleAlbumClick(album) {
         console.log('Album clicked:', album.title)
-        // Navigate to album detail page
+        push(`/album/${album.id}`)
     }
-    
-    function handleViewAllClick() {
-        console.log('View all top albums clicked')
-        // Navigate to top 100 albums page
-    }
+
     
     function renderStars(rating) {
         const fullStars = Math.floor(rating)
@@ -144,16 +158,41 @@
     }
 
     onMount(() => {
-        // Small delay to ensure DOM is fully rendered
-        setTimeout(adjustTitleClasses, 100);
-        
-        // Reajustar quando a janela for redimensionada
+        // Async logic separated from cleanup logic
+        (async () => {
+            // 1. Buscar álbuns em alta
+            try {
+                const resHot = await fetch('http://localhost:8080/albums/hot')
+                if (!resHot.ok) throw new Error('Erro ao buscar álbuns em alta')
+                hotAlbums = await resHot.json()
+            } catch (e) {
+                errorHot = e.message
+            } finally {
+                loadingHot = false
+            }
+
+            // 2. Buscar top-rated
+            try {
+                const resTop = await fetch('http://localhost:8080/albums/top-rated')
+                if (!resTop.ok) throw new Error('Erro ao buscar top álbuns')
+                topRatedAlbums = await resTop.json()
+            } catch (e) {
+                errorTop = e.message
+            } finally {
+                loadingTop = false
+            }
+
+            // 3. Pequeno delay para garantir que DOM está pronto
+            setTimeout(adjustTitleClasses, 100);
+        })();
+
+        // 4. Reajustar quando a janela for redimensionada
         const handleResize = () => {
             setTimeout(adjustTitleClasses, 50);
         };
         window.addEventListener('resize', handleResize);
-        
-        // Cleanup
+
+        // 5. Cleanup
         return () => {
             window.removeEventListener('resize', handleResize);
         };
@@ -212,163 +251,180 @@
                 </button>
             </div>
             </form>
+            {#if searching}
+                <div class="search-results-box">
+                    <p>Buscando...</p>
+                </div>
+            {:else if searchError}
+                <div class="search-results-box">
+                    <p style="color:red">{searchError}</p>
+                </div>
+            {:else if showResults}
+                <div class="search-results-box">
+                    {#if searchResults.length === 0}
+                        <p>Nenhum resultado encontrado.</p>
+                    {:else}
+                        <ul class="search-results-list">
+                            {#each searchResults as result (result._type + '-' + result.id)}
+                                <li class="search-result-item">
+                                    {#if result._type === 'album'}
+                                        <a href={"/album/" + result.id} class="result-link">
+                                            <img class="result-img" src={result.image || "/placeholder-album.svg"} alt="Capa do álbum" />
+                                            <span class="result-title">{result.title}</span>
+                                            <span class="result-type">Álbum</span>
+                                        </a>
+                                    {:else if result._type === 'artist'}
+                                        <a href={"/artist/" + result.id} class="result-link">
+                                            <img class="result-img" src={result.photo || "/placeholder-artist.svg"} alt="Foto do artista" />
+                                            <span class="result-title">{result.name}</span>
+                                            <span class="result-type">Artista</span>
+                                        </a>
+                                    {:else if result._type === 'user'}
+                                        <a href={"/" + result.username} class="result-link">
+                                            <img class="result-img" src={result.profileImageUrl || "/placeholder-user.svg"} alt="Foto do usuário" />
+                                            <span class="result-title">{result.username}</span>
+                                            <span class="result-type">Usuário</span>
+                                        </a>
+                                    {/if}
+                                </li>
+                            {/each}
+                        </ul>
+                    {/if}
+                </div>
+            {/if}
         </div>
         </div>
     </section>
 
     <main class="main-content">
         <div class="container">
-        <!-- Hot Albums Carousel -->
-        <section class="section">
-            <div class="section-header">
-            <div class="section-title hot-albums-title">
-                <Flame size={24} />
-                <h2>Álbuns em Alta</h2>
-            </div>
-            <div class="carousel-controls">
-                <button class="carousel-btn" onclick={prevCarousel} aria-label="Álbuns anteriores">
-                    ‹
-                </button>
-                <button class="carousel-btn" onclick={nextCarousel} aria-label="Próximos álbuns">
-                    ›
-                </button>
-            </div>
-            </div>
+            <!-- Hot Albums Carousel -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title hot-albums-title">
+                        <Flame size={24} />
+                        <h2>Álbuns em Alta</h2>
+                    </div>
+                    <div class="carousel-controls">
+                        <button class="carousel-btn" onclick={prevCarousel} aria-label="Álbuns anteriores">
+                            ‹
+                        </button>
+                        <button class="carousel-btn" onclick={nextCarousel} aria-label="Próximos álbuns">
+                            ›
+                        </button>
+                    </div>
+                </div>
 
-            <div class="carousel-container">
-            <div class="carousel-track" style="transform: translateX(-{currentCarouselIndex * 25}%)">
-                {#each hotAlbums as album (album.id)}
-                <div class="carousel-item">
-                    <button class="album-card hot-album" onclick={() => handleAlbumClick(album)}>
-                    <div class="album-cover">
-                        <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
-                        <div class="album-overlay">
-                        <div class="play-button">
-                            <Music size={24} />
-                        </div>
-                        </div>
-                        <div class="trending-badge">
-                        <TrendingUp size={14} />
-                        </div>
-                    </div>
-                    <div class="album-info">
-                        <h3 class="album-title">{album.title}</h3>
-                        <p class="album-artist">{album.artist} • {album.year}</p>
-                        <div class="album-rating">
-                        <div class="stars-container">
-                            {#each renderStars(album.rating).fullStars as _}
-                                <Star size={12} class="star-filled" />
-                            {/each}
-                            {#if renderStars(album.rating).hasHalfStar}
-                                <div class="star-half">
-                                    <Star size={12} class="star-empty" />
-                                    <div class="star-half-fill">
-                                        <Star size={12} class="star-filled" />
-                                    </div>
+                <div class="carousel-container">
+                    {#if loadingHot}
+                        <p>Carregando álbuns em alta...</p>
+                    {:else if errorHot}
+                        <p style="color:red">{errorHot}</p>
+                    {:else}
+                        <div class="carousel-track" style="transform: translateX(-{currentCarouselIndex * 25}%)">
+                            {#each hotAlbums as album (album.id)}
+                                <div class="carousel-item">
+                                    <button class="album-card hot-album" onclick={() => handleAlbumClick(album)}>
+                                        <div class="album-cover">
+                                            <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
+                                            <div class="album-overlay">
+                                                <div class="play-button">
+                                                    <Music size={24} />
+                                                </div>
+                                            </div>
+                                            <div class="trending-badge">
+                                                <TrendingUp size={14} />
+                                            </div>
+                                        </div>
+                                        <div class="album-info">
+                                            <h3 class="album-title">{album.title}</h3>
+                                            <p class="album-artist">{album.artist}</p>
+                                            <div class="album-rating">
+                                                <div class="stars-container">
+                                                    {#each renderStars(album.averageRating).fullStars as _}
+                                                        <Star size={12} class="star-filled" />
+                                                    {/each}
+                                                    {#if renderStars(album.averageRating).hasHalfStar}
+                                                        <div class="star-half">
+                                                            <Star size={12} class="star-empty" />
+                                                            <div class="star-half-fill">
+                                                                <Star size={12} class="star-filled" />
+                                                            </div>
+                                                        </div>
+                                                    {/if}
+                                                    {#each renderStars(album.averageRating).emptyStars as _}
+                                                        <Star size={12} class="star-empty" />
+                                                    {/each}
+                                                </div>
+                                                <span class="rating-text">{album.averageRating}</span>
+                                            </div>
+                                        </div>
+                                    </button>
                                 </div>
-                            {/if}
-                            {#each renderStars(album.rating).emptyStars as _}
-                                <Star size={12} class="star-empty" />
                             {/each}
                         </div>
-                        <span class="rating-text">{album.rating}</span>
-                        </div>
+                    {/if}
+                </div>
+            </section>
+
+            <!-- Top Rated Albums -->
+            <section class="section">
+                <div class="section-header">
+                    <div class="section-title top-albums-title">
+                        <Award size={24} />
+                        <h2>Top Álbuns</h2>
                     </div>
+                    <button class="view-all-btn" onclick={() => push('/top100')}>
+                        Ver Tudo
+                        <ArrowRight size={16} />
                     </button>
                 </div>
-                {/each}
-            </div>
-            </div>
-        </section>
 
-        <!-- Top Rated Albums -->
-        <section class="section">
-            <div class="section-header">
-            <div class="section-title top-albums-title">
-                <Award size={24} />
-                <h2>Top Álbuns</h2>
-            </div>
-            <button class="view-all-btn" onclick={handleViewAllClick}>
-                Ver Tudo
-                <ArrowRight size={16} />
-            </button>
-            </div>
-
-            <div class="albums-grid">
-            {#each topRatedAlbums as album (album.id)}
-                <button class="album-card top-rated" onclick={() => handleAlbumClick(album)}>
-                <div class="album-cover">
-                    <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
-                    <div class="album-overlay">
-                    <div class="rating-badge">
-                        <Star size={16} class="star-filled" />
-                        <span>{album.rating}</span>
-                    </div>
-                    </div>
-                </div>
-                <div class="album-info">
-                    <h3 class="album-title">{album.title}</h3>
-                    <p class="album-artist">{album.artist} • {album.year}</p>
-                    <div class="album-rating">
-                    <div class="stars-container">
-                        {#each renderStars(album.rating).fullStars as _}
-                            <Star size={12} class="star-filled" />
-                        {/each}
-                        {#if renderStars(album.rating).hasHalfStar}
-                            <div class="star-half">
-                                <Star size={12} class="star-empty" />
-                                <div class="star-half-fill">
-                                    <Star size={12} class="star-filled" />
+                {#if loadingTop}
+                    <p>Carregando top álbuns...</p>
+                {:else if errorTop}
+                    <p style="color:red">{errorTop}</p>
+                {:else}
+                    <div class="albums-grid">
+                        {#each topRatedAlbums as album (album.id)}
+                            <button class="album-card top-rated" onclick={() => handleAlbumClick(album)}>
+                                <div class="album-cover">
+                                    <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
+                                    <div class="album-overlay">
+                                        <div class="rating-badge">
+                                            <Star size={16} class="star-filled" />
+                                            <span>{album.averageRating}</span>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        {/if}
-                        {#each renderStars(album.rating).emptyStars as _}
-                            <Star size={12} class="star-empty" />
+                                <div class="album-info">
+                                    <h3 class="album-title">{album.title}</h3>
+                                    <p class="album-artist">{album.artist}</p>
+                                    <div class="album-rating">
+                                        <div class="stars-container">
+                                            {#each renderStars(album.averageRating).fullStars as _}
+                                                <Star size={12} class="star-filled" />
+                                            {/each}
+                                            {#if renderStars(album.averageRating).hasHalfStar}
+                                                <div class="star-half">
+                                                    <Star size={12} class="star-empty" />
+                                                    <div class="star-half-fill">
+                                                        <Star size={12} class="star-filled" />
+                                                    </div>
+                                                </div>
+                                            {/if}
+                                            {#each renderStars(album.averageRating).emptyStars as _}
+                                                <Star size={12} class="star-empty" />
+                                            {/each}
+                                        </div>
+                                        <span class="rating-text">{album.averageRating}</span>
+                                    </div>
+                                </div>
+                            </button>
                         {/each}
                     </div>
-                    <span class="rating-text">{album.rating}</span>
-                    </div>
-                </div>
-                </button>
-            {/each}
-            </div>
-        </section>
-
-        <!-- Stats Section -->
-        <section class="stats-section">
-            <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                <Music size={32} />
-                </div>
-                <div class="stat-content">
-                <div class="stat-number">50K+</div>
-                <div class="stat-label">Álbuns Resenhados</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                <TrendingUp size={32} />
-                </div>
-                <div class="stat-content">
-                <div class="stat-number">1M+</div>
-                <div class="stat-label">Avaliações de Usuários</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">
-                <Award size={32} />
-                </div>
-                <div class="stat-content">
-                <div class="stat-number">25K+</div>
-                <div class="stat-label">Usuários Ativos</div>
-                </div>
-            </div>
-            <div class="stat-logo">
-                <img src="/logo.png" alt="BeeSharp Logo" class="stats-logo" />
-            </div>
-            </div>
-        </section>
+                {/if}
+            </section>
         </div>
     </main>
 
@@ -569,6 +625,65 @@
     .search-button:focus {
         outline: none;
         background: #1e4c6b;
+    }
+
+    .search-results-box {
+        background: #23272f;
+        border-radius: 12px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        margin: 1rem auto 2rem auto;
+        max-width: 600px;
+        padding: 1.5rem;
+        color: white;
+        z-index: 10;
+        position: relative;
+    }
+
+    .search-results-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .search-result-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #333;
+    }
+
+    .result-img {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #444;
+    }
+
+    .result-title {
+        font-weight: 600;
+        color: #fff;
+    }
+
+    .result-type {
+        margin-left: auto;
+        font-size: 0.85rem;
+        color: #FFC857;
+        font-weight: 500;
+    }
+
+    .result-link {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        text-decoration: none;
+        color: inherit;
+        width: 100%;
+    }
+    .result-link:hover .result-title {
+        text-decoration: underline;
+        color: #FFC857;
     }
 
     /* Main Content */
@@ -857,68 +972,6 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 8px rgba(197, 40, 61, 0.3);
     }
-
-    /* Stats Section */
-    .stats-section {
-        background: #1d232a;
-        border-radius: 16px;
-        padding: 3rem 2rem;
-        margin: 4rem 0;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        align-items: center;
-    }
-
-    .stat-card {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        text-align: left;
-    }
-
-    .stat-logo {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        margin: 0;
-    }
-
-    .stats-logo {
-        height: 80px;
-        width: auto;
-        object-fit: contain;
-        transition: transform 0.3s ease;
-    }
-
-    .stats-logo:hover {
-        transform: scale(1.1) rotate(5deg);
-    }
-
-    .stat-icon {
-        color: #FFC857;
-        background: rgba(255, 200, 87, 0.1);
-        padding: 1rem;
-        border-radius: 12px;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: white;
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: #9ca3af;
-        margin-top: 0.25rem;
-    }
-
 
     /* Star Rating Styles */
     :global(.star-filled) {

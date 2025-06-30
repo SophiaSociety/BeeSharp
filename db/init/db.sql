@@ -27,11 +27,16 @@ CREATE TABLE UserFollows (
 -- 3) Álbuns e favoritar álbuns 
 CREATE TABLE Albums (
     id          SERIAL PRIMARY KEY,
-    -- external_id VARCHAR(255) NOT NULL UNIQUE,  -- ID da API (Spotify/Last.fm) mais para frente
     title       VARCHAR(255) NOT NULL,
     artist      VARCHAR(255),
+    year        VARCHAR(10),         -- Novo campo
+    genre       VARCHAR(100),        -- Novo campo
+    duration    VARCHAR(10),         -- Novo campo
+    average_rating NUMERIC(3,2) NOT NULL DEFAULT 0.00,
     reviews_count  INTEGER     NOT NULL DEFAULT 0,
-    average_rating NUMERIC(3,2) NOT NULL DEFAULT 0.00
+    total_ratings  INTEGER     NOT NULL DEFAULT 0, -- Novo campo
+    image       VARCHAR(255),        -- Novo campo
+    description TEXT                 -- Novo campo
 );
 
 CREATE TABLE AlbumFavorites (
@@ -62,7 +67,7 @@ CREATE TABLE Reviews (
     id             SERIAL PRIMARY KEY,
     album_id       INT    NOT NULL,
     user_id        INT    NOT NULL,
-    rating         INT NOT NULL CHECK (rating >= 0 AND rating <= 5),
+    rating         INTEGER NOT NULL CHECK (rating >= 0 AND rating <= 10), -- agora aceita .5
     content      TEXT NOT NULL,
     created_at   TIMESTAMP NOT NULL DEFAULT NOW(),
     modified_date  DATE   NOT NULL,
@@ -82,13 +87,23 @@ CREATE TABLE Commentaries (
     FOREIGN KEY (user_id)  REFERENCES Users(id)   ON DELETE CASCADE
 );
 
--- 7) Artistas
+-- 7) Curtidas em resenhas
+CREATE TABLE ReviewLikes (
+    id         SERIAL PRIMARY KEY,
+    review_id  INT NOT NULL,
+    user_id    INT NOT NULL,
+    FOREIGN KEY (review_id) REFERENCES Reviews(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)   REFERENCES Users(id)   ON DELETE CASCADE,
+    CONSTRAINT unique_like_per_user_review UNIQUE (review_id, user_id)
+);
+
+-- 8) Artistas
 CREATE TABLE Artists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE
 );
 
--- 8) Ligação Artistas-Álbuns (muitos-para-muitos)
+-- 9) Ligação Artistas-Álbuns (muitos-para-muitos)
 CREATE TABLE ArtistAlbums (
     artist_id INT NOT NULL,
     album_id INT NOT NULL,

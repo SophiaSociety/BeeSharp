@@ -14,6 +14,10 @@ class ReviewRoutesTest {
     fun testGetReviewsReturns200() = testApplication {
         application { module() }
         val response = client.get("/reviews")
+
+        println("Response: ${response.bodyAsText()}")
+        println("Status: ${response.status}")
+
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
@@ -21,6 +25,10 @@ class ReviewRoutesTest {
     fun testGetReviewsByAlbum() = testApplication {
         application { module() }
         val response = client.get("/reviews/album/1")
+
+        println("Response: ${response.bodyAsText()}")
+        println("Status: ${response.status}")
+
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(response.bodyAsText().contains("Incrível álbum"))
     }
