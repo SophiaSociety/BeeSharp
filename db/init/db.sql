@@ -27,11 +27,16 @@ CREATE TABLE UserFollows (
 -- 3) Álbuns e favoritar álbuns 
 CREATE TABLE Albums (
     id          SERIAL PRIMARY KEY,
-    -- external_id VARCHAR(255) NOT NULL UNIQUE,  -- ID da API (Spotify/Last.fm) mais para frente
     title       VARCHAR(255) NOT NULL,
     artist      VARCHAR(255),
+    year        VARCHAR(10),         -- Novo campo
+    genre       VARCHAR(100),        -- Novo campo
+    duration    VARCHAR(10),         -- Novo campo
+    average_rating NUMERIC(3,2) NOT NULL DEFAULT 0.00,
     reviews_count  INTEGER     NOT NULL DEFAULT 0,
-    average_rating NUMERIC(3,2) NOT NULL DEFAULT 0.00
+    total_ratings  INTEGER     NOT NULL DEFAULT 0, -- Novo campo
+    image       VARCHAR(255),        -- Novo campo
+    description TEXT                 -- Novo campo
 );
 
 CREATE TABLE AlbumFavorites (
@@ -62,7 +67,7 @@ CREATE TABLE Reviews (
     id             SERIAL PRIMARY KEY,
     album_id       INT    NOT NULL,
     user_id        INT    NOT NULL,
-    rating         INT NOT NULL CHECK (rating >= 0 AND rating <= 5),
+    rating         INTEGER NOT NULL CHECK (rating >= 0 AND rating <= 10), -- agora aceita .5
     content      TEXT NOT NULL,
     created_at   TIMESTAMP NOT NULL DEFAULT NOW(),
     modified_date  DATE   NOT NULL,

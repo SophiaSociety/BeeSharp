@@ -130,7 +130,7 @@ fun Application.configureRouting() {
             }
 
             get("/top-rated") {
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 100
                 val now = System.currentTimeMillis()
                 val cached = topRatedAlbumsCache
                 if (cached != null && now - cached.first < TOP_RATED_ALBUMS_CACHE_TTL) {
