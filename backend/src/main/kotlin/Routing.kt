@@ -130,7 +130,7 @@ fun Application.configureRouting() {
             }
 
             get("/top-rated") {
-                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 100
                 val now = System.currentTimeMillis()
                 val cached = topRatedAlbumsCache
                 if (cached != null && now - cached.first < TOP_RATED_ALBUMS_CACHE_TTL) {
@@ -162,6 +162,23 @@ fun Application.configureRouting() {
                     ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid album ID")
                 val reviews = reviewRepo.getReviewsByAlbum(albumId)
                 call.respond(reviews)
+            }
+
+            get("/{id}/comments") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                call.respond(reviewRepo.getComments(reviewId))
+            }
+
+            get("/{id}/likes") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val count = reviewRepo.getLikesCount(reviewId)
+                call.respond(mapOf("likes" to count))
+            }
+
+            get("/{id}/full") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
+                val full = reviewRepo.getFullReview(reviewId) ?: return@get call.respond(HttpStatusCode.NotFound)
+                call.respond(full)
             }
         }
         route("/search"){

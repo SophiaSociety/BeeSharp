@@ -95,7 +95,7 @@ fun Application.configureSecurity() {
                     .withIssuer(jwtIssuer)
                     .withClaim("username", username)
                     .withClaim("userId", user.id)
-                    .withExpiresAt(Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000)) // 24h
+                    .withClaim("exp", (System.currentTimeMillis() / 1000) + (24 * 60 * 60)) // 24h in seconds
                     .sign(Algorithm.HMAC256(jwtSecret))
                 call.respond(HttpStatusCode.OK, mapOf("token" to token))
             } else {
@@ -237,6 +237,33 @@ fun Application.configureSecurity() {
                 val reviewRepo = ReviewRepository()
                 val newId = reviewRepo.addReview(userIdAgent, albumId, content, rating)
                 call.respond(HttpStatusCode.Created, mapOf("id" to newId))
+            }
+            delete("/review/{id}") {
+                val id = call.parameters["id"]?.toIntOrNull() ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                
+                val reviewRepo = ReviewRepository()
+                val deleted = reviewRepo.deleteReview(id)
+                if (deleted) call.respond(HttpStatusCode.OK)
+                else call.respond(HttpStatusCode.NotFound)
+            }
+
+            post("/review/{id}/comments") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asInt()
+                val content = call.receiveParameters()["content"] ?: return@post call.respond(HttpStatusCode.BadRequest)
+
+                val reviewRepo = ReviewRepository()
+                val commentId = reviewRepo.addComment(reviewId, userId, content)
+                call.respond(HttpStatusCode.Created, mapOf("comment_id" to commentId))
+            }
+
+            post("/review/{id}/like") {
+                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
+                val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asInt()
+
+                val reviewRepo = ReviewRepository()
+                val liked = reviewRepo.likeReview(reviewId, userId)
+                call.respond(if (liked) HttpStatusCode.OK else HttpStatusCode.Conflict)
             }
         }
     }

@@ -15,8 +15,14 @@ class AlbumRepository {
                 id = it[Albums.id],
                 title = it[Albums.title],
                 artist = it[Albums.artist],
+                year = it[Albums.year],
+                genre = it[Albums.genre],
+                duration = it[Albums.duration],
+                averageRating = it[Albums.averageRating].toDouble(),
                 reviewsCount = it[Albums.reviewsCount],
-                averageRating = it[Albums.averageRating].toDouble()
+                totalRatings = it[Albums.totalRatings],
+                image = it[Albums.image],
+                description = it[Albums.description]
             )
         }
     }
@@ -28,28 +34,40 @@ class AlbumRepository {
                     id = it[Albums.id],
                     title = it[Albums.title],
                     artist = it[Albums.artist],
+                    year = it[Albums.year],
+                    genre = it[Albums.genre],
+                    duration = it[Albums.duration],
+                    averageRating = it[Albums.averageRating].toDouble(),
                     reviewsCount = it[Albums.reviewsCount],
-                    averageRating = it[Albums.averageRating].toDouble()
+                    totalRatings = it[Albums.totalRatings],
+                    image = it[Albums.image],
+                    description = it[Albums.description]
                 )
             }.singleOrNull()
     }
 
-    fun getHotAlbums(): List<Album> = transaction {
+    fun getHotAlbums(limit: Int = 10): List<Album> = transaction {
         Albums.selectAll()
             .orderBy(Albums.reviewsCount, SortOrder.DESC)
-            .limit(10)
+            .limit(limit)
             .map {
                 Album(
                     id = it[Albums.id],
                     title = it[Albums.title],
                     artist = it[Albums.artist],
+                    year = it[Albums.year],
+                    genre = it[Albums.genre],
+                    duration = it[Albums.duration],
+                    averageRating = it[Albums.averageRating].toDouble(),
                     reviewsCount = it[Albums.reviewsCount],
-                    averageRating = it[Albums.averageRating].toDouble()
+                    totalRatings = it[Albums.totalRatings],
+                    image = it[Albums.image],
+                    description = it[Albums.description]
                 )
             }
     }
     
-    fun getTopRatedAlbums(limit: Int = 10): List<Album> = transaction {
+    fun getTopRatedAlbums(limit: Int = 100): List<Album> = transaction {
         Albums.selectAll()
             .orderBy(Albums.averageRating, SortOrder.DESC)
             .limit(limit)
@@ -58,8 +76,14 @@ class AlbumRepository {
                     id = it[Albums.id],
                     title = it[Albums.title],
                     artist = it[Albums.artist],
+                    year = it[Albums.year],
+                    genre = it[Albums.genre],
+                    duration = it[Albums.duration],
+                    averageRating = it[Albums.averageRating].toDouble(),
                     reviewsCount = it[Albums.reviewsCount],
-                    averageRating = it[Albums.averageRating].toDouble()
+                    totalRatings = it[Albums.totalRatings],
+                    image = it[Albums.image],
+                    description = it[Albums.description]
                 )
             }
     }
@@ -71,8 +95,14 @@ class AlbumRepository {
                     id = it[Albums.id],
                     title = it[Albums.title],
                     artist = it[Albums.artist],
+                    year = it[Albums.year],
+                    genre = it[Albums.genre],
+                    duration = it[Albums.duration],
+                    averageRating = it[Albums.averageRating].toDouble(),
                     reviewsCount = it[Albums.reviewsCount],
-                    averageRating = it[Albums.averageRating].toDouble()
+                    totalRatings = it[Albums.totalRatings],
+                    image = it[Albums.image],
+                    description = it[Albums.description]
                 )
             }
     }
