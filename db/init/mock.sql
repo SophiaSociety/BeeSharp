@@ -11,16 +11,16 @@ DELETE FROM Albums;
 DELETE FROM Users;
 
 INSERT INTO Users (username, password_hash, email) VALUES 
-('alice',  'hash1',  'alice@example.com'),
-('bob',    'hash2',  'bob@example.com'),
-('carol',  'hash3',  'carol@example.com'),
-('dave',   'hash4',  'dave@example.com'),
-('eve',    'hash5',  'eve@example.com'),
-('frank',  'hash6',  'frank@example.com'),
-('grace',  'hash7',  'grace@example.com'),
-('heidi',  'hash8',  'heidi@example.com'),
-('ivan',   'hash9',  'ivan@example.com'),
-('judy',   'hash10', 'judy@example.com');
+('alice',  '00c6ee2e21a7548de6260cf72c4f4b5b',  'alice@example.com'),
+('bob',    '58833651db311ba4bc11cb26b1900b0f',  'bob@example.com'),
+('carol',  '1a4ead8b39d17dfe89418452c9bba770',  'carol@example.com'),
+('dave',   'd80b0d6020798ff15e8d5416911201aa',  'dave@example.com'),
+('eve',    '2ce8a4621b2843043725992ab2a61acc',  'eve@example.com'),
+('frank',  'be796e420febda49c29e38745db3cae2',  'frank@example.com'),
+('grace',  '6c72a0f18b5230ecc4ff7e278991e5c5',  'grace@example.com'),
+('heidi',  '35e8b4b7776fc46cc10e7970935f2ca6',  'heidi@example.com'),
+('ivan',   '1167fa03beba0659fdabc33b4620599d',  'ivan@example.com'),
+('judy',   '162de50854fb25ea3fd8640282cb67b4', 'judy@example.com');
 
 INSERT INTO UserSessions (user_id, start_time, end_time) VALUES 
 (1, '2025-04-20 08:00:00+00','2025-04-20 09:00:00+00'),
