@@ -14,13 +14,23 @@ import com.beesharp.backend.*
 import com.beesharp.backend.repository.UserRepository
 import com.beesharp.backend.repository.ReviewRepository
 
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.transaction
 import com.beesharp.backend.models.Users
+import com.beesharp.backend.models.UserFollows
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 private const val jwtIssuer = "beesharp"
 private const val jwtAudience = "beesharp-users"
 private const val jwtRealm = "beesharp"
 private const val jwtSecret = "super-secret-key" // Troque por algo seguro em produção
+
+
+@kotlinx.serialization.Serializable
+data class SignupResponse(
+    val message: String,
+    val id: Int
+)
 
 fun Application.configureSecurity() {
     install(Authentication) {
@@ -44,26 +54,31 @@ fun Application.configureSecurity() {
     routing {
         // Rotas públicas
         post("/signup") {
-            val params = call.receiveParameters()
-            val username = params["username"] ?: ""
-            val password = params["password"] ?: ""
-            val repeatPassword = params["repeat-password"] ?: ""
-            val email = params["email"] ?: ""
-            println("Dados recebidos: $username, $email")
+            try {
+                val params = call.receiveParameters()
+                val username = params["username"] ?: ""
+                val password = params["password"] ?: ""
+                val repeatPassword = params["repeat-password"] ?: ""
+                val email = params["email"] ?: ""
+                println("Dados recebidos: $username, $email, $password, $repeatPassword")
 
-            if (password != repeatPassword) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Passwords do not match"))
-                return@post
+                if (password != repeatPassword) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Passwords do not match"))
+                    return@post
+                }
+
+                val userRepo = UserRepository()
+                if (userRepo.existsByUsernameOrEmail(username, email)) {
+                    call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username or email already exists"))
+                    return@post
+                }
+
+                val userId = userRepo.addUser(username, password.md5(), email)
+                call.respond(HttpStatusCode.Created, SignupResponse("User $username signed up successfully", userId))
+            } catch (e: Exception) {
+                e.printStackTrace() // <-- Adicione isto para ver o erro real no console
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Erro internaoo no servidor"))
             }
-
-            val userRepo = UserRepository()
-            if (userRepo.existsByUsernameOrEmail(username, email)) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username or email already exists"))
-                return@post
-            }
-
-            val userId = userRepo.addUser(username, password.md5(), email)
-            call.respond(HttpStatusCode.Created, mapOf("message" to "User $username signed up successfully", "id" to userId))
         }
 
         post("/login") {
@@ -107,6 +122,8 @@ fun Application.configureSecurity() {
                 val username = principal.payload.getClaim("username").asString()
                 call.respondText("Hello $username, you are authenticated via JWT!")
             }
+
+            // follow
             post("/follow/{userIdToFollow}") {
                 val principal = call.principal<JWTPrincipal>()!!
                 val userIdAgent = principal.payload.getClaim("userId").asInt() // O ID do usuário autenticado deve estar no JWT!
@@ -136,6 +153,85 @@ fun Application.configureSecurity() {
                     call.respond(HttpStatusCode.Conflict, mapOf("error" to "Already following or error occurred"))
                 }
             }
+            // quem segue o usuário
+            get("/users/{id}/followers") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "ID inválido")
+                    return@get
+                }
+
+                try {
+                    val followers = transaction {
+                        UserFollows
+                            .innerJoin(Users, { UserFollows.followerId }, { Users.id })
+                            .select { UserFollows.userId eq userId }
+                            .map {
+                                mapOf(
+                                    "id" to it[UserFollows.followerId],
+                                    "username" to it[Users.username]
+                                )
+                            }
+                    }
+                    call.respond(HttpStatusCode.OK, followers)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    println("Erro: ${e.message}")
+                    call.application.environment.log.error("Erro ao buscar followers", e)
+                    call.respond(HttpStatusCode.InternalServerError, "Erro no servidor")
+                }
+            }
+
+            //quem o usuário ta seguindo
+            get("/users/{id}/following") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "ID inválido")
+                    return@get
+                }
+
+                try {
+                    val following = transaction {
+                        UserFollows
+                            .innerJoin(Users, { UserFollows.userId }, { Users.id })
+                            .select { UserFollows.followerId eq userId }           
+                            .map {
+                                mapOf(
+                                    "id" to it[UserFollows.userId],
+                                    "username" to it[Users.username]
+                                )
+                            }
+                    }
+                    call.respond(HttpStatusCode.OK, following)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    println("Erro: ${e.message}")
+                    call.application.environment.log.error("Erro ao buscar following", e)
+                    call.respond(HttpStatusCode.InternalServerError, "Erro no servidor")
+                }
+            }
+
+            // unfollow
+            delete("/users/{id}/follow") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                val followerId = call.request.queryParameters["followerId"]?.toIntOrNull()
+
+                if (userId == null || followerId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "IDs inválidos")
+                    return@delete
+                }
+
+                transaction {
+                    UserFollows.deleteWhere {
+                        (UserFollows.userId eq userId) and (UserFollows.followerId eq followerId)
+                    }
+                }
+
+                call.respond(HttpStatusCode.OK, "Deixou de seguir.")
+            }
+
+
+
             post("/review") {
                 val principal = call.principal<JWTPrincipal>()!!
                 val userIdAgent = principal.payload.getClaim("userId").asInt() // O ID do usuário autenticado deve estar no JWT!
