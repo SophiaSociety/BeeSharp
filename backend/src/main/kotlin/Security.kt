@@ -25,6 +25,13 @@ private const val jwtAudience = "beesharp-users"
 private const val jwtRealm = "beesharp"
 private const val jwtSecret = "super-secret-key" // Troque por algo seguro em produção
 
+
+@kotlinx.serialization.Serializable
+data class SignupResponse(
+    val message: String,
+    val id: Int
+)
+
 fun Application.configureSecurity() {
     install(Authentication) {
         jwt("auth-jwt") {
@@ -47,26 +54,31 @@ fun Application.configureSecurity() {
     routing {
         // Rotas públicas
         post("/signup") {
-            val params = call.receiveParameters()
-            val username = params["username"] ?: ""
-            val password = params["password"] ?: ""
-            val repeatPassword = params["repeat-password"] ?: ""
-            val email = params["email"] ?: ""
-            println("Dados recebidos: $username, $email")
+            try {
+                val params = call.receiveParameters()
+                val username = params["username"] ?: ""
+                val password = params["password"] ?: ""
+                val repeatPassword = params["repeat-password"] ?: ""
+                val email = params["email"] ?: ""
+                println("Dados recebidos: $username, $email, $password, $repeatPassword")
 
-            if (password != repeatPassword) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Passwords do not match"))
-                return@post
+                if (password != repeatPassword) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Passwords do not match"))
+                    return@post
+                }
+
+                val userRepo = UserRepository()
+                if (userRepo.existsByUsernameOrEmail(username, email)) {
+                    call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username or email already exists"))
+                    return@post
+                }
+
+                val userId = userRepo.addUser(username, password.md5(), email)
+                call.respond(HttpStatusCode.Created, SignupResponse("User $username signed up successfully", userId))
+            } catch (e: Exception) {
+                e.printStackTrace() // <-- Adicione isto para ver o erro real no console
+                call.respond(HttpStatusCode.InternalServerError, mapOf("error" to "Erro internaoo no servidor"))
             }
-
-            val userRepo = UserRepository()
-            if (userRepo.existsByUsernameOrEmail(username, email)) {
-                call.respond(HttpStatusCode.Conflict, mapOf("error" to "Username or email already exists"))
-                return@post
-            }
-
-            val userId = userRepo.addUser(username, password.md5(), email)
-            call.respond(HttpStatusCode.Created, mapOf("message" to "User $username signed up successfully", "id" to userId))
         }
 
         post("/login") {
