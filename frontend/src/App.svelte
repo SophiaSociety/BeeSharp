@@ -17,6 +17,7 @@
         '/top100': TopPage,
         '/perfil': ProfilePage,
         '/profile/:username': ProfilePage,
+        '/home': HomePage,
         '/album/:id': Album
     };
 </script>
