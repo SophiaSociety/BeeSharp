@@ -171,6 +171,17 @@ fun Application.configureSecurity() {
                 val liked = reviewRepo.likeReview(reviewId, userId)
                 call.respond(if (liked) HttpStatusCode.OK else HttpStatusCode.Conflict)
             }
+            get("/recommendations") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val userId = principal.payload.getClaim("userId").asInt()
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
+
+                val userRepo = UserRepository()
+                val albumRepo = userRepo.albumRepo // ou crie uma nova instância se preferir
+
+                val recommendations = userRepo.recommendAlbumsForUser(userId, limit, albumRepo)
+                call.respond(recommendations)
+            }
         }
     }
 }

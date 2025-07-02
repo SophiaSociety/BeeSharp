@@ -8,8 +8,15 @@ import com.beesharp.backend.models.User
 import com.beesharp.backend.models.Users
 import com.beesharp.backend.models.AlbumFavorites
 import com.beesharp.backend.models.UserFollows
+import com.beesharp.backend.models.ListeningHistory
+import com.beesharp.backend.models.Album
+import com.beesharp.backend.models.Reviews
+import com.beesharp.backend.repository.AlbumRepository
+import com.beesharp.backend.repository.ReviewRepository
 
 class UserRepository {
+
+    val albumRepo = AlbumRepository()
 
     fun getAllUsers(): List<User> = transaction {
         Users.selectAll().map {
@@ -113,5 +120,40 @@ class UserRepository {
             it[UserFollows.userId] = userIdToFollow
         }
         true
+    }
+
+    fun recommendAlbumsForUser(userId: Int, limit: Int = 20, albumRepo: AlbumRepository): List<Album> = transaction {
+        // 1. Álbuns já ouvidos pelo usuário
+        val listenedAlbumIds = ListeningHistory
+            .slice(ListeningHistory.albumId)
+            .select { ListeningHistory.userId eq userId }
+            .map { it[ListeningHistory.albumId] }
+            .toSet()
+
+        // 2. Pessoas que o usuário segue
+        val followingUserIds = UserFollows
+            .slice(UserFollows.userId)
+            .select { UserFollows.followerId eq userId }
+            .map { it[UserFollows.userId] }
+            .toSet()
+
+        // 3. Álbuns bem avaliados por amigos (seguindo)
+        val friendRecommendedAlbumIds = Reviews
+            .slice(Reviews.albumId)
+            .select { (Reviews.userId inList followingUserIds) and (Reviews.rating greaterEq 8) }
+            .map { it[Reviews.albumId] }
+            .toSet()
+
+        // 4. Álbuns bem avaliados em geral
+        val topRatedAlbums = albumRepo.getTopRatedAlbums(100).map { it.id }
+
+        // 5. Combine: priorize recomendações de amigos, depois top-rated geral, excluindo os já ouvidos
+        val candidateAlbumIds = (friendRecommendedAlbumIds + topRatedAlbums)
+            .filter { it !in listenedAlbumIds }
+            .distinct()
+            .take(limit)
+
+        // 6. Busque os álbuns completos usando o AlbumRepository
+        candidateAlbumIds.mapNotNull { albumRepo.getAlbumById(it) }
     }
 }
