@@ -259,16 +259,6 @@ fun Application.configureSecurity() {
                 else call.respond(HttpStatusCode.NotFound)
             }
 
-            post("/review/{id}/comments") {
-                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
-                val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asInt()
-                val content = call.receiveParameters()["content"] ?: return@post call.respond(HttpStatusCode.BadRequest)
-
-                val reviewRepo = ReviewRepository()
-                val commentId = reviewRepo.addComment(reviewId, userId, content)
-                call.respond(HttpStatusCode.Created, mapOf("comment_id" to commentId))
-            }
-
             post("/review/{id}/like") {
                 val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@post call.respond(HttpStatusCode.BadRequest)
                 val userId = call.principal<JWTPrincipal>()!!.payload.getClaim("userId").asInt()
