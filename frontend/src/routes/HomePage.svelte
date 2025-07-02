@@ -43,37 +43,156 @@
         {
         id: 1,
         user: { name: "Alex Chen", username: "@alexmusic", avatar: "/placeholder.svg?height=40&width=40" },
-        action: "reviewed",
+        action: "avaliou",
         album: { title: "The Tortured Poets Department", artist: "Taylor Swift", image: "/placeholder.svg?height=60&width=60" },
         rating: 4,
-        comment: "Swift's most introspective work yet. The storytelling is incredible.",
-        time: "2 hours ago"
+        comment: "O trabalho mais introspectivo da Swift até agora. A narrativa é incrível.",
+        time: "2 horas atrás"
         },
         {
         id: 2,
-        user: { name: "Sarah Johnson", username: "@sarahbeats", avatar: "/placeholder.svg?height=40&width=40" },
-        action: "liked",
-        album: { title: "Brat", artist: "Charli XCX", image: "/placeholder.svg?height=60&width=60" },
-        time: "4 hours ago"
+        user: { name: "Emma Wilson", username: "@emmawilson", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Genesis", artist: "RAYE", image: "/placeholder.svg?height=60&width=60" },
+        rating: 5,
+        comment: "Estreia absolutamente deslumbrante. A voz da RAYE é sobrenatural.",
+        time: "8 horas atrás"
         },
         {
         id: 3,
-        user: { name: "Mike Rodriguez", username: "@mikevibes", avatar: "/placeholder.svg?height=40&width=40" },
-        action: "added to list",
-        album: { title: "Hit Me Hard and Soft", artist: "Billie Eilish", image: "/placeholder.svg?height=60&width=60" },
-        listName: "Albums of 2024",
-        time: "6 hours ago"
+        user: { name: "Carlos Silva", username: "@carlosmusic", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "GUTS", artist: "Olivia Rodrigo", image: "/placeholder.svg?height=60&width=60" },
+        rating: 4.5,
+        comment: null,
+        time: "12 horas atrás"
         },
         {
         id: 4,
-        user: { name: "Emma Wilson", username: "@emmawilson", avatar: "/placeholder.svg?height=40&width=40" },
-        action: "reviewed",
-        album: { title: "Genesis", artist: "RAYE", image: "/placeholder.svg?height=60&width=60" },
+        user: { name: "Marina Santos", username: "@marinasants", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Midnights", artist: "Taylor Swift", image: "/placeholder.svg?height=60&width=60" },
+        rating: 3.5,
+        comment: "Bom, mas não o melhor trabalho dela. Algumas faixas são muito repetitivas.",
+        time: "1 dia atrás"
+        },
+        {
+        id: 5,
+        user: { name: "João Pedro", username: "@joaopmusic", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "SOS", artist: "SZA", image: "/placeholder.svg?height=60&width=60" },
+        rating: 4.5,
+        comment: "SZA continua sendo uma das melhores vozes do R&B contemporâneo.",
+        time: "1 dia atrás"
+        },
+        {
+        id: 6,
+        user: { name: "Ana Costa", username: "@anacosta", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Folklore", artist: "Taylor Swift", image: "/placeholder.svg?height=60&width=60" },
+        rating: 4.8,
+        comment: null,
+        time: "2 dias atrás"
+        },
+        {
+        id: 7,
+        user: { name: "Felipe Oliveira", username: "@felipeoliveira", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Un Verano Sin Ti", artist: "Bad Bunny", image: "/placeholder.svg?height=60&width=60" },
+        rating: 4,
+        comment: "Bad Bunny não decepciona. Cada faixa é um hit potencial.",
+        time: "2 dias atrás"
+        },
+        {
+        id: 8,
+        user: { name: "Beatriz Lima", username: "@bialima", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Harry's House", artist: "Harry Styles", image: "/placeholder.svg?height=60&width=60" },
+        rating: 4.2,
+        comment: "Harry mostra sua maturidade artística neste álbum. Muito bem produzido.",
+        time: "3 dias atrás"
+        },
+        {
+        id: 9,
+        user: { name: "Rafael Mendes", username: "@rafaelmendes", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Renaissance", artist: "Beyoncé", image: "/placeholder.svg?height=60&width=60" },
         rating: 5,
-        comment: "Absolutely stunning debut. RAYE's vocals are otherworldly.",
-        time: "8 hours ago"
+        comment: null,
+        time: "3 dias atrás"
+        },
+        {
+        id: 10,
+        user: { name: "Larissa Fernandes", username: "@larifernandes", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Dawn FM", artist: "The Weeknd", image: "/placeholder.svg?height=60&width=60" },
+        rating: 3.8,
+        comment: "Conceito interessante, mas algumas faixas não me conquistaram.",
+        time: "4 dias atrás"
+        },
+        {
+        id: 11,
+        user: { name: "Thiago Rocha", username: "@thiagorocha", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Donda", artist: "Kanye West", image: "/placeholder.svg?height=60&width=60" },
+        rating: 3,
+        comment: "Kanye sempre polêmico, mas este álbum tem momentos brilhantes.",
+        time: "4 dias atrás"
+        },
+        {
+        id: 12,
+        user: { name: "Camila Rodrigues", username: "@camilarodrigues", avatar: "/placeholder.svg?height=40&width=40" },
+        action: "avaliou",
+        album: { title: "Sour", artist: "Olivia Rodrigo", image: "/placeholder.svg?height=60&width=60" },
+        rating: 4.3,
+        comment: "Debut impressionante! Olivia tem muito potencial.",
+        time: "5 dias atrás"
         }
     ]
+
+    // Estado para controlar a visualização expandida da seção de atividades
+    let showExpandedActivity = $state(false)
+    let currentActivityPage = $state(1)
+    const ACTIVITIES_PER_PAGE = 6
+    const INITIAL_ACTIVITIES_SHOWN = 3
+
+    function toggleActivityExpansion() {
+        showExpandedActivity = !showExpandedActivity
+        if (!showExpandedActivity) {
+            currentActivityPage = 1
+        }
+    }
+
+    function getActivitiesForPage(page) {
+        if (!showExpandedActivity) {
+            return friendsActivity.slice(0, INITIAL_ACTIVITIES_SHOWN)
+        }
+        const startIndex = (page - 1) * ACTIVITIES_PER_PAGE
+        const endIndex = startIndex + ACTIVITIES_PER_PAGE
+        return friendsActivity.slice(startIndex, endIndex)
+    }
+
+    function getTotalPages() {
+        return Math.ceil(friendsActivity.length / ACTIVITIES_PER_PAGE)
+    }
+
+    function goToActivityPage(page) {
+        currentActivityPage = page
+    }
+
+    function handleUserClick(username) {
+        console.log('User clicked:', username)
+        push('/perfil')
+        // Scroll para o topo da página
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+
+    function handleActivityAlbumClick(album) {
+        console.log('Activity album clicked:', album.title)
+        push('/album')
+        // Scroll para o topo da página
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }
     
     // Mock data for featured artists
     let featuredArtists = [
@@ -117,26 +236,27 @@
     
     function handleAlbumClick(album) {
         console.log('Album clicked:', album.title)
-        // Navigate to album detail page
+        push(`/album/${album.id}`)
+        // Scroll para o topo da página
+        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
     
     function handleArtistClick(artist) {
         console.log('Artist clicked:', artist.name)
         // Navigate to artist page
+        // window.scrollTo({ top: 0, behavior: 'smooth' })
     }
     
     function renderStars(rating) {
-        const stars = []
-        for (let i = 1; i <= 5; i++) {
-        if (i <= rating) {
-            stars.push({ type: 'full', key: i })
-        } else if (i - 0.5 <= rating) {
-            stars.push({ type: 'half', key: i })
-        } else {
-            stars.push({ type: 'empty', key: i })
+        const fullStars = Math.floor(rating)
+        const hasHalfStar = rating % 1 !== 0
+        const emptyStars = 5 - Math.ceil(rating)
+        
+        return {
+            fullStars: Array(fullStars).fill(0),
+            hasHalfStar,
+            emptyStars: Array(emptyStars).fill(0)
         }
-        }
-        return stars
     }
     
     // Estado reativo para manter o tamanho da janela e rastrear quais títulos devem ter uma ou duas linhas
@@ -219,14 +339,14 @@
     <nav class="navbar-albums">
         <div class="navbar-container">
             <div class="logo-component">
-                <button class="logo-button" onclick={() => push('/')} aria-label="MusicBoxd">
+                <button class="logo-button" onclick={() => { push('/'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} aria-label="MusicBoxd">
                     <img src="/logocomtexto.png" alt="MusicBoxd Logo" />
                 </button>
             </div>
-            <div class="nav-links">
-                <a href="#/albuns">Álbuns</a>
+                <div class="nav-links">
+                <a href="/albuns" onclick={(e) => { e.preventDefault(); push('/top100'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>TOP ÁLBUNS</a>
                 <div class="user-menu">
-                    <button class="user-avatar" aria-label="User Profile">
+                    <button class="user-avatar" aria-label="User Profile" onclick={() => { push('/perfil'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                         <img src="/placeholder.svg?height=32&width=32" alt="User" />
                     </button>
                 </div>
@@ -238,43 +358,28 @@
     <section class="hero-section">
         <div class="container">
         <div class="hero-content">
-            <div class="hero-text">
-            <h1 class="hero-title">Your Music Journey Starts Here</h1>
-            <p class="hero-subtitle">
-                Discover, rate, and share albums with a passionate community of music lovers. 
-                Track your listening journey and find your next favorite album.
-            </p>
+            <div class="hero-title-container">
+                <h1 class="hero-title" data-text="Descubra seus favoritos!">Descubra seus favoritos!</h1>
+                <img src="/logo.png" alt="BeeSharp Logo" class="hero-logo">
             </div>
+            <p class="hero-subtitle">
+                Explore, avalie e resenhe álbuns de todos os gêneros e épocas. Siga pessoas da comunidade de amantes da música.
+            </p>
             
             <form class="search-form" onsubmit={handleSearch}>
             <div class="search-container">
-                <Search size={20} class="search-icon" />
+                <Search size={20} />
                 <input
                 type="text"
                 class="search-input"
-                placeholder="Search for albums, artists, or songs..."
+                placeholder="Busque por álbuns, artistas ou usuários :)"
                 bind:value={searchQuery}
                 />
                 <button type="submit" class="search-button">
-                Search
+                Buscar
                 </button>
             </div>
             </form>
-
-            <div class="hero-stats">
-            <div class="stat-item">
-                <div class="stat-number">50K+</div>
-                <div class="stat-label">Albums</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">1M+</div>
-                <div class="stat-label">Reviews</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">25K+</div>
-                <div class="stat-label">Users</div>
-            </div>
-            </div>
         </div>
         </div>
     </section>
@@ -284,16 +389,16 @@
         <!-- Recommended Albums -->
         <section class="section">
             <div class="section-header">
-            <div class="section-title">
+            <div class="section-title recommendations-title">
                 <Award size={24} />
-                <h2>Recommended for You</h2>
+                <h2>Recomendações</h2>
             </div>
             <div class="carousel-controls">
-                <button class="carousel-btn" onclick={() => prevCarousel('recommended')} aria-label="Previous albums">
-                <ChevronLeft size={20} />
+                <button class="carousel-btn" onclick={() => prevCarousel('recommended')} aria-label="Álbuns anteriores">
+                ‹
                 </button>
-                <button class="carousel-btn" onclick={() => nextCarousel('recommended')} aria-label="Next albums">
-                <ChevronRight size={20} />
+                <button class="carousel-btn" onclick={() => nextCarousel('recommended')} aria-label="Próximos álbuns">
+                ›
                 </button>
             </div>
             </div>
@@ -307,7 +412,7 @@
                         <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
                         <div class="album-overlay">
                         <div class="play-button">
-                            <Play size={24} />
+                            <Headphones size={24} />
                         </div>
                         </div>
                         <div class="genre-badge">{album.genre}</div>
@@ -323,19 +428,19 @@
                         <p class="album-artist">{album.artist} • {album.year}</p>
                         <div class="album-rating">
                         <div class="stars-container">
-                            {#each renderStars(album.rating) as star (star.key)}
-                            {#if star.type === 'full'}
+                            {#each renderStars(album.rating).fullStars as _}
                                 <Star size={12} class="star-filled" />
-                            {:else if star.type === 'half'}
-                                <div class="star-half-container">
-                                <Star size={12} class="star-empty" />
-                                <div class="star-half-overlay">
-                                    <Star size={12} class="star-filled" />
+                            {/each}
+                            {#if renderStars(album.rating).hasHalfStar}
+                                <div class="star-half">
+                                    <Star size={12} class="star-empty" />
+                                    <div class="star-half-fill">
+                                        <Star size={12} class="star-filled" />
+                                    </div>
                                 </div>
-                                </div>
-                            {:else}
-                                <Star size={12} class="star-empty" />
                             {/if}
+                            {#each renderStars(album.rating).emptyStars as _}
+                                <Star size={12} class="star-empty" />
                             {/each}
                         </div>
                         <span class="rating-text">{album.rating}</span>
@@ -351,16 +456,16 @@
         <!-- Hot Right Now -->
         <section class="section">
             <div class="section-header">
-            <div class="section-title">
+            <div class="section-title hot-albums-title">
                 <TrendingUp size={24} />
-                <h2>Hot Right Now</h2>
+                <h2>Em Alta</h2>
             </div>
             <div class="carousel-controls">
-                <button class="carousel-btn" onclick={() => prevCarousel('hot')} aria-label="Previous albums">
-                <ChevronLeft size={20} />
+                <button class="carousel-btn" onclick={() => prevCarousel('hot')} aria-label="Álbuns anteriores">
+                ‹
                 </button>
-                <button class="carousel-btn" onclick={() => nextCarousel('hot')} aria-label="Next albums">
-                <ChevronRight size={20} />
+                <button class="carousel-btn" onclick={() => nextCarousel('hot')} aria-label="Próximos álbuns">
+                ›
                 </button>
             </div>
             </div>
@@ -374,12 +479,11 @@
                         <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
                         <div class="album-overlay">
                         <div class="play-button">
-                            <Play size={24} />
+                            <Headphones size={24} />
                         </div>
                         </div>
                         <div class="trending-badge">
                         <TrendingUp size={14} />
-                        Hot
                         </div>
                     </div>
                     <div class="album-info">
@@ -393,19 +497,19 @@
                         <p class="album-artist">{album.artist} • {album.year}</p>
                         <div class="album-rating">
                         <div class="stars-container">
-                            {#each renderStars(album.rating) as star (star.key)}
-                            {#if star.type === 'full'}
+                            {#each renderStars(album.rating).fullStars as _}
                                 <Star size={12} class="star-filled" />
-                            {:else if star.type === 'half'}
-                                <div class="star-half-container">
-                                <Star size={12} class="star-empty" />
-                                <div class="star-half-overlay">
-                                    <Star size={12} class="star-filled" />
+                            {/each}
+                            {#if renderStars(album.rating).hasHalfStar}
+                                <div class="star-half">
+                                    <Star size={12} class="star-empty" />
+                                    <div class="star-half-fill">
+                                        <Star size={12} class="star-filled" />
+                                    </div>
                                 </div>
-                                </div>
-                            {:else}
-                                <Star size={12} class="star-empty" />
                             {/if}
+                            {#each renderStars(album.rating).emptyStars as _}
+                                <Star size={12} class="star-empty" />
                             {/each}
                         </div>
                         <span class="rating-text">{album.rating}</span>
@@ -418,110 +522,101 @@
             </div>
         </section>
 
-        <!-- Two Column Layout -->
-        <div class="two-column-layout">
-            <!-- Activity from Friends -->
-            <section class="activity-section">
+        <!-- Activity from Friends -->
+        <section class="section activity-friends-section">
             <div class="section-header">
                 <h2 class="section-title">
                 <Users size={24} />
-                Activity from Friends
+                Atividade dos Amigos
                 </h2>
-                <button class="view-all-link">View All</button>
-            </div>
-
-            <div class="activity-list">
-                {#each friendsActivity as activity (activity.id)}
-                <div class="activity-item">
-                    <div class="activity-avatar">
-                    <img src={activity.user.avatar || "/placeholder.svg"} alt={activity.user.name} />
-                    </div>
-                    <div class="activity-content">
-                    <div class="activity-header">
-                        <span class="user-name">{activity.user.name}</span>
-                        <span class="activity-action">{activity.action}</span>
-                        {#if activity.listName}
-                        <span class="list-name">"{activity.listName}"</span>
-                        {/if}
-                    </div>
-                    
-                    <div class="activity-album">
-                        <img src={activity.album.image || "/placeholder.svg"} alt={activity.album.title} class="album-thumbnail" />
-                        <div class="album-details">
-                        <h4 class="album-title">{activity.album.title}</h4>
-                        <p class="album-artist">{activity.album.artist}</p>
-                        </div>
-                    </div>
-
-                    {#if activity.rating}
-                        <div class="activity-rating">
-                        <div class="stars-container">
-                            {#each renderStars(activity.rating) as star (star.key)}
-                            {#if star.type === 'full'}
-                                <Star size={12} class="star-filled" />
-                            {:else}
-                                <Star size={12} class="star-empty" />
-                            {/if}
-                            {/each}
-                        </div>
-                        </div>
-                    {/if}
-
-                    {#if activity.comment}
-                        <p class="activity-comment">"{activity.comment}"</p>
-                    {/if}
-
-                    <div class="activity-time">
-                        <Calendar size={12} />
-                        <span>{activity.time}</span>
-                    </div>
-                    </div>
-                </div>
-                {/each}
-            </div>
-            </section>
-
-            <!-- Featured Artists -->
-            <section class="featured-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                <User size={24} />
-                Featured Artists
-                </h2>
-            </div>
-
-            <div class="artists-grid">
-                {#each featuredArtists as artist (artist.id)}
-                <button class="artist-card" onclick={() => handleArtistClick(artist)}>
-                    <div class="artist-image">
-                    <img src={artist.image || "/placeholder.svg"} alt={artist.name} />
-                    <div class="artist-overlay">
-                        <Headphones size={24} />
-                    </div>
-                    </div>
-                    <div class="artist-info">
-                    <h3 class="artist-name">{artist.name}</h3>
-                    <p class="artist-stats">{artist.albumCount} albums • {artist.avgRating} avg</p>
-                    </div>
+                <button class="view-all-link" onclick={toggleActivityExpansion}>
+                    {showExpandedActivity ? 'Ver Menos' : 'Ver Tudo'}
                 </button>
-                {/each}
             </div>
-            </section>
-        </div>
+
+            <div class="activity-container">
+                <div class="activity-list" class:grid-layout={showExpandedActivity}>
+                    {#each getActivitiesForPage(currentActivityPage) as activity (activity.id)}
+                    <div class="activity-item">
+                        <button class="activity-avatar-btn" onclick={() => handleUserClick(activity.user.username)}>
+                            <img src={activity.user.avatar || "/placeholder.svg"} alt={activity.user.name} />
+                        </button>
+                        <div class="activity-content">
+                        <div class="activity-header">
+                            <button class="user-name-btn" onclick={() => handleUserClick(activity.user.username)}>
+                                {activity.user.name}
+                            </button>
+                            <span class="activity-action">{activity.action} com</span>
+                            <div class="activity-rating">
+                            <div class="stars-container">
+                                {#each renderStars(activity.rating).fullStars as _}
+                                    <Star size={12} class="star-filled" />
+                                {/each}
+                                {#if renderStars(activity.rating).hasHalfStar}
+                                    <div class="star-half">
+                                        <Star size={12} class="star-empty" />
+                                        <div class="star-half-fill">
+                                            <Star size={12} class="star-filled" />
+                                        </div>
+                                    </div>
+                                {/if}
+                                {#each renderStars(activity.rating).emptyStars as _}
+                                    <Star size={12} class="star-empty" />
+                                {/each}
+                            </div>
+                            </div>
+                        </div>
+                        
+                        <button class="activity-album" onclick={() => handleActivityAlbumClick(activity.album)}>
+                            <img src={activity.album.image || "/placeholder.svg"} alt={activity.album.title} class="album-thumbnail" />
+                            <div class="album-details">
+                            <h4 class="album-title">{activity.album.title}</h4>
+                            <p class="album-artist">{activity.album.artist}</p>
+                            </div>
+                        </button>
+
+                        {#if activity.comment}
+                            <p class="activity-comment">"{activity.comment}"</p>
+                        {/if}
+
+                        <div class="activity-time">
+                            <Calendar size={12} />
+                            <span>{activity.time}</span>
+                        </div>
+                        </div>
+                    </div>
+                    {/each}
+                </div>
+
+                {#if showExpandedActivity && getTotalPages() > 1}
+                    <div class="pagination">
+                        {#each Array(getTotalPages()) as _, i}
+                            <button 
+                                class="page-btn" 
+                                class:active={currentActivityPage === i + 1}
+                                onclick={() => goToActivityPage(i + 1)}
+                            >
+                                {i + 1}
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+            </div>
+        </section>
 
         <!-- Genre Spotlight -->
         <section class="section">
             <div class="section-header">
-            <div class="section-title">
+            <div class="section-title genre-spotlight-title">
                 <Disc size={24} />
-                <h2>Genre Spotlight: Alternative Rock</h2>
+                <h2>Destaque: Rock Alternativo</h2>
             </div>
             <div class="carousel-controls">
-                <button class="carousel-btn" onclick={() => prevCarousel('genre')} aria-label="Previous albums">
-                <ChevronLeft size={20} />
+                <button class="carousel-btn" onclick={() => prevCarousel('genre')} aria-label="Álbuns anteriores">
+                ‹
                 </button>
-                <button class="carousel-btn" onclick={() => nextCarousel('genre')} aria-label="Next albums">
-                <ChevronRight size={20} />
+                <button class="carousel-btn" onclick={() => nextCarousel('genre')} aria-label="Próximos álbuns">
+                ›
                 </button>
             </div>
             </div>
@@ -535,7 +630,7 @@
                         <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
                         <div class="album-overlay">
                         <div class="play-button">
-                            <Play size={24} />
+                            <Headphones size={24} />
                         </div>
                         </div>
                     </div>
@@ -550,19 +645,19 @@
                         <p class="album-artist">{album.artist} • {album.year}</p>
                         <div class="album-rating">
                         <div class="stars-container">
-                            {#each renderStars(album.rating) as star (star.key)}
-                            {#if star.type === 'full'}
+                            {#each renderStars(album.rating).fullStars as _}
                                 <Star size={12} class="star-filled" />
-                            {:else if star.type === 'half'}
-                                <div class="star-half-container">
-                                <Star size={12} class="star-empty" />
-                                <div class="star-half-overlay">
-                                    <Star size={12} class="star-filled" />
+                            {/each}
+                            {#if renderStars(album.rating).hasHalfStar}
+                                <div class="star-half">
+                                    <Star size={12} class="star-empty" />
+                                    <div class="star-half-fill">
+                                        <Star size={12} class="star-filled" />
+                                    </div>
                                 </div>
-                                </div>
-                            {:else}
-                                <Star size={12} class="star-empty" />
                             {/if}
+                            {#each renderStars(album.rating).emptyStars as _}
+                                <Star size={12} class="star-empty" />
                             {/each}
                         </div>
                         <span class="rating-text">{album.rating}</span>
@@ -617,10 +712,10 @@
         justify-content: space-between;
         align-items: center;
         padding: 0 1.5rem;
-        background: #255F85;
+        background: #14181c;
         height: 80px;
         min-height: 80px;
-        box-shadow: 0 4px 15px rgba(37, 95, 133, 0.3);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         transition: all 0.3s ease;
         overflow: visible;
     }
@@ -686,24 +781,36 @@
     }
 
     .user-avatar {
-        width: 32px;
-        height: 32px;
+        width: 40px;
+        height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+        max-width: 40px;
+        max-height: 40px;
         border-radius: 50%;
-        border: 2px solid #FFC857;
+        border: 2px solid #255F85;
         overflow: hidden;
         background: none;
         cursor: pointer;
         transition: border-color 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        box-sizing: border-box;
+        flex-shrink: 0;
+        aspect-ratio: 1 / 1;
     }
 
     .user-avatar:hover {
-        border-color: #d6a639;
+        border-color: #1e4c6b;
     }
 
     .user-avatar img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        border-radius: 50%;
     }
 
     /* Hero Section */
@@ -715,37 +822,85 @@
         overflow: hidden;
     }
 
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            linear-gradient(45deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.05) 25%, 
+                rgba(255, 255, 255, 0.1) 50%, 
+                rgba(255, 255, 255, 0.05) 75%, 
+                transparent 100%),
+            radial-gradient(circle at 25% 25%, rgba(255, 200, 87, 0.06) 0%, transparent 60%),
+            radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.04) 0%, transparent 60%);
+        background-size: 200% 200%, 100% 100%, 100% 100%;
+        animation: wave 5s ease-in-out infinite;
+        z-index: 1;
+    }
+
     .hero-content {
         max-width: 800px;
         margin: 0 auto;
+        position: relative;
+        z-index: 2;
     }
 
-    .hero-text {
-        margin-bottom: 3rem;
+    .hero-title-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .hero-logo {
+        height: 5rem;
+        width: auto;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .hero-logo:hover {
+        transform: scale(1.05);
     }
 
     .hero-title {
         font-size: 3.5rem;
-        font-weight: 700;
-        margin: 0 0 1rem 0;
-        background: linear-gradient(135deg, #00e054 0%, #00c048 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        line-height: 1.2;
+        font-weight: 900;
+        margin: 0;
+        color: #ffffff;
+        font-family: 'Familjen Grotesk', sans-serif;
+        position: relative;
+        text-align: center;
+        letter-spacing: -0.025em;
+        text-shadow: 0 2px 3px rgba(0, 0, 0, 0.4);
+        line-height: 1.1;
+        flex-shrink: 0;
     }
 
     .hero-subtitle {
-        font-size: 1.25rem;
-        color: #9ca3af;
-        margin: 0;
+        font-size: 1.3rem;
+        color: rgba(255, 255, 255, 0.95);
+        margin: 0 0 3rem 0;
         line-height: 1.6;
+        font-weight: 400;
+        position: relative;
+        display: inline-block;
+        padding: 0.5rem 0;
+        font-family: 'Familjen Grotesk', sans-serif;
         max-width: 600px;
-        margin: 0 auto;
+        margin-left: auto;
+        margin-right: auto;
     }
 
     .search-form {
-        margin-bottom: 3rem;
+        margin-bottom: 2rem;
     }
 
     .search-container {
@@ -754,20 +909,35 @@
         margin: 0 auto;
         display: flex;
         align-items: center;
-        background: #2c3440;
-        border: 2px solid #374151;
-        border-radius: 12px;
-        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+        padding-left: 1rem;
+        backdrop-filter: blur(20px);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .search-container :global(svg) {
+        color: rgba(255, 255, 255, 0.7);
+        margin-right: 0.75rem;
+        flex-shrink: 0;
     }
 
     .search-container:focus-within {
-        border-color: #00e054;
-        box-shadow: 0 0 0 4px rgba(0, 224, 84, 0.1);
+        border-color: rgba(255, 255, 255, 0.5);
+        box-shadow: 
+            0 8px 32px rgba(0, 0, 0, 0.4),
+            0 0 20px rgba(255, 255, 255, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        background: rgba(255, 255, 255, 0.15);
     }
 
     .search-input {
         flex: 1;
-        padding: 1rem 1rem 1rem 3rem;
+        padding: 1rem;
         background: transparent;
         border: none;
         color: white;
@@ -776,45 +946,32 @@
     }
 
     .search-input::placeholder {
-        color: #6b7280;
+        color: rgba(255, 255, 255, 0.6);
+        font-family: 'Roboto', sans-serif;
+        font-weight: 500;
     }
 
     .search-button {
         padding: 1rem 2rem;
-        background: #00e054;
-        color: #14181c;
+        background: #255F85;
+        color: white;
         border: none;
-        border-radius: 0 10px 10px 0;
+        border-radius: 0 17px 17px 0;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s ease;
+        font-family: 'Familjen Grotesk', sans-serif;
+        letter-spacing: 0.025em;
+        outline: none;
     }
 
     .search-button:hover {
-        background: #00c048;
+        background: #1e4c6b;
     }
 
-    .hero-stats {
-        display: flex;
-        justify-content: center;
-        gap: 3rem;
-    }
-
-    .stat-item {
-        text-align: center;
-    }
-
-    .stat-number {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #00e054;
-        line-height: 1;
-    }
-
-    .stat-label {
-        font-size: 0.875rem;
-        color: #9ca3af;
-        margin-top: 0.25rem;
+    .search-button:focus {
+        outline: none;
+        background: #1e4c6b;
     }
 
     /* Main Content */
@@ -837,15 +994,38 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
-        color: #00e054;
-        font-size: 1.75rem;
-        font-weight: 700;
-        margin: 0;
+        font-family: 'Familjen Grotesk', sans-serif;
+    }
+
+    .section-title :global(svg) {
+        color: #ff6b35;
     }
 
     .section-title h2 {
         margin: 0;
+        font-size: 1.75rem;
+        font-weight: 700;
         color: white;
+    }
+
+    /* Ícone específico para Recomendações - medalha amarela preenchida */
+    .recommendations-title :global(svg) {
+        color: #FFC857;
+        fill: #FFC857;
+    }
+
+    /* Ícone específico para Em Alta - vermelho igual aos botões de carrossel */
+    .hot-albums-title :global(svg) {
+        color: #C5283D;
+        fill: #C5283D;
+    }
+
+    /* Ícone específico para Destaque de Gênero - azul não preenchido */
+    .genre-spotlight-title :global(svg) {
+        color: #255F85;
+        fill: none;
+        stroke: #255F85;
+        stroke-width: 2;
     }
 
     /* Carousel */
@@ -985,7 +1165,7 @@
         position: absolute;
         top: 0.5rem;
         left: 0.5rem;
-        background: rgba(0, 224, 84, 0.9);
+        background: rgba(197, 40, 61, 0.9);
         color: white;
         padding: 0.25rem 0.5rem;
         border-radius: 12px;
@@ -1026,7 +1206,7 @@
     .stars-container {
         display: flex;
         align-items: center;
-        gap: 1px;
+        gap: 2px;
     }
 
     .rating-text {
@@ -1035,25 +1215,46 @@
         font-weight: 500;
     }
 
-    /* Two Column Layout */
-    .two-column-layout {
-        display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 3rem;
+    /* Activity Section - Sempre com fundo cinza */
+    .activity-friends-section {
         margin-bottom: 4rem;
     }
 
-    /* Activity Section */
-    .activity-section {
+    .activity-container {
         background: #1d232a;
         border-radius: 12px;
         padding: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .activity-list.grid-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        position: relative;
+    }
+
+    .activity-list.grid-layout::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 0;
+        bottom: 0;
+        width: 1px;
+        background: #374151;
+        transform: translateX(-50%);
     }
 
     .view-all-link {
         background: none;
         border: none;
-        color: #00e054;
+        color: #FFC857;
         cursor: pointer;
         font-size: 0.875rem;
         text-decoration: underline;
@@ -1061,7 +1262,7 @@
     }
 
     .view-all-link:hover {
-        color: #00c048;
+        color: #d6a639;
     }
 
     .activity-list {
@@ -1076,16 +1277,25 @@
         align-items: flex-start;
     }
 
-    .activity-avatar {
+    .activity-avatar-btn {
         width: 40px;
         height: 40px;
         border-radius: 50%;
         overflow: hidden;
         flex-shrink: 0;
         border: 2px solid #374151;
+        background: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        padding: 0;
     }
 
-    .activity-avatar img {
+    .activity-avatar-btn:hover {
+        border-color: #FFC857;
+        transform: scale(1.05);
+    }
+
+    .activity-avatar-btn img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -1098,21 +1308,35 @@
 
     .activity-header {
         margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
     }
 
-    .user-name {
+    .user-name-btn {
+        background: none;
+        border: none;
         font-weight: 600;
         color: white;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        padding: 0;
+        font-size: inherit;
+        font-family: inherit;
+    }
+
+    .user-name-btn:hover {
+        color: #FFC857;
     }
 
     .activity-action {
         color: #9ca3af;
-        margin: 0 0.25rem;
     }
 
-    .list-name {
-        color: #00e054;
-        font-weight: 500;
+    .activity-rating {
+        display: flex;
+        align-items: center;
     }
 
     .activity-album {
@@ -1120,13 +1344,27 @@
         gap: 0.75rem;
         align-items: center;
         margin-bottom: 0.5rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .activity-album:hover {
+        background: rgba(255, 255, 255, 0.05);
+        transform: translateX(4px);
     }
 
     .album-thumbnail {
-        width: 40px;
-        height: 40px;
+        width: 48px;
+        height: 48px;
         border-radius: 4px;
         object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     }
 
     .album-details .album-title {
@@ -1142,15 +1380,17 @@
         margin: 0;
     }
 
-    .activity-rating {
-        margin-bottom: 0.5rem;
-    }
-
     .activity-comment {
         color: #d1d5db;
-        font-style: italic;
-        margin: 0 0 0.5rem 0;
+        font-weight: 400;
+        margin: 0.75rem 0 0.5rem 0;
         font-size: 0.875rem;
+        line-height: 1.4;
+        font-style: italic;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 0.75rem;
+        border-radius: 6px;
+        border-left: 3px solid #FFC857;
     }
 
     .activity-time {
@@ -1161,77 +1401,41 @@
         color: #6b7280;
     }
 
-    /* Featured Section */
-    .featured-section {
-        background: #1d232a;
-        border-radius: 12px;
-        padding: 2rem;
+    /* Paginação */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid #374151;
     }
 
-    .artists-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-    }
-
-    .artist-card {
-        background: none;
-        border: none;
+    .page-btn {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #374151;
+        background: transparent;
+        color: #9ca3af;
+        border-radius: 6px;
         cursor: pointer;
-        text-align: center;
-        transition: transform 0.2s ease;
-    }
-
-    .artist-card:hover {
-        transform: translateY(-2px);
-    }
-
-    .artist-image {
-        position: relative;
-        aspect-ratio: 1;
-        margin-bottom: 0.5rem;
-        overflow: hidden;
-        border-radius: 50%;
-        background-color: #374151;
-    }
-
-    .artist-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.2s ease;
-    }
-
-    .artist-card:hover .artist-image img {
-        transform: scale(1.05);
-    }
-
-    .artist-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0);
+        transition: all 0.2s ease;
+        font-size: 0.875rem;
+        font-weight: 500;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: all 0.2s ease;
+    }
+
+    .page-btn:hover {
+        background: #374151;
         color: white;
     }
 
-    .artist-card:hover .artist-overlay {
-        background: rgba(0, 0, 0, 0.6);
-    }
-
-    .artist-name {
-        font-size: 0.875rem;
-        font-weight: 600;
+    .page-btn.active {
+        background: #255F85;
+        border-color: #255F85;
         color: white;
-        margin: 0 0 0.25rem 0;
-    }
-
-    .artist-stats {
-        font-size: 0.75rem;
-        color: #9ca3af;
-        margin: 0;
     }
 
     /* Footer */
@@ -1259,23 +1463,51 @@
         color: #374151;
     }
 
-    .star-half-container {
+    .star-half {
         position: relative;
         display: inline-flex;
         align-items: center;
+        height: 14px;
     }
 
-    .star-half-overlay {
+    .star-half-fill {
         position: absolute;
         top: 0;
         left: 0;
-        width: 50%;
         overflow: hidden;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        clip-path: inset(0 50% 0 0);
     }
 
-    .star-half-overlay :global(.star-filled) {
-        fill: #FFC857;
-        color: #FFC857;
+    @keyframes wave {
+        0% { background-position: 0% 0%; }
+        50% { background-position: 100% 100%; }
+        100% { background-position: 0% 0%; }
+    }
+
+    @media (max-width: 768px) {
+        .hero-title-container {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-logo {
+            height: 3rem;
+        }
+
+        .activity-list.grid-layout {
+        grid-template-columns: 1fr;
+        }
+
+        .activity-list.grid-layout::before {
+        display: none;
+        }
     }
 
     @media (max-width: 480px) {
@@ -1283,120 +1515,20 @@
         flex: 0 0 calc(100% - 0rem);
         }
 
-        .hero-stats {
-        flex-direction: column;
-        gap: 1rem;
-        }
-
-        .footer-links {
+        .activity-list.grid-layout {
         grid-template-columns: 1fr;
         }
 
-        .artists-grid {
-        grid-template-columns: 1fr;
+        .activity-list.grid-layout::before {
+        display: none;
         }
-    }
 
-    /* Navbar - idêntica às outras páginas */
-    .navbar-albums {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 100;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 1.5rem;
-        background: #255F85;
-        height: 80px;
-        min-height: 80px;
-        box-shadow: 0 4px 15px rgba(37, 95, 133, 0.3);
-        transition: all 0.3s ease;
-        overflow: visible;
-    }
+        .hero-title {
+            font-size: 2rem;
+        }
 
-    .navbar-container {
-        width: 1500px;
-        max-width: 100vw;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: relative;
-        z-index: 1;
-    }
-
-    .logo-component img {
-        height: 72px;
-        transition: all 0.3s ease;
-        filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.1));
-    }
-
-    .logo-component img:hover {
-        transform: scale(1.05);
-        filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.2));
-    }
-    
-    .logo-button {
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        transition: opacity 0.2s ease;
-    }
-    
-    .logo-button:hover {
-        opacity: 0.8;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-    }
-
-    .nav-links a {
-        margin-left: 1.5rem;
-        margin-right: 3.5rem;
-        color: white;
-        font-family: 'Familjen Grotesk', sans-serif;
-        font-weight: bold;
-        font-size: 16px;
-        letter-spacing: 0.1em;
-        text-decoration: none;
-        white-space: nowrap;
-        transition: color 0.2s;
-        position: relative;
-        z-index: 2;
-    }
-
-    .user-avatar {
-        background: none;
-        border: 2px solid rgba(255, 255, 255, 0.7);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        padding: 1px;
-        overflow: hidden;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-
-    .user-avatar:hover {
-        border-color: white;
-        transform: scale(1.05);
-    }
-
-    .user-avatar img {
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        object-fit: cover;
-    }
-
-    .homepage {
-        padding-top: 80px;
+        .hero-logo {
+            height: 2.5rem;
+        }
     }
 </style>

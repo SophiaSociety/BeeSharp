@@ -172,12 +172,6 @@
 <div class="top-page">
     <main class="main-content">
         <div class="container">
-            <!-- Back Button -->
-            <button class="back-button" onclick={goBack} aria-label="Voltar para overview de álbuns">
-                <ArrowLeft size={20} />
-                Voltar
-            </button>
-
             <!-- Page Header -->
             <section class="page-header">
                 <div class="section-title top-albums-title">
@@ -391,29 +385,6 @@
     /* Main Content */
     .main-content {
         padding: 2rem 0 3rem 0;
-    }
-
-    /* Back Button */
-    .back-button {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: #374151;
-        border: none;
-        color: white;
-        padding: 0.75rem 1.25rem;
-        border-radius: 12px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        margin-bottom: 2rem;
-        font-family: 'Familjen Grotesk', sans-serif;
-    }
-
-    .back-button:hover {
-        background: #4b5563;
-        transform: translateY(-1px);
     }
 
     /* Page Header */
