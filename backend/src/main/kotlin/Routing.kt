@@ -187,11 +187,6 @@ fun Application.configureRouting() {
                 call.respond(reviews)
             }
 
-            get("/{id}/comments") {
-                val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
-                call.respond(reviewRepo.getComments(reviewId))
-            }
-
             get("/{id}/likes") {
                 val reviewId = call.parameters["id"]?.toIntOrNull() ?: return@get call.respond(HttpStatusCode.BadRequest)
                 val count = reviewRepo.getLikesCount(reviewId)
