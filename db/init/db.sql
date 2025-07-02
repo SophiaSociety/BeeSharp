@@ -75,18 +75,6 @@ CREATE TABLE Reviews (
     FOREIGN KEY (album_id) REFERENCES Albums(id) ON DELETE CASCADE
 );
 
--- 6) Comentários em resenhas
-CREATE TABLE Commentaries (
-    id             SERIAL PRIMARY KEY,
-    review_id      INT    NOT NULL,
-    user_id   INT    NOT NULL,
-    commentary     TEXT   NOT NULL,
-    creation_date  DATE   NOT NULL,
-    modified_date  DATE   NOT NULL,
-    FOREIGN KEY (review_id)     REFERENCES Reviews(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id)  REFERENCES Users(id)   ON DELETE CASCADE
-);
-
 -- 7) Curtidas em resenhas
 CREATE TABLE ReviewLikes (
     id         SERIAL PRIMARY KEY,
@@ -101,6 +89,8 @@ CREATE TABLE ReviewLikes (
 CREATE TABLE Artists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL UNIQUE
+    descricao varchar(1000), -- Biografia do artista
+    image       VARCHAR(255),        -- Novo campo
 );
 
 -- 9) Ligação Artistas-Álbuns (muitos-para-muitos)
