@@ -103,6 +103,29 @@ fun Application.configureRouting() {
                 val newId = userRepo.addUser(username, passwordHash, email)
                 call.respond(HttpStatusCode.Created, mapOf("id" to newId))
             }
+            
+            route("/{id}/description") {
+                get {
+                    val userId = call.parameters["id"]?.toIntOrNull()
+                    if (userId == null) {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                        return@get
+                    }
+
+                    val description = transaction {
+                        Users
+                            .select { Users.id eq userId }
+                            .mapNotNull { it[Users.description] }
+                            .singleOrNull()
+                    }
+
+                    if (description != null) {
+                        call.respond(HttpStatusCode.OK, mapOf("description" to description))
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, "User not found")
+                    }
+                }
+            }
         }
 
         route("/albums") {
