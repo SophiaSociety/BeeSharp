@@ -88,9 +88,9 @@ CREATE TABLE ReviewLikes (
 -- 8) Artistas
 CREATE TABLE Artists (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL UNIQUE
-    descricao varchar(1000), -- Biografia do artista
-    image       VARCHAR(255),        -- Novo campo
+    name VARCHAR(255) NOT NULL UNIQUE,
+    descricao VARCHAR(1000), -- Biografia do artista
+    image       VARCHAR(255)    
 );
 
 -- 9) Ligação Artistas-Álbuns (muitos-para-muitos)

@@ -257,5 +257,22 @@ fun Application.configureRouting() {
                 call.respond(HttpStatusCode.NotFound, "No profile image found")
             }
         }
+
+        get("/artists/{id}/albums") {
+            val artistId = call.parameters["id"]?.toIntOrNull()
+
+            if (artistId == null) {
+                call.respond(HttpStatusCode.BadRequest, "Invalid artist ID")
+                return@get
+            }
+
+            val albums = artistRepo.getAlbumsByArtistId(artistId)
+
+            if (albums.isEmpty()) {
+                call.respond(HttpStatusCode.NotFound, "No albums found for artist ID $artistId")
+            } else {
+                call.respond(HttpStatusCode.OK, albums)
+            }
+        }
     }
 }

@@ -55,8 +55,8 @@
 No prompt do `psql`, execute:
 ```sql
 \dt                    -- lista todas as tabelas criadas
-SELECT COUNT(*) FROM Users;     -- deve retornar 10
-SELECT COUNT(*) FROM Albums;    -- deve retornar 10
+SELECT COUNT(*) FROM Users;     
+SELECT COUNT(*) FROM Albums;    
 -- e o que mais você quiser ver! :)
 ```  
 
