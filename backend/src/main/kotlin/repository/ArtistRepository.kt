@@ -68,4 +68,20 @@ class ArtistRepository {
                 }
         }
     }
+
+    fun getArtistsByAlbumId(albumId: Int): List<Artist> {
+        return transaction {
+            (ArtistAlbums innerJoin Artists)
+                .select { ArtistAlbums.albumId eq albumId }
+                .map {
+                    Artist(
+                        id = it[Artists.id],
+                        name = it[Artists.name],
+                        descricao = it[Artists.descricao],
+                        image = it[Artists.image]
+                    )
+                }
+        }
+    }
+
 }

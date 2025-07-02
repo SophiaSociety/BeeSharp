@@ -22,6 +22,6 @@ class AlbumRoutesTest {
         application { module() }
         val response = client.get("/albums/1")
         assertEquals(HttpStatusCode.OK, response.status)
-        assertTrue(response.bodyAsText().contains("Dark Side of the Moon"))
+        assertTrue(response.bodyAsText().contains("The Wall"))
     }
 }
