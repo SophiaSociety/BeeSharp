@@ -27,7 +27,6 @@ class ReviewRepository {
                 content = it[Reviews.content],
                 rating = it[Reviews.rating],
                 createdAt = it[Reviews.createdAt],
-                comments = getComments(it[Reviews.id]), 
                 likesCount = getLikesCount(it[Reviews.id]) 
             )
         }
@@ -45,7 +44,6 @@ class ReviewRepository {
                     content = it[Reviews.content],
                     rating = it[Reviews.rating],
                     createdAt = it[Reviews.createdAt],
-                    comments = getComments(it[Reviews.id]), 
                     likesCount = getLikesCount(it[Reviews.id]) 
                 )
             }
@@ -82,34 +80,6 @@ class ReviewRepository {
         Reviews.deleteWhere { Reviews.id eq id } > 0
     }
 
-    fun addComment(reviewId: Int, userId: Int, content: String): Int = transaction {
-        val insertedId = Commentaries.insert {
-            it[review] = reviewId
-            it[Commentaries.user] = userId
-            it[commentary] = content
-            it[creationDate] = LocalDate.now()
-            it[modifiedDate] = LocalDate.now()
-        } get Commentaries.id
-
-        insertedId
-    }
-
-    fun getComments(reviewId: Int): List<ReviewCommentDTO> = transaction {
-        (Commentaries innerJoin Users)
-            .select { Commentaries.review eq reviewId }
-            .map {
-                ReviewCommentDTO(
-                    id = it[Commentaries.id],
-                    reviewId = it[Commentaries.review],
-                    userId = it[Commentaries.user],
-                    commentary = it[Commentaries.commentary],
-                    creationDate = it[Commentaries.creationDate],
-                    modifiedDate = it[Commentaries.modifiedDate],
-                    username = it[Users.username] // novo campo preenchido
-                )
-            }
-    }
-
 
     fun likeReview(reviewId: Int, userId: Int): Boolean = transaction {
         ReviewLikes.insertIgnore {
@@ -136,7 +106,6 @@ class ReviewRepository {
             content = row[Reviews.content],
             rating = row[Reviews.rating],
             createdAt = row[Reviews.createdAt],
-            comments = getComments(row[Reviews.id]),
             likesCount = getLikesCount(row[Reviews.id])
         )
     }
