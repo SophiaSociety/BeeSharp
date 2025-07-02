@@ -15,6 +15,8 @@ import com.beesharp.backend.repository.AlbumRepository
 import com.beesharp.backend.repository.ReviewRepository
 import com.beesharp.backend.dto.ReviewFullDTO
 
+import java.util.Base64
+
 class UserRepository {
 
     val albumRepo = AlbumRepository()
@@ -25,7 +27,11 @@ class UserRepository {
                 id = it[Users.id],
                 username = it[Users.username],
                 email = it[Users.email],
-                passwordHash = ""
+                passwordHash = "",
+                description = it[Users.description],
+                profileImage = it[Users.profileImage]?.bytes?.let { bytes ->
+                    Base64.getEncoder().encodeToString(bytes)
+                }
             )
         }
     }
@@ -37,7 +43,11 @@ class UserRepository {
                     id = it[Users.id],
                     username = it[Users.username],
                     email = it[Users.email],
-                    passwordHash = ""
+                    passwordHash = "",
+                    description = it[Users.description],
+                    profileImage = it[Users.profileImage]?.bytes?.let { bytes ->
+                        Base64.getEncoder().encodeToString(bytes)
+                    }
                 )
             }
             .singleOrNull()
@@ -74,7 +84,11 @@ class UserRepository {
                     id = it[Users.id],
                     username = it[Users.username],
                     email = it[Users.email],
-                    passwordHash = it[Users.passwordHash]
+                    passwordHash = it[Users.passwordHash],
+                    description = it[Users.description],
+                    profileImage = it[Users.profileImage]?.bytes?.let { bytes ->
+                        Base64.getEncoder().encodeToString(bytes)
+                    }
                 )
             }
             .singleOrNull()
@@ -82,13 +96,18 @@ class UserRepository {
 
     fun searchUsersByUsername(partialName: String): List<User> = transaction {
         Users.select { Users.username.lowerCase() like "%${partialName.lowercase()}%" }
-            .map { User(
-                        id = it[Users.id], 
-                        username = it[Users.username],
-                        email = it[Users.email],
-                        passwordHash = ""
-                    )
-                }
+            .map {
+                User(
+                    id = it[Users.id],
+                    username = it[Users.username],
+                    email = it[Users.email],
+                    passwordHash = "",
+                    description = it[Users.description],
+                    profileImage = it[Users.profileImage]?.bytes?.let { bytes ->
+                        Base64.getEncoder().encodeToString(bytes)
+                    }
+                )
+            }
     }
 
     fun getFavoriteAlbums(userId: Int): List<Int> = transaction {

@@ -230,6 +230,35 @@ fun Application.configureSecurity() {
                 call.respond(HttpStatusCode.OK, "Deixou de seguir.")
             }
 
+            route("/users/{id}/description") {
+                put {
+                    val userId = call.parameters["id"]?.toIntOrNull()
+                    if (userId == null) {
+                        call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                        return@put
+                    }
+
+                    val request = call.receive<Map<String, String>>()
+                    val newDescription = request["description"]
+
+                    if (newDescription.isNullOrBlank()) {
+                        call.respond(HttpStatusCode.BadRequest, "Description is required")
+                        return@put
+                    }
+
+                    val updated = transaction {
+                        Users.update({ Users.id eq userId }) {
+                            it[description] = newDescription
+                        } > 0
+                    }
+
+                    if (updated) {
+                        call.respond(HttpStatusCode.OK, "Description updated successfully")
+                    } else {
+                        call.respond(HttpStatusCode.NotFound, "User not found")
+                    }
+                }
+            }
 
 
             post("/review") {

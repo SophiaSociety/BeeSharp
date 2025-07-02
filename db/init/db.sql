@@ -4,7 +4,8 @@ CREATE TABLE Users (
     username     VARCHAR(255) NOT NULL UNIQUE,
     password_hash     VARCHAR(255) NOT NULL,
     email        VARCHAR(255) NOT NULL UNIQUE,
-    profile_image  BYTEA
+    profile_image  BYTEA,
+    description VARCHAR(1000)
 );
 
 CREATE TABLE UserSessions (

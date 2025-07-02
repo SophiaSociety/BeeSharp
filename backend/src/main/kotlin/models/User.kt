@@ -10,6 +10,7 @@ object Users : Table() {
     val passwordHash = varchar("password_hash", 255)
     val email = varchar("email", 255)
     val profileImage = blob("profile_image").nullable()
+    val description = varchar("description", 1000).default("") 
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -19,5 +20,7 @@ data class User(
     val id: Int,
     val username: String,
     val email: String,
-    val passwordHash: String
+    val passwordHash: String,
+    val profileImage: String? = null,
+    val description: String
 )
