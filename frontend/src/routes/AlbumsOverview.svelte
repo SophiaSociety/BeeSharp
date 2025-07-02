@@ -268,23 +268,26 @@
                             {#each searchResults as result (result._type + '-' + result.id)}
                                 <li class="search-result-item">
                                     {#if result._type === 'album'}
-                                        <a href={"/album/" + result.id} class="result-link">
+                                        <button class="result-link"
+                                            onclick={() => push(`/album/${result.id}`)}>
                                             <img class="result-img" src={result.image || "/placeholder-album.svg"} alt="Capa do álbum" />
                                             <span class="result-title">{result.title}</span>
                                             <span class="result-type">Álbum</span>
-                                        </a>
+                                        </button>
                                     {:else if result._type === 'artist'}
-                                        <a href={"/artist/" + result.id} class="result-link">
+                                        <button class="result-link"
+                                            onclick={() => push(`/artist/${result.id}`)}>
                                             <img class="result-img" src={result.photo || "/placeholder-artist.svg"} alt="Foto do artista" />
                                             <span class="result-title">{result.name}</span>
                                             <span class="result-type">Artista</span>
-                                        </a>
+                                        </button>
                                     {:else if result._type === 'user'}
-                                        <a href={"/" + result.username} class="result-link">
+                                        <button class="result-link"
+                                            onclick={() => push(`/profile/${result.username}`)}>
                                             <img class="result-img" src={result.profileImageUrl || "/placeholder-user.svg"} alt="Foto do usuário" />
                                             <span class="result-title">{result.username}</span>
                                             <span class="result-type">Usuário</span>
-                                        </a>
+                                        </button>
                                     {/if}
                                 </li>
                             {/each}

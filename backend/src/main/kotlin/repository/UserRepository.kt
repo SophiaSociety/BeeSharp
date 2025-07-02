@@ -44,11 +44,13 @@ class UserRepository {
     }
 
     fun addUser(username: String, passwordHash: String, email: String): Int = transaction {
-        Users.insert {
+        val id = Users.insert {
             it[Users.username] = username
             it[Users.passwordHash] = passwordHash
             it[Users.email] = email
         } get Users.id
+        println("Usuário cadastrado com sucesso: $username (id=$id, email=$email)")
+        id
     }
 
     fun deleteUser(id: Int): Boolean = transaction {

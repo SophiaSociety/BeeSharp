@@ -29,9 +29,9 @@ CREATE TABLE Albums (
     id          SERIAL PRIMARY KEY,
     title       VARCHAR(255) NOT NULL,
     artist      VARCHAR(255),
-    year        VARCHAR(10),         -- Novo campo
-    genre       VARCHAR(100),        -- Novo campo
-    duration    VARCHAR(10),         -- Novo campo
+    year        VARCHAR(255),         -- Novo campo
+    genre       VARCHAR(255),        -- Novo campo
+    duration    VARCHAR(255),         -- Novo campo
     average_rating NUMERIC(3,2) NOT NULL DEFAULT 0.00,
     reviews_count  INTEGER     NOT NULL DEFAULT 0,
     total_ratings  INTEGER     NOT NULL DEFAULT 0, -- Novo campo

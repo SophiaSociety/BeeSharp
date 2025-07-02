@@ -187,15 +187,16 @@
             
             if (response.ok) {
                 const data = await response.json()
-                console.log('Signup successful:', data)
-                
-                // Reset form on success
+                alert('Cadastro realizado com sucesso! Faça login para continuar.')
                 resetForm()
-                
-                // Redirect to login page or show success message
-                window.location.href = '/login'
+                window.location.href = '/#/login'
             } else {
-                const errorData = await response.json()
+                let errorData = {}
+                try {
+                    errorData = await response.json()
+                } catch {
+                    errorData = { error: 'Erro inesperado no servidor.' }
+                }
                 errors['submit'] = errorData.error || 'Falha no cadastro. Tente novamente.'
             }
             
