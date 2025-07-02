@@ -267,6 +267,40 @@ fun Application.configureSecurity() {
                 val liked = reviewRepo.likeReview(reviewId, userId)
                 call.respond(if (liked) HttpStatusCode.OK else HttpStatusCode.Conflict)
             }
+            post("/favorite/{albumId}") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val userId = principal.payload.getClaim("userId").asInt()
+                val albumId = call.parameters["albumId"]?.toIntOrNull()
+
+                if (albumId == null) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid albumId"))
+                    return@post
+                }
+
+                val userRepo = UserRepository()
+                userRepo.favoriteAlbum(userId, albumId)
+                call.respond(HttpStatusCode.OK, mapOf("message" to "Album $albumId favorited!"))
+            }
+            get("/recommendations") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val userId = principal.payload.getClaim("userId").asInt()
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
+
+                val userRepo = UserRepository()
+                val albumRepo = userRepo.albumRepo // ou crie uma nova instância se preferir
+
+                val recommendations = userRepo.recommendAlbumsForUser(userId, limit, albumRepo)
+                call.respond(recommendations)
+            }
+            get("/friends/recent-reviews") {
+                val principal = call.principal<JWTPrincipal>()!!
+                val userId = principal.payload.getClaim("userId").asInt()
+                val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 20
+
+                val userRepo = UserRepository()
+                val reviews = userRepo.getRecentFriendReviews(userId, limit)
+                call.respond(reviews)
+            }
         }
     }
 }
