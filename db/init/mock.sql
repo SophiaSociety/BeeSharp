@@ -3,12 +3,13 @@
 -- Limpa tabelas para re-população completa
 
 DELETE FROM Reviews;
-DELETE FROM Commentaries;
 DELETE FROM Userfollows;
 DELETE FROM ListeningHistory;
 DELETE FROM AlbumFavorites;
 DELETE FROM Albums;
 DELETE FROM Users;
+DELETE FROM ArtistAlbums;
+DELETE FROM Artists;
 
 INSERT INTO Users (username, password_hash, email) VALUES 
 ('alice',  '00c6ee2e21a7548de6260cf72c4f4b5b',  'alice@example.com'),
@@ -260,19 +261,6 @@ INSERT INTO Reviews (album_id, user_id, rating, content, created_at, modified_da
 (5,9,8,'Muito bom mesmo.','2025-04-24 18:00:00','2025-04-24'),
 (5,10,10,'Top 10 da história.','2025-04-24 19:00:00','2025-04-24');
 
-
-INSERT INTO Commentaries (review_id, user_id, commentary, creation_date, modified_date) VALUES
-(1,2,'Concordo totalmente!','2025-04-20','2025-04-20'),
-(1,3,'Melhores faixas são ''Time'' e ''Money''.','2025-04-20','2025-04-20'),
-(2,1,'Boa escolha de álbum.','2025-04-20','2025-04-20'),
-(2,4,'Também gostei muito.','2025-04-20','2025-04-20'),
-(3,1,'O melhor disco de todos.','2025-04-21','2025-04-21'),
-(4,2,'Interessante sua opinião.','2025-04-21','2025-04-21'),
-(5,3,'Faixas incríveis mesmo.','2025-04-22','2025-04-22'),
-(6,4,'Entendo seu ponto.','2025-04-22','2025-04-22'),
-(7,5,'Excelente escolha.','2025-04-23','2025-04-23'),
-(8,6,'Comentário interessante.','2025-04-23','2025-04-23');
-
 INSERT INTO ReviewLikes (review_id, user_id) VALUES
 (1, 2),
 (1, 3),
@@ -286,27 +274,27 @@ INSERT INTO ReviewLikes (review_id, user_id) VALUES
 (5, 3);
 
 -- Artistas
-INSERT INTO Artists (name) VALUES
-('Pink Floyd'),
-('The Beatles'),
-('Michael Jackson'),
-('AC/DC'),
-('Fleetwood Mac'),
-('Eagles'),
-('Led Zeppelin'),
-('Nirvana'),
-('Queen'),
-('Radiohead'),
-('David Bowie'),
-('U2'),
-('The Rolling Stones'),
-('Bob Dylan'),
-('The Who'),
-('Metallica'),
-('Red Hot Chili Peppers'),
-('The Doors'),
-('Arctic Monkeys'),
-('Oasis');
+INSERT INTO Artists (name, descricao, image) VALUES
+('Pink Floyd', 'Dono(a) de um repertório icônico e aclamado pela crítica.', 'https://i.scdn.co/image/e69f71e2be4b67b82af90fb8e9d805715e0684fa'),
+('The Beatles', 'Revolucionou o cenário musical com sua criatividade.', 'https://i.scdn.co/image/ab6761610000e5ebe9348cc01ff5d55971b22433'),
+('Michael Jackson', 'Um dos artistas mais influentes da música moderna.', 'https://i.scdn.co/image/ab6761610000e5eb997cc9a4aec335d46c9481fd'),
+('AC/DC', 'Influência fundamental no desenvolvimento da música contemporânea.', 'https://i.scdn.co/image/ab6761610000e5ebc4c77549095c86acb4e77b37'),
+('Fleetwood Mac', 'Influência fundamental no desenvolvimento da música contemporânea.', 'https://i.scdn.co/image/ab6761610000e5ebc8752dd511cda8c31e9daee8'),
+('Eagles', 'Influência fundamental no desenvolvimento da música contemporânea.', 'https://i.scdn.co/image/ab6761610000e5eb0767e116a2307495e37cd7fb'),
+('Led Zeppelin', 'Um dos artistas mais influentes da música moderna.', 'https://i.scdn.co/image/207803ce008388d3427a685254f9de6a8f61dc2e'),
+('Nirvana', 'Responsável por alguns dos maiores clássicos da música.', 'https://i.scdn.co/image/84282c28d851a700132356381fcfbadc67ff498b'),
+('Queen', 'Adorado(a) por fãs ao redor do mundo.', 'https://i.scdn.co/image/b040846ceba13c3e9c125d68389491094e7f2982'),
+('Radiohead', 'Revolucionou o cenário musical com sua criatividade.', 'https://i.scdn.co/image/ab6761610000e5eba03696716c9ee605006047fd'),
+('David Bowie', 'Revolucionou o cenário musical com sua criatividade.', 'https://i.scdn.co/image/ab6761610000e5ebb78f77c5583ae99472dd4a49'),
+('U2', 'Reconhecido mundialmente por seu som único e inovador.', 'https://i.scdn.co/image/ab6761610000e5ebe62be215d2ee31bcd97edaba'),
+('The Rolling Stones', 'Revolucionou o cenário musical com sua criatividade.', 'https://i.scdn.co/image/ab6761610000e5ebe4cea917b68726aadb4854b8'),
+('Bob Dylan', 'Adorado(a) por fãs ao redor do mundo.', 'https://i.scdn.co/image/ab6761610000e5eb791742524609864273747ef5'),
+('The Who', 'Um dos artistas mais influentes da música moderna.', 'https://i.scdn.co/image/9cd709cabb4a614b4f1dd9ec256a5f30e21f0150'),
+('Metallica', 'Lendário(a) por álbuns que marcaram gerações.', 'https://i.scdn.co/image/ab6761610000e5eb69ca98dd3083f1082d740e44'),
+('Red Hot Chili Peppers', 'Reconhecido mundialmente por seu som único e inovador.', 'https://i.scdn.co/image/ab6761610000e5ebc33cc15260b767ddec982ce8'),
+('The Doors', 'Reconhecido mundialmente por seu som único e inovador.', 'https://i.scdn.co/image/ab6761610000e5eb440959e022afc20e819050bd'),
+('Arctic Monkeys', 'Protagonista de momentos inesquecíveis na história da música.', 'https://i.scdn.co/image/ab6761610000e5eb7da39dea0a72f581535fb11f'),
+('Oasis', 'Responsável por alguns dos maiores clássicos da música.', 'https://i.scdn.co/image/ab6761610000e5eb0522e98a6f0cf1ddbee9a74f');
 
 -- Ligação Artistas-Álbuns (3 álbuns por artista)
 INSERT INTO ArtistAlbums (artist_id, album_id) VALUES

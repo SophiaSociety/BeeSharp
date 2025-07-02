@@ -5,6 +5,9 @@ import com.beesharp.backend.models.Artists
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import com.beesharp.backend.models.Albums
+import com.beesharp.backend.models.Album
+import com.beesharp.backend.models.ArtistAlbums
 
 
 class ArtistRepository {
@@ -13,29 +16,56 @@ class ArtistRepository {
         Artists.selectAll().map {
             Artist(
                 id = it[Artists.id],
-                name = it[Artists.name]
+                name = it[Artists.name],
+                descricao = it[Artists.descricao],
+                image = it[Artists.image]
             )
         }
     }
 
     fun getArtistById(id: Int): Artist? = transaction {
         Artists.select { Artists.id eq id }
-            .map { Artist(it[Artists.id], it[Artists.name]) }
-            .singleOrNull()
+            .map {
+                Artist(
+                    id = it[Artists.id],
+                    name = it[Artists.name],
+                    descricao = it[Artists.descricao],
+                    image = it[Artists.image]
+                )
+            }.singleOrNull()
     }
 
     fun searchArtistsByName(partialName: String): List<Artist> = transaction {
         Artists.select { Artists.name.lowerCase() like "%${partialName.lowercase()}%" }
-            .map { Artist(it[Artists.id], it[Artists.name]) }
+            .map {
+                Artist(
+                    id = it[Artists.id],
+                    name = it[Artists.name],
+                    descricao = it[Artists.descricao],
+                    image = it[Artists.image]
+                )
+            }
     }
 
-    fun addArtist(name: String): Int = transaction {
-        Artists.insert {
-            it[Artists.name] = name
-        } get Artists.id
-    }
-
-    fun deleteArtist(id: Int): Boolean = transaction {
-        Artists.deleteWhere { Artists.id eq id } > 0
+    fun getAlbumsByArtistId(artistId: Int): List<Album> {
+        return transaction {
+            (ArtistAlbums innerJoin Albums)
+                .select { ArtistAlbums.artistId eq artistId }
+                .map {
+                    Album(
+                        id = it[Albums.id],
+                        title = it[Albums.title],
+                        artist = it[Albums.artist],
+                        year = it[Albums.year],
+                        genre = it[Albums.genre],
+                        duration = it[Albums.duration],
+                        averageRating = it[Albums.averageRating].toDouble(),
+                        reviewsCount = it[Albums.reviewsCount],
+                        totalRatings = it[Albums.totalRatings],
+                        image = it[Albums.image],
+                        description = it[Albums.description]
+                    )
+                }
+        }
     }
 }
