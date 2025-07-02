@@ -12,15 +12,17 @@
     let loading = true
     let error = ''
     
-    function goBack() {
-        push('/albuns')
-    }
-    
     function handleAlbumClick(album) {
         console.log('Album clicked:', album.title)
         push(`/album/${album.id}`)
     }
     
+    // Add artist click function
+    function handleArtistClick(artist) {
+        console.log('Artist clicked:', artist.name)
+        push(`/artist/${artist.id}`)
+    }
+
     function renderStars(rating) {
         let safeRating = Number(rating)
         if (isNaN(safeRating) || safeRating < 0) safeRating = 0
@@ -124,8 +126,8 @@
                     id: i + 1,
                     title: `Album ${i + 1}`,
                     artist: `Artista ${i + 1}`,
-                    coverUrl: '/imagemm.jpg',
-                    rating: (Math.random() * 2 + 3).toFixed(1),
+                    image: '/imagemm.jpg',
+                    averageRating: (Math.random() * 2 + 3).toFixed(1),
                     year: 2000 + Math.floor(Math.random() * 24)
                 }))
             } finally {
@@ -198,7 +200,7 @@
                         {#each topRatedAlbums as album, index (album.id)}
                             <button class="album-card top-rated" onclick={() => handleAlbumClick(album)}>
                                 <div class="album-cover">
-                                    <img src={album.coverUrl || '/imagemm.jpg'} alt={`Capa do álbum ${album.title}`} />
+                                    <img src={album.image || '/imagemm.jpg'} alt={`Capa do álbum ${album.title}`} />
                                     <div class="album-overlay">
                                         <div class="play-button">
                                             <Music size={24} />
@@ -210,13 +212,17 @@
                                 </div>
                                 <div class="album-info">
                                     <h3 class="album-title">{album.title}</h3>
-                                    <p class="album-artist">{album.artist}</p>
+                                    <p class="album-artist">
+                                      <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: album.id, name: album.artist})}}>
+                                        {album.artist}
+                                      </span>
+                                    </p>
                                     <div class="album-rating">
                                         <div class="stars-container">
-                                            {#each renderStars(Number(album.rating)).fullStars as _}
+                                            {#each renderStars(Number(album.averageRating)).fullStars as _}
                                                 <Star size={14} class="star-filled" />
                                             {/each}
-                                            {#if renderStars(Number(album.rating)).hasHalfStar}
+                                            {#if renderStars(Number(album.averageRating)).hasHalfStar}
                                                 <div class="star-half">
                                                     <Star size={14} class="star-empty" />
                                                     <div class="star-half-fill">
@@ -224,11 +230,11 @@
                                                     </div>
                                                 </div>
                                             {/if}
-                                            {#each renderStars(Number(album.rating)).emptyStars as _}
+                                            {#each renderStars(Number(album.averageRating)).emptyStars as _}
                                                 <Star size={14} class="star-empty" />
                                             {/each}
                                         </div>
-                                        <span class="rating-text">{album.rating}</span>
+                                        <span class="rating-text">{album.averageRating}</span>
                                     </div>
                                 </div>
                             </button>
@@ -594,7 +600,8 @@
 
     :global(.star-empty) {
         fill: none;
-        color: #374151;
+        color: #FFC857;
+        stroke: #FFC857;
     }
 
     .star-half {
@@ -654,7 +661,25 @@
         
         .albums-grid {
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
         }
+    }
+    
+    /* Artist Link Styles */
+    .artist-link {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: inherit;
+        font-family: inherit;
+        padding: 0;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .artist-link:hover {
+        color: #FFC857;
+        text-decoration: underline;
+            gap: 1rem;
     }
 </style>

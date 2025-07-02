@@ -152,6 +152,29 @@ fun Application.configureRouting() {
             }
         }
 
+        route("/artists") {
+            get {
+                call.respond(artistRepo.getAllArtists())
+            }
+
+            get("/{id}") {
+                val artistId = call.parameters["id"]?.toIntOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid artist ID")
+                val artist = artistRepo.getArtistById(artistId)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Artist not found")
+                call.respond(artist)
+            }
+
+            get("/{id}/albums") {
+                val artistId = call.parameters["id"]?.toIntOrNull()
+                    ?: return@get call.respond(HttpStatusCode.BadRequest, "Invalid artist ID")
+                val artist = artistRepo.getArtistById(artistId)
+                    ?: return@get call.respond(HttpStatusCode.NotFound, "Artist not found")
+                val albums = albumRepo.getAlbumsByArtist(artist.name)
+                call.respond(albums)
+            }
+        }
+
         route("/reviews") {
             get {
                 call.respond(reviewRepo.getAllReviews())

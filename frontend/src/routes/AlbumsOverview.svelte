@@ -72,6 +72,12 @@
         push(`/album/${album.id}`)
     }
 
+    // Add artist click function
+    function handleArtistClick(artist) {
+        console.log('Artist clicked:', artist.name)
+        push(`/artist/${artist.id}`)
+    }
+
     
     function renderStars(rating) {
         const fullStars = Math.floor(rating)
@@ -341,7 +347,11 @@
                                         </div>
                                         <div class="album-info">
                                             <h3 class="album-title">{album.title}</h3>
-                                            <p class="album-artist">{album.artist}</p>
+                                            <p class="album-artist">
+                                              <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 1, name: album.artist})}}>
+                                                {album.artist}
+                                              </span>
+                                            </p>
                                             <div class="album-rating">
                                                 <div class="stars-container">
                                                     {#each renderStars(album.averageRating).fullStars as _}
@@ -402,7 +412,11 @@
                                 </div>
                                 <div class="album-info">
                                     <h3 class="album-title">{album.title}</h3>
-                                    <p class="album-artist">{album.artist}</p>
+                                    <p class="album-artist">
+                                      <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 2, name: album.artist})}}>
+                                        {album.artist}
+                                      </span>
+                                    </p>
                                     <div class="album-rating">
                                         <div class="stars-container">
                                             {#each renderStars(album.averageRating).fullStars as _}
@@ -687,6 +701,24 @@
     .result-link:hover .result-title {
         text-decoration: underline;
         color: #FFC857;
+    }
+
+    /* Artist Link Styles */
+    .artist-link {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: inherit;
+        font-family: inherit;
+        padding: 0;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .artist-link:hover {
+        color: #FFC857;
+        text-decoration: underline;
     }
 
     /* Main Content */
@@ -984,7 +1016,8 @@
 
     :global(.star-empty) {
         fill: none;
-        color: #374151;
+        color: #FFC857;
+        stroke: #FFC857;
     }
 
     .star-half {

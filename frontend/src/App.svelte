@@ -8,6 +8,7 @@
     import AlbumsOverview from './routes/AlbumsOverview.svelte';
     import TopPage from './routes/TopPage.svelte';
     import Album from './routes/Album.svelte';
+    import Artist from './routes/Artist.svelte';
 
     const routes = {
         '/': LandingPage,
@@ -18,7 +19,8 @@
         '/perfil': ProfilePage,
         '/profile/:username': ProfilePage,
         '/home': HomePage,
-        '/album/:id': Album
+        '/album/:id': Album,
+        '/artist/:id': Artist
     };
 </script>
 

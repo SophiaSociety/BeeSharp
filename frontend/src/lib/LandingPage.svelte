@@ -110,7 +110,7 @@
 
     p {
         font-family:'Inter';
-        color: #797676;
+        color: white;
         font-size: 13px;
     }
 

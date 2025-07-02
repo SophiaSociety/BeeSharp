@@ -1,144 +1,326 @@
 <script>
-  import { Star, Heart, Calendar, Music, Users, MessageSquare, ListMusic, ThumbsUp, ThumbsDown } from 'lucide-svelte'
+  import { Star, Heart, Calendar, Music, Users, MessageSquare, ListMusic, ThumbsUp, ThumbsDown, Search } from 'lucide-svelte'
   import { push } from 'svelte-spa-router'
   import Login from '../lib/Login.svelte'
+  import { isAuthenticated } from '../lib/auth'
+  import { onMount } from 'svelte'
   
+  // Simulação de usuário logado
+  let loggedUser = {
+    name: "Alex Chen",
+    username: "@alexmusic",
+    avatar: "/placeholder.svg?height=32&width=32"
+  }
   let showLoginModal = $state(false)
   function openLoginModal() { showLoginModal = true }
   function closeLoginModal() { showLoginModal = false }
+
+  // Check login status when component mounts
+  onMount(() => {
+    if (!isAuthenticated()) {
+      showLoginModal = true;
+    }
+  })
   
-    let listenedAlbums = $state([
-        { id: 1, title: "DAMN.", artist: "Kendrick Lamar", year: "2017", rating: 4.5 },
-        { id: 2, title: "Currents", artist: "Tame Impala", year: "2015", rating: 4.0 },
-        { id: 3, title: "In Rainbows", artist: "Radiohead", year: "2007", rating: 5.0 },
-        { id: 4, title: "MBDTF", artist: "Kanye West", year: "2010", rating: 4.5 },
-        { id: 5, title: "Funeral", artist: "Arcade Fire", year: "2004", rating: 3.5 },
-        { id: 6, title: "The Suburbs", artist: "Arcade Fire", year: "2010", rating: 4.0 },
-    ])
+  // Searchbar
+  let searchQuery = $state('')
+  function handleSearch(event) {
+    event.preventDefault()
+    // Implementar busca
+  }
 
-    let favoriteAlbums = $state([
-        { id: 1, title: "OK Computer", artist: "Radiohead", year: "1997" },
-        { id: 2, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015" },
-        { id: 3, title: "The Dark Side of the Moon", artist: "Pink Floyd", year: "1973" },
-        { id: 4, title: "Blonde", artist: "Frank Ocean", year: "2016" },
-    ])
+  // Controle de seguir
+  let isFollowing = $state(false)
+  function handleFollow() {
+    // Simula sucesso
+    isFollowing = !isFollowing
+  }
+  
+  // Pagination variables and functions
+  let showAllAlbums = $state(false);
+  let showAllReviews = $state(false);
+  let currentAlbumsPage = $state(1);
+  let currentReviewsPage = $state(1);
+  const ITEMS_PER_PAGE = 15;
+  
+  function toggleAlbumsView() {
+    showAllAlbums = !showAllAlbums;
+    currentAlbumsPage = 1;
+  }
+  
+  function toggleReviewsView() {
+    showAllReviews = !showAllReviews;
+    currentReviewsPage = 1;
+  }
+  
+  function goToAlbumsPage(page) {
+    currentAlbumsPage = page;
+  }
+  
+  function goToReviewsPage(page) {
+    currentReviewsPage = page;
+  }
+  
+  function getTotalAlbumsPages() {
+    return Math.ceil(listenedAlbums.length / ITEMS_PER_PAGE);
+  }
+  
+  function getTotalReviewsPages() {
+    return Math.ceil(recentReviews.length / ITEMS_PER_PAGE);
+  }
+  
+  function getCurrentAlbumsPage() {
+    const start = (currentAlbumsPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return listenedAlbums.slice(start, end);
+  }
+  
+  function getCurrentReviewsPage() {
+    const start = (currentReviewsPage - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return recentReviews.slice(start, end);
+  }
 
-    let recentReviews = $state([
-        {
-        id: 1,
-        title: "IGOR",
-        artist: "Tyler, The Creator",
-        year: "2019",
-        rating: 4.5,
-        review: "A bold artistic statement that showcases Tyler's growth as both a producer and songwriter. The cohesive narrative and lush production make this a standout album.",
-        date: "2 days ago",
-        liked: true,
-        likes: 15,
-        dislikes: 2,
-        userLiked: false,
-        userDisliked: false
-        },
-        {
-        id: 2,
-        title: "Folklore",
-        artist: "Taylor Swift",
-        year: "2020",
-        rating: 4,
-        review: "Swift's indie folk pivot is surprisingly successful, with introspective lyrics and stripped-down production that feels both intimate and cinematic.",
-        date: "1 week ago",
-        liked: false,
-        likes: 8,
-        dislikes: 1,
-        userLiked: false,
-        userDisliked: false
-        },
-        {
-        id: 3,
-        title: "Swimming",
-        artist: "Mac Miller",
-        year: "2018",
-        rating: 5,
-        review: "A deeply personal and vulnerable album that showcases Mac's incredible talent. Every track feels essential and the production is absolutely gorgeous.",
-        date: "2 weeks ago",
-        liked: true,
-        likes: 23,
-        dislikes: 0,
-        userLiked: true,
-        userDisliked: false
-        },
-    ])
+  let listenedAlbums = $state([
+    { id: 1, title: "DAMN.", artist: "Kendrick Lamar", year: "2017", rating: 4.5 },
+    { id: 2, title: "Currents", artist: "Tame Impala", year: "2015", rating: 4.0 },
+    { id: 3, title: "In Rainbows", artist: "Radiohead", year: "2007", rating: 5.0 },
+    { id: 4, title: "MBDTF", artist: "Kanye West", year: "2010", rating: 4.5 },
+    { id: 5, title: "Funeral", artist: "Arcade Fire", year: "2004", rating: 3.5 },
+    { id: 6, title: "The Suburbs", artist: "Arcade Fire", year: "2010", rating: 4.0 },
+    { id: 7, title: "OK Computer", artist: "Radiohead", year: "1997", rating: 4.5 },
+    { id: 8, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015", rating: 5.0 },
+    { id: 9, title: "The Dark Side of the Moon", artist: "Pink Floyd", year: "1973", rating: 4.5 },
+    { id: 10, title: "Blonde", artist: "Frank Ocean", year: "2016", rating: 4.0 },
+    { id: 11, title: "Abbey Road", artist: "The Beatles", year: "1969", rating: 4.8 },
+    { id: 12, title: "Rumours", artist: "Fleetwood Mac", year: "1977", rating: 4.7 },
+    { id: 13, title: "Nevermind", artist: "Nirvana", year: "1991", rating: 4.6 },
+    { id: 14, title: "Is This It", artist: "The Strokes", year: "2001", rating: 4.3 },
+    { id: 15, title: "Kid A", artist: "Radiohead", year: "2000", rating: 4.9 },
+    { id: 16, title: "Good Kid, M.A.A.D City", artist: "Kendrick Lamar", year: "2012", rating: 4.8 },
+    { id: 17, title: "Channel Orange", artist: "Frank Ocean", year: "2012", rating: 4.5 },
+    { id: 18, title: "The Queen Is Dead", artist: "The Smiths", year: "1986", rating: 4.4 },
+    { id: 19, title: "Loveless", artist: "My Bloody Valentine", year: "1991", rating: 4.7 },
+    { id: 20, title: "Blue", artist: "Joni Mitchell", year: "1971", rating: 4.9 },
+  ])
 
-    function renderStars(rating) {
-        const fullStars = Math.floor(rating)
-        const hasHalfStar = rating % 1 !== 0
-        const emptyStars = 5 - Math.ceil(rating)
-        
-        return {
-        fullStars: Array(fullStars).fill(0),
-        hasHalfStar,
-        emptyStars: Array(emptyStars).fill(0)
+  let favoriteAlbums = $state([
+    { id: 1, title: "OK Computer", artist: "Radiohead", year: "1997" },
+    { id: 2, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015" },
+    { id: 3, title: "The Dark Side of the Moon", artist: "Pink Floyd", year: "1973" },
+    { id: 4, title: "Blonde", artist: "Frank Ocean", year: "2016" },
+  ])
+
+  let recentReviews = $state([
+    {
+      id: 1,
+      title: "IGOR",
+      artist: "Tyler, The Creator",
+      year: "2019",
+      rating: 4.5,
+      review: "A bold artistic statement that showcases Tyler's growth as both a producer and songwriter. The cohesive narrative and lush production make this a standout album.",
+      date: "2 days ago",
+      liked: true,
+      likes: 15,
+      dislikes: 2,
+      userLiked: false,
+      userDisliked: false
+    },
+    {
+      id: 2,
+      title: "Folklore",
+      artist: "Taylor Swift",
+      year: "2020",
+      rating: 4,
+      review: "Swift's indie folk pivot is surprisingly successful, with introspective lyrics and stripped-down production that feels both intimate and cinematic.",
+      date: "1 week ago",
+      liked: false,
+      likes: 8,
+      dislikes: 1,
+      userLiked: false,
+      userDisliked: false
+    },
+    {
+      id: 3,
+      title: "Swimming",
+      artist: "Mac Miller",
+      year: "2018",
+      rating: 5,
+      review: "A deeply personal and vulnerable album that showcases Mac's incredible talent. Every track feels essential and the production is absolutely gorgeous.",
+      date: "2 weeks ago",
+      liked: true,
+      likes: 23,
+      dislikes: 0,
+      userLiked: true,
+      userDisliked: false
+    },
+    {
+      id: 4,
+      title: "Random Access Memories",
+      artist: "Daft Punk",
+      year: "2013",
+      rating: 4.5,
+      review: "A masterful blend of electronic and live music that takes the listener on a journey. Each track is meticulously crafted and the collaborations are top-notch.",
+      date: "1 month ago",
+      liked: false,
+      likes: 10,
+      dislikes: 0,
+      userLiked: false,
+      userDisliked: false
+    },
+    {
+      id: 5,
+      title: "25",
+      artist: "Adele",
+      year: "2015",
+      rating: 4.8,
+      review: "A powerful and emotional album that showcases Adele's incredible vocal range and songwriting skills. A modern classic.",
+      date: "2 months ago",
+      liked: true,
+      likes: 30,
+      dislikes: 5,
+      userLiked: true,
+      userDisliked: false
+    },
+    {
+      id: 6,
+      title: "Future Nostalgia",
+      artist: "Dua Lipa",
+      year: "2020",
+      rating: 4.2,
+      review: "A fun and energetic album that brings together elements of disco, pop, and funk. Dua Lipa's vocals are captivating and the production is stellar.",
+      date: "3 months ago",
+      liked: false,
+      likes: 12,
+      dislikes: 3,
+      userLiked: false,
+      userDisliked: false
+    },
+    {
+      id: 7,
+      title: "After Hours",
+      artist: "The Weeknd",
+      year: "2020",
+      rating: 4.7,
+      review: "A dark and moody album that perfectly showcases The Weeknd's unique sound and artistic vision. The production is top-notch and the features are well-placed.",
+      date: "4 months ago",
+      liked: true,
+      likes: 25,
+      dislikes: 4,
+      userLiked: true,
+      userDisliked: false
+    },
+    {
+      id: 8,
+      title: "Positions",
+      artist: "Ariana Grande",
+      year: "2020",
+      rating: 4.3,
+      review: "An album that continues to solidify Ariana's place in pop music. The production is sleek, and her vocals are as impressive as ever.",
+      date: "5 months ago",
+      liked: false,
+      likes: 18,
+      dislikes: 2,
+      userLiked: false,
+      userDisliked: false
+    },
+    {
+      id: 9,
+      title: "Justice",
+      artist: "Justin Bieber",
+      year: "2021",
+      rating: 3.8,
+      review: "A solid album with some standout tracks. Justin's growth as an artist is evident, though some songs feel less impactful.",
+      date: "6 months ago",
+      liked: true,
+      likes: 20,
+      dislikes: 10,
+      userLiked: true,
+      userDisliked: false
+    },
+  ])
+
+  function renderStars(rating) {
+    const fullStars = Math.floor(rating)
+    const hasHalfStar = rating % 1 !== 0
+    const emptyStars = 5 - Math.ceil(rating)
+    
+    return {
+      fullStars: Array(fullStars).fill(0),
+      hasHalfStar,
+      emptyStars: Array(emptyStars).fill(0)
+    }
+  }
+
+  function handleLike(reviewId) {
+    const review = recentReviews.find(r => r.id === reviewId)
+    if (review) {
+      if (review.userLiked) {
+        review.likes--
+        review.userLiked = false
+      } else {
+        if (review.userDisliked) {
+          review.dislikes--
+          review.userDisliked = false
         }
+        review.likes++
+        review.userLiked = true
+      }
+      recentReviews = [...recentReviews]
     }
+  }
 
-    function handleLike(reviewId) {
-        const review = recentReviews.find(r => r.id === reviewId)
-        if (review) {
-            if (review.userLiked) {
-                review.likes--
-                review.userLiked = false
-            } else {
-                if (review.userDisliked) {
-                    review.dislikes--
-                    review.userDisliked = false
-                }
-                review.likes++
-                review.userLiked = true
-            }
-            recentReviews = [...recentReviews]
+  function handleDislike(reviewId) {
+    const review = recentReviews.find(r => r.id === reviewId)
+    if (review) {
+      if (review.userDisliked) {
+        review.dislikes--
+        review.userDisliked = false
+      } else {
+        if (review.userLiked) {
+          review.likes--
+          review.userLiked = false
         }
+        review.dislikes++
+        review.userDisliked = true
+      }
+      recentReviews = [...recentReviews]
     }
+  }
 
-    function handleDislike(reviewId) {
-        const review = recentReviews.find(r => r.id === reviewId)
-        if (review) {
-            if (review.userDisliked) {
-                review.dislikes--
-                review.userDisliked = false
-            } else {
-                if (review.userLiked) {
-                    review.likes--
-                    review.userLiked = false
-                }
-                review.dislikes++
-                review.userDisliked = true
-            }
-            recentReviews = [...recentReviews]
-        }
-    }
-
-    function handleFollow() {
-        console.log('Follow clicked')
-    }
-
-    function handleAlbumClick(album) {
-        console.log('Album clicked:', album.title)
-        // Navegar para a página do álbum
-        push('/album')
-    }
+  function handleAlbumClick(album) {
+    console.log('Album clicked:', album.title)
+    // Navegar para a página do álbum
+    push('/album')
+  }
 </script>
 
 <nav class="navbar-albums">
-    <div class="navbar-container">
-        <div class="logo-component">
-            <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
-                <img src="/logocomtexto.png" alt="BeeSharp Logo" />
-            </button>
-        </div>
-        <div class="nav-links">
-            <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
-            <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
-        </div>
+  <div class="navbar-container">
+    <div class="logo-component">
+      <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+        <img src="/logocomtexto.png" alt="BeeSharp Logo" />
+      </button>
     </div>
+    <div class="search-and-user">
+      <form class="search-form" onsubmit={handleSearch}>
+        <div class="search-container">
+          <Search size={18} />
+          <input
+            type="text"
+            class="search-input"
+            bind:value={searchQuery}
+          />
+          <button type="submit" class="search-button">Buscar</button>
+        </div>
+      </form>
+      <div class="user-menu">
+        <button class="user-avatar" aria-label="Perfil do usuário" onclick={() => push('/perfil')}>
+          <img src={loggedUser.avatar} alt={loggedUser.name} />
+        </button>
+      </div>
+    </div>
+  </div>
 </nav>
 
 {#if showLoginModal}
@@ -162,8 +344,8 @@
               <h1>Alex Chen</h1>
               <p class="username">@alexmusic</p>
             </div>
-            <button class="follow-btn" onclick={handleFollow}>
-              Seguir
+            <button class="follow-btn {isFollowing ? 'following' : ''}" onclick={handleFollow}>
+              {isFollowing ? 'Seguindo' : 'Seguir'}
             </button>
           </div>
 
@@ -225,7 +407,6 @@
             <Heart size={20} />
             <h2>Favoritos</h2>
           </div>
-          <button class="view-all">Ver todos</button>
         </div>
 
         <div class="albums-grid">
@@ -255,11 +436,10 @@
             <Music size={20} />
             <h2>Álbuns Escutados</h2>
           </div>
-          <button class="view-all">Ver todos</button>
         </div>
 
         <div class="albums-grid">
-          {#each listenedAlbums as album (album.id)}
+          {#each getCurrentAlbumsPage() as album (album.id)}
             <button class="album-card" onclick={() => handleAlbumClick(album)}>
               <div class="album-cover">
                 <img src="/placeholder.svg?height=200&width=200" alt="{album.title} by {album.artist}" />
@@ -294,6 +474,28 @@
             </button>
           {/each}
         </div>
+
+        {#if listenedAlbums.length > ITEMS_PER_PAGE}
+          <div class="pagination">
+            {#if currentAlbumsPage > 1}
+              <button class="pagination-button" onclick={() => goToAlbumsPage(currentAlbumsPage - 1)}>
+                ‹ Anterior
+              </button>
+            {/if}
+
+            {#each Array(getTotalAlbumsPages()) as _, i (i)}
+              <button class="pagination-button {currentAlbumsPage === i + 1 ? 'active' : ''}" onclick={() => goToAlbumsPage(i + 1)}>
+                {i + 1}
+              </button>
+            {/each}
+
+            {#if currentAlbumsPage < getTotalAlbumsPages()}
+              <button class="pagination-button" onclick={() => goToAlbumsPage(currentAlbumsPage + 1)}>
+                Próxima ›
+              </button>
+            {/if}
+          </div>
+        {/if}
       </section>
 
       <div class="separator"></div>
@@ -305,11 +507,10 @@
             <MessageSquare size={20} />
             <h2>Reviews</h2>
           </div>
-          <button class="view-all">Ver todas</button>
         </div>
 
         <div class="reviews-list">
-          {#each recentReviews as review (review.id)}
+          {#each getCurrentReviewsPage() as review (review.id)}
             <div class="review-card">
               <div class="review-layout">
                 <div class="album-info-review">
@@ -376,6 +577,28 @@
             </div>
           {/each}
         </div>
+
+        {#if recentReviews.length > ITEMS_PER_PAGE}
+          <div class="pagination">
+            {#if currentReviewsPage > 1}
+              <button class="pagination-button" onclick={() => goToReviewsPage(currentReviewsPage - 1)}>
+                ‹ Anterior
+              </button>
+            {/if}
+
+            {#each Array(getTotalReviewsPages()) as _, i (i)}
+              <button class="pagination-button {currentReviewsPage === i + 1 ? 'active' : ''}" onclick={() => goToReviewsPage(i + 1)}>
+                {i + 1}
+              </button>
+            {/each}
+
+            {#if currentReviewsPage < getTotalReviewsPages()}
+              <button class="pagination-button" onclick={() => goToReviewsPage(currentReviewsPage + 1)}>
+                Próxima ›
+              </button>
+            {/if}
+          </div>
+        {/if}
       </section>
     </div>
   </main>
@@ -454,51 +677,164 @@
   .logo-button:hover {
     opacity: 0.8;
   }
-
-  .nav-links {
+  
+  .search-and-user {
     display: flex;
     align-items: center;
+    gap: 1.5rem;
+  }
+  
+  /* Search Styles */
+  .search-form {
+    margin-bottom: 0;
   }
 
-  .nav-links a {
-    margin-left: 1.5rem;
-    margin-right: 3.5rem;
-    color: white;
-    font-family: 'Familjen Grotesk', sans-serif;
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 0.1em;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: color 0.2s;
+  .search-container {
     position: relative;
-    z-index: 2;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    padding-left: 1rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    height: 40px;
   }
 
-  .nav-login-btn {
-    margin-left: 1.5rem;
-    margin-right: 3.5rem;
-    background: none;
+  .search-container :global(svg) {
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .search-container:focus-within {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 0.5rem;
+    background: transparent;
     border: none;
     color: white;
-    font-family: 'Familjen Grotesk', sans-serif;
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: color 0.2s;
-    position: relative;
-    z-index: 2;
+    font-size: 0.9rem;
+    outline: none;
   }
 
+  .search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+  }
+
+  .search-button {
+    padding: 0.5rem 1.5rem;
+    background: #255F85;
+    color: white;
+    border: none;
+    border-radius: 0 17px 17px 0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Familjen Grotesk', sans-serif;
+    letter-spacing: 0.025em;
+    outline: none;
+    height: 100%;
+  }
+
+  .search-button:hover {
+    background: #1e4c6b;
+  }
+
+  .search-button:focus {
+    outline: none;
+    background: #1e4c6b;
+  }
+
+  /* User Avatar Styles */
+  .user-menu {
+    position: relative;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 50%;
+    border: 2px solid;
+    overflow: hidden;
+    background: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .user-avatar:hover {
+    border-color: #1e4c6b;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
+  
+  /* Botão seguir/seguindo */
+  .follow-btn {
+    background-color: #255F85;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 0.5rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    outline: none;
+    margin-left: 1rem;
+    min-width: 100px; /* Fixed width to maintain consistent button size */
+    text-align: center;
+  }
+  
+  .follow-btn:hover {
+    background-color: #1e4c6b;
+  }
+  
+  .follow-btn.following {
+    background-color: #8A1A2A;
+  }
+  
+  .follow-btn.following:hover {
+    background-color: #72152b;
+  }
+  
   .login-popup-overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.7);
     z-index: 1000;
     display: flex;
     align-items: center;
@@ -508,7 +844,7 @@
   .app {
     min-height: 100vh;
     background-color: #14181c;
-    margin-top: 80px;
+    margin-top: 60px;
   }
 
   .container {
@@ -566,21 +902,6 @@
     .username {
         margin: 0;
         color: #9ca3af;
-    }
-
-    .follow-btn {
-        background-color: #C5283D;
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s;
-    }
-
-    .follow-btn:hover {
-        background-color: #8A1A2A;
     }
 
     .bio {
@@ -642,15 +963,6 @@
     font-family: 'Familjen Grotesk', sans-serif;
   }
 
-  .view-all {
-    font-size: 0.875rem;
-    color: #FFC857;
-    background: none;
-    border: none;
-    cursor: pointer;
-    text-decoration: underline;
-  }
-
   /* Stats Bar */
   .stats-bar {
     display: grid;
@@ -681,7 +993,7 @@
   /* Albums Grid - styled like AlbumsOverview.svelte */
   .albums-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.5rem;
   }
 
@@ -789,13 +1101,13 @@
   .stars-small {
     display: flex;
     align-items: center;
-    gap: 1px;
+    gap: 2px;
+    color: #facc15; /* Amarelo para estrelas preenchidas */
   }
 
   .star-half-small {
     position: relative;
-    display: inline-flex;
-    align-items: center;
+    display: inline-block;
   }
 
   .star-half-fill-small {
@@ -804,6 +1116,7 @@
     left: 0;
     width: 50%;
     overflow: hidden;
+    color: #facc15;
   }
 
   /* Separator */
@@ -1005,101 +1318,59 @@
     background: rgba(239, 68, 68, 0.1);
   }
 
-  /* Star Rating Styles */
-  :global(.star-filled) {
-    fill: #FFC857;
-    color: #FFC857;
+  /* Searchbar menor para perfil */
+  .profile-search {
+    margin-bottom: 0;
+    margin-left: 2rem;
+    margin-right: 2rem;
+    flex: 1;
+    max-width: 350px;
   }
 
-  :global(.star-empty) {
-    fill: none;
-    color: #374151;
+  /* Pagination Styles */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2rem;
+    gap: 0.5rem;
   }
 
-  /* Responsive Design */
-  @media (min-width: 768px) {
-    .profile-info {
-      flex-direction: row;
-    }
-
-    .user-header {
-      flex-direction: row;
-      align-items: center;
-    }
-
-    .follow-btn {
-      margin-left: auto;
-    }
-
-    .review-header {
-      flex-direction: row;
-      align-items: flex-start;
-    }
-
-    .stats-bar {
-      grid-template-columns: repeat(4, 1fr);
-    }
-
-    .albums-grid {
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    }
+  .pagination-button {
+    background-color: #374151; /* Cinza escuro */
+    color: white;
+    border: 1px solid #4b5563; /* Cinza um pouco mais claro */
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem; /* 6px */
+    cursor: pointer;
+    transition: background-color 0.2s;
   }
 
-  @media (max-width: 767px) {
-    .albums-grid {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-
-    .review-layout {
-      flex-direction: column;
-      gap: 1rem;
-    }
-
-    .album-info-review {
-      width: 150px;
-      height: auto;
-      margin: 0 auto;
-    }
-
-    .album-avatar {
-      aspect-ratio: 1;
-      width: 150px;
-      height: 150px;
-    }
-
-    .album-image-button {
-      width: 150px;
-      height: 150px;
-      flex: none;
-    }
-
-    .review-header {
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .review-rating {
-      align-items: flex-start;
-    }
+  .pagination-button:hover {
+    background-color: #4b5563;
   }
 
-  @media (max-width: 480px) {
-    .review-card {
-      padding: 1rem;
-    }
+  .pagination-button.active {
+    background-color: #2563eb; /* Azul */
+    border-color: #2563eb;
+  }
 
-    .album-info-review {
-      width: 120px;
-    }
+  .pagination-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-    .album-avatar {
-      width: 120px;
-      height: 120px;
-    }
-
-    .album-image-button {
-      width: 120px;
-      height: 120px;
-    }
+  /* Login Popup */
+  .login-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

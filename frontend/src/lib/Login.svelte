@@ -72,12 +72,13 @@
                 localStorage.setItem('username', username.trim());
                 success = 'Login successful! Redirecting...';
                 
-                // Close modal and redirect after a brief delay
+                // Close modal and stay on the same page (or redirect if not modal)
                 setTimeout(() => {
                     if (isModal && onClose) {
-                        onClose();
+                        onClose(); // Just close the modal and stay on the same page
+                    } else {
+                        push('/albuns'); // Only redirect if not in modal mode
                     }
-                    push('/albuns'); // Navigate to albums page using router
                 }, 1500);
             } else {
                 error = data.error || 'Login failed';
