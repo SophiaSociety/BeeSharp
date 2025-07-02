@@ -173,6 +173,21 @@ fun Application.configureRouting() {
                 val newId = albumRepo.addAlbum(title, artist)
                 call.respond(HttpStatusCode.Created, mapOf("id" to newId))
             }
+
+            get("/{id}/artists") {
+                val albumId = call.parameters["id"]?.toIntOrNull()
+                if (albumId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid album ID")
+                    return@get
+                }
+
+                val artists = artistRepo.getArtistsByAlbumId(albumId)
+                if (artists.isEmpty()) {
+                    call.respond(HttpStatusCode.NotFound, "No artists found for album ID $albumId")
+                } else {
+                    call.respond(HttpStatusCode.OK, artists)
+                }
+            }
         }
 
         route("/artists") {
