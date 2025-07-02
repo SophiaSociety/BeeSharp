@@ -243,8 +243,8 @@
     
     function handleArtistClick(artist) {
         console.log('Artist clicked:', artist.name)
-        // Navigate to artist page
-        // window.scrollTo({ top: 0, behavior: 'smooth' })
+        push(`/artist/${artist.id}`)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
     }
     
     function renderStars(rating) {
@@ -425,7 +425,12 @@
                             : ''}>
                             {album.title}
                         </h3>
-                        <p class="album-artist">{album.artist} • {album.year}</p>
+                        <p class="album-artist">
+                          <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 1, name: album.artist})}}>
+                            {album.artist}
+                          </span>
+                          • {album.year}
+                        </p>
                         <div class="album-rating">
                         <div class="stars-container">
                             {#each renderStars(album.rating).fullStars as _}
@@ -494,7 +499,12 @@
                             : ''}>
                             {album.title}
                         </h3>
-                        <p class="album-artist">{album.artist} • {album.year}</p>
+                        <p class="album-artist">
+                          <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 2, name: album.artist})}}>
+                            {album.artist}
+                          </span>
+                          • {album.year}
+                        </p>
                         <div class="album-rating">
                         <div class="stars-container">
                             {#each renderStars(album.rating).fullStars as _}
@@ -642,7 +652,12 @@
                             : ''}>
                             {album.title}
                         </h3>
-                        <p class="album-artist">{album.artist} • {album.year}</p>
+                        <p class="album-artist">
+                          <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 3, name: album.artist})}}>
+                            {album.artist}
+                          </span>
+                          • {album.year}
+                        </p>
                         <div class="album-rating">
                         <div class="stars-container">
                             {#each renderStars(album.rating).fullStars as _}
@@ -1460,7 +1475,8 @@
 
     :global(.star-empty) {
         fill: none;
-        color: #374151;
+        color: #FFC857;
+        stroke: #FFC857;
     }
 
     .star-half {
@@ -1530,5 +1546,23 @@
         .hero-logo {
             height: 2.5rem;
         }
+    }
+
+    /* Artist Link Styles */
+    .artist-link {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        font-size: inherit;
+        font-family: inherit;
+        padding: 0;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .artist-link:hover {
+        color: #FFC857;
+        text-decoration: underline;
     }
 </style>

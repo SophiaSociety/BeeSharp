@@ -118,6 +118,25 @@ class AlbumRepository {
         Albums.deleteWhere { Albums.id eq id } > 0
     }
 
+    fun getAlbumsByArtist(artistName: String): List<Album> = transaction {
+        Albums.select { Albums.artist.lowerCase() eq artistName.lowercase() }
+            .map {
+                Album(
+                    id = it[Albums.id],
+                    title = it[Albums.title],
+                    artist = it[Albums.artist],
+                    year = it[Albums.year],
+                    genre = it[Albums.genre],
+                    duration = it[Albums.duration],
+                    averageRating = it[Albums.averageRating].toDouble(),
+                    reviewsCount = it[Albums.reviewsCount],
+                    totalRatings = it[Albums.totalRatings],
+                    image = it[Albums.image],
+                    description = it[Albums.description]
+                )
+            }
+    }
+
     fun updateRating(id: Int, newRating: Double, newCount: Int): Boolean = transaction {
         Albums.update({ Albums.id eq id }) {
             it[averageRating] = newRating.toBigDecimal()

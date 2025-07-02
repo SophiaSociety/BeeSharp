@@ -1,21 +1,64 @@
 <script>
-  import { Music, Star, Heart, MessageSquare, Plus, ThumbsUp, ThumbsDown, Calendar, User, TrendingUp } from 'lucide-svelte'
+  import { Music, Star, Heart, MessageSquare, Plus, ThumbsUp, ThumbsDown, Calendar, User, TrendingUp, Search } from 'lucide-svelte'
   import { push } from 'svelte-spa-router'
   import Login from '../lib/Login.svelte'
   import ReviewSubmissionModal from './ReviewSubmissionModal.svelte'
   import { onMount } from 'svelte'
+  import { isAuthenticated } from '../lib/auth'
 
   // Props to receive album ID from route
-  export let params = {}
+  const { params = {} } = $props();
 
-  let showLoginModal = false
+  // Simulação de usuário logado para navbar
+  let loggedUser = {
+    name: "Alex Chen",
+    username: "@alexmusic",
+    avatar: "/placeholder.svg?height=32&width=32"
+  }
+  
+  let showLoginModal = $state(false)
   function openLoginModal() { showLoginModal = true }
   function closeLoginModal() { showLoginModal = false }
 
+  // Check login status when component mounts
+  onMount(async () => {
+    if (!isAuthenticated()) {
+      showLoginModal = true;
+    }
+    
+    if (params?.id) {
+      loading = true
+      error = ''
+      try {
+        const response = await fetch(`http://localhost:8080/albums/${params.id}`)
+        if (!response.ok) throw new Error('Álbum não encontrado')
+        album = await response.json()
+      } catch (e) {
+        error = e.message
+        album = null
+      } finally {
+        loading = false
+      }
+    }
+  })
+  
+  // Searchbar
+  let searchQuery = ''
+  function handleSearch(event) {
+    event.preventDefault()
+    // Implementar busca
+  }
+  
   // Album data (inicial vazio)
   let album = null
   let loading = true
   let error = ''
+  let isFavorited = $state(false)
+
+  function handleFavorite() {
+    isFavorited = !isFavorited
+    // TODO: Adicionar chamada de API para persistir o estado de favorito
+  }
 
   // Rating distribution data (mock, pode ser atualizado depois)
   let ratingDistribution = [
@@ -200,6 +243,11 @@
     push(`/profile/${cleanUsername}`)
   }
 
+  function handleArtistClick(artist) {
+    console.log('Artist clicked:', artist.name)
+    push(`/artist/${artist.id}`)
+  }
+
   onMount(async () => {
     if (params?.id) {
       loading = true
@@ -219,17 +267,31 @@
 </script>
 
 <nav class="navbar-albums">
-    <div class="navbar-container">
-        <div class="logo-component">
-            <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
-                <img src="/logocomtexto.png" alt="BeeSharp Logo" />
-            </button>
-        </div>
-        <div class="nav-links">
-            <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
-            <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
-        </div>
+  <div class="navbar-container">
+    <div class="logo-component">
+      <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+        <img src="/logocomtexto.png" alt="BeeSharp Logo" />
+      </button>
     </div>
+    <div class="search-and-user">
+      <form class="search-form" onsubmit={handleSearch}>
+        <div class="search-container">
+          <Search size={18} />
+          <input
+            type="text"
+            class="search-input"
+            bind:value={searchQuery}
+          />
+          <button type="submit" class="search-button">Buscar</button>
+        </div>
+      </form>
+      <div class="user-menu">
+        <button class="user-avatar" aria-label="Perfil do usuário" onclick={() => push('/perfil')}>
+          <img src={loggedUser.avatar} alt={loggedUser.name} />
+        </button>
+      </div>
+    </div>
+  </div>
 </nav>
 
 {#if showLoginModal}
@@ -260,7 +322,11 @@
             <div class="album-header">
               <h1 class="album-title">{album.title}</h1>
               <div class="album-meta">
-                <span class="album-artist">{album.artist}</span>
+                <span class="album-artist">
+                  <span class="artist-link" onclick={() => handleArtistClick({id: album.artistId || 1, name: album.artist})}>
+                    {album.artist}
+                  </span>
+                </span>
                 <span class="album-year">{album.year}</span>
                 <span class="album-genre">{album.genre}</span>
                 <span class="album-duration">{album.duration}</span>
@@ -299,6 +365,13 @@
                     <button class="review-btn" onclick={openReviewModal} aria-label="Escrever uma review">
                       <Plus size={20} />
                       Avaliar
+                    </button>
+                    <button 
+                      class="favorite-btn {isFavorited ? 'favorited' : ''}" 
+                      onclick={handleFavorite} 
+                      aria-label="Favoritar álbum"
+                    >
+                      <Heart size={20} />
                     </button>
                   </div>
                 </div>
@@ -517,7 +590,7 @@
     padding: 0 1rem;
   }
 
-  /* Navbar - identical to other pages */
+  /* Navbar - identical to ProfilePage.svelte */
   .navbar-albums {
     position: fixed;
     top: 0;
@@ -571,27 +644,127 @@
   .logo-button:hover {
     opacity: 0.8;
   }
-
-  .nav-links {
+  
+  .search-and-user {
     display: flex;
     align-items: center;
+    gap: 1.5rem;
+  }
+  
+  /* Search Styles */
+  .search-form {
+    margin-bottom: 0;
   }
 
-  .nav-links a {
-    margin-left: 1.5rem;
-    margin-right: 3.5rem;
-    color: white;
-    font-family: 'Familjen Grotesk', sans-serif;
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 0.1em;
-    text-decoration: none;
-    white-space: nowrap;
-    transition: color 0.2s;
+  .search-container {
     position: relative;
-    z-index: 2;
+    max-width: 400px;
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    border: 2.5px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    padding-left: 1rem;
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    height: 40px;
   }
 
+  .search-container :global(svg) {
+    color: rgba(255, 255, 255, 0.7);
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+
+  .search-container:focus-within {
+    border-color: rgba(255, 255, 255, 0.5);
+    box-shadow: 
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(255, 255, 255, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.15);
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 0.5rem;
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 0.9rem;
+    outline: none;
+  }
+
+  .search-input::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+  }
+
+  .search-button {
+    padding: 0.5rem 1.5rem;
+    background: #255F85;
+    color: white;
+    border: none;
+    border-radius: 0 17px 17px 0;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Familjen Grotesk', sans-serif;
+    letter-spacing: 0.025em;
+    outline: none;
+    height: 100%;
+  }
+
+  .search-button:hover {
+    background: #1e4c6b;
+  }
+
+  .search-button:focus {
+    outline: none;
+    background: #1e4c6b;
+  }
+
+  /* User Avatar Styles */
+  .user-menu {
+    position: relative;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 50%;
+    border: 2px solid;
+    overflow: hidden;
+    background: none;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .user-avatar:hover {
+    border-color: #1e4c6b;
+  }
+
+  .user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+  }
   .nav-login-btn {
     margin-left: 1.5rem;
     margin-right: 3.5rem;
@@ -651,7 +824,36 @@
   .album-actions {
     display: flex;
     justify-content: flex-start;
+    gap: 0.75rem; /* Adiciona espaço entre os botões */
     margin-top: 0.7rem;
+  }
+
+  .favorite-btn {
+    background: none;
+    border: 2px solid #6b7280; /* Borda cinza */
+    color: white;
+    padding: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .favorite-btn:hover {
+    border-color: #FFC857; /* Amarelo no hover */
+    color: #FFC857;
+  }
+
+  .favorite-btn.favorited {
+    background-color: #FFC857; /* Fundo amarelo quando favoritado */
+    border-color: #FFC857;
+    color: #14181c; /* Texto escuro */
+  }
+
+  .favorite-btn.favorited :global(svg) {
+    fill: #14181c;
   }
 
   .review-btn {
@@ -987,7 +1189,8 @@
 
   :global(.star-empty) {
     fill: none;
-    color: #374151;
+    color: #FFC857;
+    stroke: #FFC857;
   }
 
   .star-half-container {
@@ -1103,6 +1306,24 @@
     .action-btn {
       padding: 0.375rem 0.75rem;
       font-size: 0.8125rem;
+    }
+    
+    /* Artist Link Styles */
+    .artist-link {
+      background: none;
+      border: none;
+      color: #FFC857;
+      cursor: pointer;
+      font-size: inherit;
+      font-family: inherit;
+      padding: 0;
+      text-decoration: none;
+      transition: color 0.2s ease;
+      font-weight: 600;
+    }
+
+    .artist-link:hover {
+      text-decoration: underline;
     }
   }
 </style>
