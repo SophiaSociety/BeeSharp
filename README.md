@@ -51,7 +51,7 @@ npm install
 npm run dev
 ```
 
-## 📂 Estrutura do Projeto  
+## Estrutura do Projeto  
 ```
 BeeSharp/
 ├── backend/             # Backend em Kotlin com Ktor
