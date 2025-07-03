@@ -3,37 +3,59 @@
   import { push } from 'svelte-spa-router'
   import Login from '../lib/Login.svelte'
   import { onMount } from 'svelte'
-  import { isAuthenticated } from '../lib/auth'
+  import { getAuthToken, isTokenExpired, getUsername, logout } from '../lib/auth'
 
   // Props to receive artist ID from route
-  const { params = {} } = $props();
+  export let params = {}
   
-  // Simulação de usuário logado para navbar
-  let loggedUser = {
-    name: "Alex Chen",
-    username: "@alexmusic",
-    avatar: "/placeholder.svg?height=32&width=32"
+  // User authentication state
+  let isLoggedIn = false
+  let currentUser = ''
+  let showUserMenu = false
+  
+  // Função para verificar se o usuário está logado
+  function checkAuthStatus() {
+    const token = getAuthToken();
+    isLoggedIn = token && !isTokenExpired(token);
+    if (isLoggedIn) {
+      const username = getUsername();
+      if (username) {
+        currentUser = username;
+      }
+    }
+  }
+  
+  // Função para fazer logout
+  function handleLogout() {
+    logout();
+    isLoggedIn = false;
+    currentUser = '';
+    push('/');
+  }
+  
+  // Função para toggle do menu do usuário
+  function toggleUserMenu() {
+    showUserMenu = !showUserMenu;
   }
 
-  let showLoginModal = $state(false)
+  let showLoginModal = false
   function openLoginModal() { showLoginModal = true }
   function closeLoginModal() { showLoginModal = false }
   
   // Check login status when component mounts
   onMount(async () => {
-    if (!isAuthenticated()) {
+    console.log('Artist component mounted with params:', params);
+
+    // Check authentication first
+    checkAuthStatus();
+    if (!isLoggedIn) {
       showLoginModal = true;
     }
     
     // Continue with component initialization...
   })
   
-  // Searchbar
-  let searchQuery = ''
-  function handleSearch(event) {
-    event.preventDefault()
-    // Implementar busca
-  }
+  // Searchbar removida para manter consistência com Album.svelte
 
   // Artist data
   let artist = null
@@ -42,34 +64,36 @@
   let loadingAlbums = true
   let error = ''
   let albumsError = ''
+  let sortedAlbums = []
+  let paginatedAlbums = []
   
   // Paginação
   let currentPage = 1
   let albumsPerPage = 12
-  let totalPages = $state(1)
+  let totalPages = 1
   
-  $effect(() => {
+  $: {
     // Recalcula o número total de páginas sempre que a lista de álbuns mudar
     if (artistAlbums) {
       totalPages = Math.ceil(artistAlbums.length / albumsPerPage);
       if (currentPage > totalPages) currentPage = totalPages;
       if (currentPage < 1) currentPage = 1;
     }
-  })
+  }
   
   // Ordenação dos álbuns por ano (mais novo para o mais antigo)
-  const sortedAlbums = $derived([...artistAlbums].sort((a, b) => {
+  $: sortedAlbums = [...artistAlbums].sort((a, b) => {
     // Garante que anos não numéricos ou undefined não causem erros na ordenação
     const yearA = parseInt(a.year) || 0;
     const yearB = parseInt(b.year) || 0;
     return yearB - yearA;
-  }));
+  });
   
   // Álbuns na página atual
-  const paginatedAlbums = $derived(sortedAlbums.slice(
+  $: paginatedAlbums = sortedAlbums.slice(
     (currentPage - 1) * albumsPerPage,
     currentPage * albumsPerPage
-  ));
+  );
   
   // Referência para a seção de álbuns
   let albumsSection;
@@ -296,19 +320,24 @@
   ];
 
   onMount(async () => {
+    console.log("Artist.svelte onMount - params:", params);
+    
     // Tenta carregar os dados reais primeiro, se falhar, usa os dados mockados
     if (params?.id) {
+      console.log("Artist.svelte - Carregando artista com ID:", params.id);
       loading = true
       error = ''
       try {
         const response = await fetch(`http://localhost:8080/artists/${params.id}`)
         if (!response.ok) throw new Error('Artista não encontrado')
         artist = await response.json()
+        console.log("Artist.svelte - Dados do artista carregados da API:", artist);
       } catch (e) {
         console.log('Usando dados mockados para o artista devido ao erro:', e.message)
         error = '' // Limpamos o erro para mostrar os dados mockados
         // Usar o artista mockado correspondente ao ID, ou o artista 1 como fallback
         artist = mockArtists[params.id] || mockArtists[1]
+        console.log("Artist.svelte - Usando dados mockados do artista:", artist);
       } finally {
         loading = false
       }
@@ -342,28 +371,58 @@
 <nav class="navbar-albums">
   <div class="navbar-container">
     <div class="logo-component">
-      <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+      <button class="logo-button" onclick={() => push('/home')} aria-label="Ir para página inicial">
         <img src="/logocomtexto.png" alt="BeeSharp Logo" />
       </button>
     </div>
-    <div class="search-and-user">
-      <form class="search-form" onsubmit={handleSearch}>
-        <div class="search-container">
-          <Search size={18} />
-          <input
-            type="text"
-            class="search-input"
-            bind:value={searchQuery}
-          />
-          <button type="submit" class="search-button">Buscar</button>
-        </div>
-      </form>
+    
+    {#if isLoggedIn}
+      <!-- Navbar para usuário logado -->
       <div class="user-menu">
-        <button class="user-avatar" aria-label="Perfil do usuário" onclick={() => push('/perfil')}>
-          <img src={loggedUser.avatar} alt={loggedUser.name} />
+        <button class="user-avatar" aria-label="User Profile" onclick={toggleUserMenu}>
+          {#if currentUser}
+            <div class="user-avatar-text">
+              {currentUser.charAt(0).toUpperCase()}
+            </div>
+          {:else}
+            <User size={20} />
+          {/if}
         </button>
+        {#if currentUser}
+          <span class="user-name">{currentUser}</span>
+        {/if}
+        
+        {#if showUserMenu}
+          <div class="user-dropdown">
+            <a href="/profile" onclick={(e) => { 
+              e.preventDefault(); 
+              const username = getUsername();
+              if (username) {
+                push(`/profile/${username}`);
+              }
+              showUserMenu = false; 
+            }}>
+              <User size={16} />
+              Meu Perfil
+            </a>
+            <button onclick={handleLogout}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16,17 21,12 16,7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sair
+            </button>
+          </div>
+        {/if}
       </div>
-    </div>
+    {:else}
+      <!-- Navbar para usuário não logado -->
+      <div class="nav-links">
+        <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
+        <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
+      </div>
+    {/if}
   </div>
 </nav>
 
@@ -632,125 +691,83 @@
     opacity: 0.8;
   }
   
-  .search-and-user {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-  
-  /* Search Styles */
-  .search-form {
-    margin-bottom: 0;
-  }
-
-  .search-container {
-    position: relative;
-    max-width: 400px;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    border: 2.5px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    padding-left: 1rem;
-    backdrop-filter: blur(20px);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    height: 40px;
-  }
-
-  .search-container :global(svg) {
-    color: rgba(255, 255, 255, 0.7);
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .search-container:focus-within {
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(255, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  .search-input {
-    flex: 1;
-    padding: 0.5rem;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 0.9rem;
-    outline: none;
-  }
-
-  .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-  }
-
-  .search-button {
-    padding: 0.5rem 1.5rem;
-    background: #255F85;
-    color: white;
-    border: none;
-    border-radius: 0 17px 17px 0;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Familjen Grotesk', sans-serif;
-    letter-spacing: 0.025em;
-    outline: none;
-    height: 100%;
-  }
-
-  .search-button:hover {
-    background: #1e4c6b;
-  }
-
-  .search-button:focus {
-    outline: none;
-    background: #1e4c6b;
-  }
+  /* Removida a seção de search styles para manter consistência com Album.svelte */
 
   /* User Avatar Styles */
   .user-menu {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .user-avatar {
     width: 40px;
     height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 40px;
-    max-height: 40px;
     border-radius: 50%;
-    border: 2px solid;
-    overflow: hidden;
-    background: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    box-sizing: border-box;
-    flex-shrink: 0;
-    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
   }
 
   .user-avatar:hover {
-    border-color: #1e4c6b;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
   }
 
-  .user-avatar img {
+  .user-avatar-text {
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
+  }
+
+  .user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: 'Familjen Grotesk', sans-serif;
+  }
+
+  .user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 0;
+    min-width: 180px;
+    z-index: 200;
+    margin-top: 0.5rem;
+  }
+
+  .user-dropdown a,
+  .user-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    text-decoration: none;
+    color: #1f2937;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-align: left;
+    font-family: inherit;
+  }
+
+  .user-dropdown a:hover,
+  .user-dropdown button:hover {
+    background: #f3f4f6;
   }
 
   .logo-button {

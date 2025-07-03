@@ -1,6 +1,6 @@
 <script lang="ts">
     import { Eye, EyeOff, User, Lock, X, Music } from 'lucide-svelte';
-    import { getAuthToken } from './auth.js';
+    import { getAuthToken, isTokenExpired } from './auth.js';
     import { push } from 'svelte-spa-router';
     
     interface LoginResponse {
@@ -18,12 +18,13 @@
 
     // Check if user is already logged in
     $effect(() => {
+        // Skip auto-redirect if we're in modal mode
+        if (isModal) return;
+        
         const token = getAuthToken();
         if (token && !isTokenExpired(token)) {
-            if (isModal && onClose) {
-                onClose();
-            }
-            push('/albuns');
+            // Only redirect if not in modal mode
+            push('/home');
         } else if (token && isTokenExpired(token)) {
             localStorage.removeItem('authToken');
             localStorage.removeItem('username');
@@ -72,13 +73,13 @@
                 localStorage.setItem('username', username.trim());
                 success = 'Login successful! Redirecting...';
                 
-                // Close modal and stay on the same page (or redirect if not modal)
+                // Close modal and redirect to home page after successful login
                 setTimeout(() => {
                     if (isModal && onClose) {
-                        onClose(); // Just close the modal and stay on the same page
-                    } else {
-                        push('/albuns'); // Only redirect if not in modal mode
+                        onClose(); // Close the modal first
                     }
+                    // Always redirect to home page after successful login
+                    push('/home');
                 }, 1500);
             } else {
                 error = data.error || 'Login failed';
@@ -96,7 +97,8 @@
     }
 
     function handleOverlayClick(event: MouseEvent) {
-        if (isModal && onClose) {
+        // Only close if clicking on the overlay itself, not on child elements
+        if (isModal && onClose && event.target === event.currentTarget) {
             onClose();
         }
     }
@@ -128,17 +130,6 @@
                 onClose(); // Close modal first
             }
             push('/criar-conta'); // Navigate to signup page
-        }
-    }
-
-    function isTokenExpired(token) {
-        if (!token) return true;
-        try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            // exp está em segundos desde epoch
-            return (payload.exp * 1000) < Date.now();
-        } catch (e) {
-            return true;
         }
     }
 </script>

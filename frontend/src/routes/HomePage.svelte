@@ -2,31 +2,27 @@
     import { Music, Search, ChevronLeft, ChevronRight, Star, TrendingUp, Award, ArrowRight, Play, Heart, MessageSquare, Calendar, User, Headphones, Disc, Users } from 'lucide-svelte'
     import { push } from 'svelte-spa-router'
     import { onMount } from 'svelte'
+    import { getAuthToken, getUsername, logout, isTokenExpired } from '../lib/auth.js'
     
     let searchQuery = $state('')
     let recommendedCarouselIndex = $state(0)
     let hotCarouselIndex = $state(0)
     let genreCarouselIndex = $state(0)
+    let currentUser = $state('')
+    let showUserMenu = $state(false)
+    
+    // Variáveis para controle da busca
+    let searching = $state(false)
+    let searchError = $state('')
+    let searchResults = $state([])
+    let showSearchResults = $state(false)
+  
   
     // Mock data for recommended albums
-    let recommendedAlbums = [
-        { id: 1, title: "The Tortured Poets Department", artist: "Taylor Swift", year: "2024", rating: 4.2, image: "/placeholder.svg?height=300&width=300", genre: "Pop" },
-        { id: 2, title: "Hit Me Hard and Soft", artist: "Billie Eilish", year: "2024", rating: 4.5, image: "/placeholder.svg?height=300&width=300", genre: "Alternative" },
-        { id: 3, title: "Brat", artist: "Charli XCX", year: "2024", rating: 4.3, image: "/placeholder.svg?height=300&width=300", genre: "Pop" },
-        { id: 4, title: "Short n' Sweet", artist: "Sabrina Carpenter", year: "2024", rating: 4.1, image: "/placeholder.svg?height=300&width=300", genre: "Pop" },
-        { id: 5, title: "Eternal Sunshine", artist: "Ariana Grande", year: "2024", rating: 4.0, image: "/placeholder.svg?height=300&width=300", genre: "R&B" },
-        { id: 6, title: "The Rise and Fall of a Midwest Princess", artist: "Chappell Roan", year: "2023", rating: 4.4, image: "/placeholder.svg?height=300&width=300", genre: "Pop" }
-    ]
+    let recommendedAlbums = []
     
     // Mock data for hot albums
-    let hotAlbums = [
-        { id: 7, title: "GUTS", artist: "Olivia Rodrigo", year: "2023", rating: 4.2, image: "/placeholder.svg?height=300&width=300", trending: true },
-        { id: 8, title: "Did you know that there's a tunnel under Ocean Blvd", artist: "Lana Del Rey", year: "2023", rating: 4.1, image: "/placeholder.svg?height=300&width=300", trending: true },
-        { id: 9, title: "The Record", artist: "boygenius", year: "2023", rating: 4.6, image: "/placeholder.svg?height=300&width=300", trending: true },
-        { id: 10, title: "Genesis", artist: "RAYE", year: "2023", rating: 4.3, image: "/placeholder.svg?height=300&width=300", trending: true },
-        { id: 11, title: "Heaven Knows", artist: "PinkPantheress", year: "2023", rating: 4.0, image: "/placeholder.svg?height=300&width=300", trending: true },
-        { id: 12, title: "Scaring the Hoes", artist: "JPEGMAFIA & Danny Brown", year: "2023", rating: 4.2, image: "/placeholder.svg?height=300&width=300", trending: true }
-    ]
+    let hotAlbums = []
     
     // Mock data for genre spotlight
     let genreAlbums = [
@@ -182,7 +178,13 @@
 
     function handleUserClick(username) {
         console.log('User clicked:', username)
-        push('/perfil')
+        // Se username for fornecido, usa ele, senão usa o username do usuário autenticado
+        const profileUsername = username || currentUser;
+        if (profileUsername) {
+            push(`/profile/${profileUsername}`);
+        } else {
+            push('/perfil');
+        }
         // Scroll para o topo da página
         window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -202,10 +204,74 @@
         { id: 4, name: "Frank Ocean", image: "/placeholder.svg?height=150&width=150", albumCount: 4, avgRating: 4.6 }
     ]
     
-    function handleSearch(event) {
+    async function handleSearch(event) {
         event.preventDefault()
-        console.log('Searching for:', searchQuery)
-        // Implement search functionality
+        
+        // Não fazer busca com string vazia
+        if (!searchQuery.trim()) {
+            return;
+        }
+        
+        searching = true
+        searchError = ''
+        showSearchResults = false
+        searchResults = []
+
+        try {
+            // Busca paralela para álbuns, usuários e artistas
+            const [albumsRes, usersRes, artistsRes] = await Promise.all([
+                fetch(`http://localhost:8080/search/albums?query=${encodeURIComponent(searchQuery)}`),
+                fetch(`http://localhost:8080/search/users?query=${encodeURIComponent(searchQuery)}`),
+                fetch(`http://localhost:8080/search/artists?query=${encodeURIComponent(searchQuery)}`)
+            ])
+
+            // Verifica se alguma das requisições falhou
+            if (!albumsRes.ok || !usersRes.ok || !artistsRes.ok) {
+                throw new Error('Erro ao buscar resultados. Por favor, tente novamente.')
+            }
+
+            // Converte os resultados para JSON
+            const [albums, users, artists] = await Promise.all([
+                albumsRes.json(),
+                usersRes.json(),
+                artistsRes.json()
+            ])
+
+            // Marcar cada tipo para renderização correta
+            const albumResults = albums.map(a => ({ ...a, _type: 'album' }))
+            const userResults = users.map(u => ({ ...u, _type: 'user' }))
+            const artistResults = artists.map(ar => ({ ...ar, _type: 'artist' }))
+
+            // Ordenar por relevância (implementação simples - na prática, o backend faria isso)
+            // A ordenação prioriza correspondências exatas no título/nome
+            albumResults.sort((a, b) => {
+                const aMatch = a.title.toLowerCase().includes(searchQuery.toLowerCase()) ? 1 : 0;
+                const bMatch = b.title.toLowerCase().includes(searchQuery.toLowerCase()) ? 1 : 0;
+                return bMatch - aMatch;
+            });
+            
+            artistResults.sort((a, b) => {
+                const aMatch = a.name.toLowerCase().includes(searchQuery.toLowerCase()) ? 1 : 0;
+                const bMatch = b.name.toLowerCase().includes(searchQuery.toLowerCase()) ? 1 : 0;
+                return bMatch - aMatch;
+            });
+            
+            userResults.sort((a, b) => {
+                const aMatch = a.username.toLowerCase().includes(searchQuery.toLowerCase()) ? 1 : 0;
+                const bMatch = b.username.toLowerCase().includes(searchQuery.toLowerCase()) ? 1 : 0;
+                return bMatch - aMatch;
+            });
+
+            // Combina todos os resultados
+            searchResults = [...albumResults, ...artistResults, ...userResults]
+            showSearchResults = true
+            console.log('Resultados da busca:', searchResults)
+        } catch (e) {
+            console.error('Erro na busca:', e)
+            searchError = e.message
+        } finally {
+            searching = false
+        }
     }
     
     function nextCarousel(type) {
@@ -313,7 +379,123 @@
         titleSizes = newTitleSizes;
     }
     
+    function toggleUserMenu() {
+        showUserMenu = !showUserMenu;
+    }
+    
+    // Estado para indicar carregamento de recomendações e álbuns em alta
+    let loadingRecommendations = $state(false)
+    let loadingHotAlbums = $state(false)
+    let recommendationsError = $state('')
+    let hotAlbumsError = $state('')
+    
+    // Função para buscar recomendações personalizadas para o usuário logado
+    async function fetchRecommendations() {
+        loadingRecommendations = true
+        recommendationsError = ''
+        
+        try {
+            const token = getAuthToken()
+            if (!token) {
+                throw new Error('Token de autenticação não encontrado')
+            }
+            
+            const response = await fetch('http://localhost:8080/user/recommendations', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            
+            if (!response.ok) {
+                throw new Error('Erro ao buscar recomendações: ' + response.statusText)
+            }
+            
+            const data = await response.json()
+            recommendedAlbums = data
+            console.log('Recomendações carregadas:', recommendedAlbums)
+            
+            // Atualizar os tamanhos dos títulos após carregar as recomendações
+            setTimeout(updateTitleSizes, 100)
+        } catch (error) {
+            console.error('Erro ao buscar recomendações:', error)
+            recommendationsError = error.message
+            
+            // Caso haja erro, mantenha alguns dados mockados para não quebrar a UI
+            recommendedAlbums = [
+                { id: 1, title: "The Tortured Poets Department", artist: "Taylor Swift", year: "2024", rating: 4.2, image: "/placeholder.svg?height=300&width=300", genre: "Pop" },
+                { id: 2, title: "Hit Me Hard and Soft", artist: "Billie Eilish", year: "2024", rating: 4.5, image: "/placeholder.svg?height=300&width=300", genre: "Alternative" },
+                { id: 3, title: "Brat", artist: "Charli XCX", year: "2024", rating: 4.3, image: "/placeholder.svg?height=300&width=300", genre: "Pop" },
+                { id: 4, title: "Short n' Sweet", artist: "Sabrina Carpenter", year: "2024", rating: 4.1, image: "/placeholder.svg?height=300&width=300", genre: "Pop" }
+            ]
+        } finally {
+            loadingRecommendations = false
+        }
+    }
+    
+    // Função para buscar álbuns em alta
+    async function fetchHotAlbums() {
+        loadingHotAlbums = true
+        hotAlbumsError = ''
+        
+        try {
+            const response = await fetch('http://localhost:8080/albums/hot')
+            
+            if (!response.ok) {
+                throw new Error('Erro ao buscar álbuns em alta: ' + response.statusText)
+            }
+            
+            const data = await response.json()
+            hotAlbums = data
+            console.log('Álbuns em alta carregados:', hotAlbums)
+            
+            // Atualizar os tamanhos dos títulos após carregar os álbuns em alta
+            setTimeout(updateTitleSizes, 100)
+        } catch (error) {
+            console.error('Erro ao buscar álbuns em alta:', error)
+            hotAlbumsError = error.message
+            
+            // Caso haja erro, mantenha alguns dados mockados para não quebrar a UI
+            hotAlbums = [
+                { id: 7, title: "GUTS", artist: "Olivia Rodrigo", year: "2023", rating: 4.2, image: "/placeholder.svg?height=300&width=300", trending: true },
+                { id: 8, title: "Did you know that there's a tunnel under Ocean Blvd", artist: "Lana Del Rey", year: "2023", rating: 4.1, image: "/placeholder.svg?height=300&width=300", trending: true },
+                { id: 9, title: "The Record", artist: "boygenius", year: "2023", rating: 4.6, image: "/placeholder.svg?height=300&width=300", trending: true },
+                { id: 10, title: "Genesis", artist: "RAYE", year: "2023", rating: 4.3, image: "/placeholder.svg?height=300&width=300", trending: true }
+            ]
+        } finally {
+            loadingHotAlbums = false
+        }
+    }
+    
+    function handleLogout() {
+        logout();
+    }
+    
     onMount(() => {
+        // Check if user is authenticated
+        const token = getAuthToken();
+        if (!token || isTokenExpired(token)) {
+            // Clean up expired tokens
+            if (token && isTokenExpired(token)) {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('username');
+            }
+            // Redirect to login if not authenticated or token expired
+            push('/');
+            return;
+        }
+        
+        // Load current user info
+        const username = getUsername();
+        if (username) {
+            currentUser = username;
+        }
+        
+        // Carregar recomendações personalizadas para o usuário logado
+        fetchRecommendations();
+        
+        // Carregar álbuns em alta
+        fetchHotAlbums();
+        
         // Inicializar os tamanhos dos títulos
         updateTitleSizes();
         
@@ -324,9 +506,32 @@
         };
         window.addEventListener('resize', handleResize);
         
+        // Adicionar handler de teclado para fechar o dropdown de busca com ESC
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape' && showSearchResults) {
+                showSearchResults = false;
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+        
+        // Close user menu and search results when clicking outside
+        const handleClickOutside = (event) => {
+            if (showUserMenu && !event.target.closest('.user-menu')) {
+                showUserMenu = false;
+            }
+            
+            // Close search results when clicking outside search container
+            if (showSearchResults && !event.target.closest('.search-container') && !event.target.closest('.search-results-dropdown')) {
+                showSearchResults = false;
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        
         // Cleanup
         return () => {
             window.removeEventListener('resize', handleResize);
+            document.removeEventListener('click', handleClickOutside);
+            document.removeEventListener('keydown', handleKeyDown);
         };
     });
     
@@ -346,9 +551,39 @@
                 <div class="nav-links">
                 <a href="/albuns" onclick={(e) => { e.preventDefault(); push('/top100'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>TOP ÁLBUNS</a>
                 <div class="user-menu">
-                    <button class="user-avatar" aria-label="User Profile" onclick={() => { push('/perfil'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-                        <img src="/placeholder.svg?height=32&width=32" alt="User" />
+                    <button class="user-avatar" aria-label="User Profile" onclick={toggleUserMenu}>
+                        {#if currentUser}
+                            <div class="user-avatar-text">
+                                {currentUser.charAt(0).toUpperCase()}
+                            </div>
+                        {:else}
+                            <User size={20} />
+                        {/if}
                     </button>
+                    {#if currentUser}
+                        <span class="user-name">{currentUser}</span>
+                    {/if}
+                    
+                    {#if showUserMenu}
+                        <div class="user-dropdown">
+                            <a href={`/profile/${currentUser}`} onclick={(e) => { 
+                                e.preventDefault(); 
+                                handleUserClick(currentUser); 
+                                showUserMenu = false; 
+                            }}>
+                                <User size={16} />
+                                Meu Perfil
+                            </a>
+                            <button onclick={handleLogout}>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16,17 21,12 16,7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Sair
+                            </button>
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -359,11 +594,15 @@
         <div class="container">
         <div class="hero-content">
             <div class="hero-title-container">
-                <h1 class="hero-title" data-text="Descubra seus favoritos!">Descubra seus favoritos!</h1>
+                <h1 class="hero-title" data-text={currentUser ? `Olá, ${currentUser}!` : "Descubra seus favoritos!"}>
+                    {currentUser ? `Olá, ${currentUser}!` : "Descubra seus favoritos!"}
+                </h1>
                 <img src="/logo.png" alt="BeeSharp Logo" class="hero-logo">
             </div>
             <p class="hero-subtitle">
-                Explore, avalie e resenhe álbuns de todos os gêneros e épocas. Siga pessoas da comunidade de amantes da música.
+                {currentUser 
+                    ? "Que bom ter você de volta! Continue explorando novos sons e compartilhando suas descobertas musicais." 
+                    : "Explore, avalie e resenhe álbuns de todos os gêneros e épocas. Siga pessoas da comunidade de amantes da música."}
             </p>
             
             <form class="search-form" onsubmit={handleSearch}>
@@ -378,6 +617,93 @@
                 <button type="submit" class="search-button">
                 Buscar
                 </button>
+                
+                {#if searching || searchError || showSearchResults}
+                <div class="search-results-dropdown">
+                    {#if searching}
+                        <div class="search-results-loading">
+                            <div class="loading-spinner"></div>
+                            <p>Buscando resultados...</p>
+                        </div>
+                    {:else if searchError}
+                        <div class="search-results-error">
+                            <p>{searchError}</p>
+                        </div>
+                    {:else if showSearchResults}
+                        {#if searchResults.length === 0}
+                            <div class="search-results-empty">
+                                <p>Nenhum resultado encontrado para "{searchQuery}"</p>
+                            </div>
+                        {:else}
+                            <div class="search-results-categories">
+                                {#if searchResults.filter(r => r._type === 'album').length > 0}
+                                <div class="results-category">
+                                    <h4 class="results-category-title">Álbuns</h4>
+                                    <ul class="search-results-list">
+                                        {#each searchResults.filter(r => r._type === 'album').slice(0, 3) as result (result._type + '-' + result.id)}
+                                            <li class="search-result-item">
+                                                <button class="result-link"
+                                                    onclick={() => { push(`/album/${result.id}`); showSearchResults = false; }}>
+                                                    <img class="result-img" src={result.image || "/placeholder.svg"} alt="Capa do álbum" />
+                                                    <div class="result-info">
+                                                        <span class="result-title">{result.title}</span>
+                                                        <span class="result-subtitle">{result.artist}</span>
+                                                    </div>
+                                                    <span class="result-type album-type">Álbum</span>
+                                                </button>
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                                {/if}
+                                
+                                {#if searchResults.filter(r => r._type === 'artist').length > 0}
+                                <div class="results-category">
+                                    <h4 class="results-category-title">Artistas</h4>
+                                    <ul class="search-results-list">
+                                        {#each searchResults.filter(r => r._type === 'artist').slice(0, 3) as result (result._type + '-' + result.id)}
+                                            <li class="search-result-item">
+                                                <button class="result-link"
+                                                    onclick={() => { push(`/artist/${result.id}`); showSearchResults = false; }}>
+                                                    <img class="result-img result-img-artist" src={result.image || "/placeholder.svg"} alt="Foto do artista" />
+                                                    <div class="result-info">
+                                                        <span class="result-title">{result.name}</span>
+                                                        <span class="result-subtitle">{result.genres?.join(', ') || 'Artista'}</span>
+                                                    </div>
+                                                    <span class="result-type artist-type">Artista</span>
+                                                </button>
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                                {/if}
+                                
+                                {#if searchResults.filter(r => r._type === 'user').length > 0}
+                                <div class="results-category">
+                                    <h4 class="results-category-title">Usuários</h4>
+                                    <ul class="search-results-list">
+                                        {#each searchResults.filter(r => r._type === 'user').slice(0, 3) as result (result._type + '-' + result.id)}
+                                            <li class="search-result-item">
+                                                <button class="result-link"
+                                                    onclick={() => { handleUserClick(result.username); showSearchResults = false; }}>
+                                                    <img class="result-img result-img-user" src={result.profileImage ? `data:image/jpeg;base64,${result.profileImage}` : "/placeholder.svg"} alt="Foto do usuário" />
+                                                    <div class="result-info">
+                                                        <span class="result-title">{result.username}</span>
+                                                        <span class="result-subtitle">{result.name || 'Usuário do BeeSharp'}</span>
+                                                    </div>
+                                                    <span class="result-type user-type">Usuário</span>
+                                                </button>
+                                            </li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                                {/if}
+                            </div>
+    
+                        {/if}
+                    {/if}
+                </div>
+                {/if}
             </div>
             </form>
         </div>
@@ -404,57 +730,69 @@
             </div>
 
             <div class="carousel-container">
-            <div class="carousel-track" style="transform: translateX(-{recommendedCarouselIndex * 25}%)">
-                {#each recommendedAlbums as album (album.id)}
-                <div class="carousel-item">
-                    <button class="album-card" onclick={() => handleAlbumClick(album)}>
-                    <div class="album-cover">
-                        <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
-                        <div class="album-overlay">
-                        <div class="play-button">
-                            <Headphones size={24} />
+            {#if loadingRecommendations}
+                <div class="loading-state">
+                    <p>Carregando recomendações para você...</p>
+                </div>
+            {:else if recommendationsError}
+                <div class="error-state">
+                    <p style="color:red">{recommendationsError}</p>
+                </div>
+            {:else if recommendedAlbums.length === 0}
+                <div class="empty-state">
+                    <p>Nenhuma recomendação encontrada. Continue avaliando álbuns para receber sugestões personalizadas!</p>
+                </div>
+            {:else}
+                <div class="carousel-track" style="transform: translateX(-{recommendedCarouselIndex * 25}%)">
+                    {#each recommendedAlbums as album (album.id)}
+                    <div class="carousel-item">
+                        <button class="album-card" onclick={() => handleAlbumClick(album)}>
+                        <div class="album-cover">
+                            <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
+                            <div class="album-overlay">
+                            <div class="play-button">
+                                <Headphones size={24} />
+                            </div>
+                            </div>
                         </div>
-                        </div>
-                        <div class="genre-badge">{album.genre}</div>
-                    </div>
-                    <div class="album-info">
-                        <h3 class="album-title" style={titleSizes[`album-${album.id}`] 
-                            ? `font-size: ${titleSizes[`album-${album.id}`].fontSize}; 
-                               font-weight: ${titleSizes[`album-${album.id}`].fontWeight}; 
-                               line-height: ${titleSizes[`album-${album.id}`].lineHeight};` 
-                            : ''}>
-                            {album.title}
-                        </h3>
-                        <p class="album-artist">
-                          <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 1, name: album.artist})}}>
-                            {album.artist}
-                          </span>
-                          • {album.year}
-                        </p>
-                        <div class="album-rating">
-                        <div class="stars-container">
-                            {#each renderStars(album.rating).fullStars as _}
-                                <Star size={12} class="star-filled" />
-                            {/each}
-                            {#if renderStars(album.rating).hasHalfStar}
+                        <div class="album-info">
+                            <h3 class="album-title" style={titleSizes[`album-${album.id}`] 
+                                ? `font-size: ${titleSizes[`album-${album.id}`].fontSize}; 
+                                line-height: ${titleSizes[`album-${album.id}`].lineHeight};` 
+                                : ''}>
+                                {album.title}
+                            </h3>
+                            <p class="album-artist">
+                            <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: album.artistId || 1, name: album.artist})}}>
+                                {album.artist}
+                            </span>
+                            • {album.year}
+                            </p>
+                            <div class="album-rating">
+                            <div class="stars-container">
+                                {#each renderStars(album.averageRating || album.rating).fullStars as _}
+                                    <Star size={12} class="star-filled" />
+                                {/each}
+                                {#if renderStars(album.averageRating || album.rating).hasHalfStar}
                                 <div class="star-half">
                                     <Star size={12} class="star-empty" />
                                     <div class="star-half-fill">
-                                        <Star size={12} class="star-filled" />
+                                    <Star size={12} class="star-filled" />
                                     </div>
                                 </div>
-                            {/if}
-                            {#each renderStars(album.rating).emptyStars as _}
-                                <Star size={12} class="star-empty" />
-                            {/each}
+                                {/if}
+                                {#each renderStars(album.averageRating || album.rating).emptyStars as _}
+                                    <Star size={12} class="star-empty" />
+                                {/each}
+                            </div>
+                            <span class="rating-text">{album.averageRating || album.rating}</span>
+                            </div>
                         </div>
-                        <span class="rating-text">{album.rating}</span>
-                        </div>
+                        </button>
                     </div>
-                    </button>
+                    {/each}
                 </div>
-                {/each}
-            </div>
+            {/if}
             </div>
         </section>
 
@@ -476,59 +814,72 @@
             </div>
 
             <div class="carousel-container">
-            <div class="carousel-track" style="transform: translateX(-{hotCarouselIndex * 25}%)">
-                {#each hotAlbums as album (album.id)}
-                <div class="carousel-item">
-                    <button class="album-card hot-album" onclick={() => handleAlbumClick(album)}>
-                    <div class="album-cover">
-                        <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
-                        <div class="album-overlay">
-                        <div class="play-button">
-                            <Headphones size={24} />
+            {#if loadingHotAlbums}
+                <div class="loading-state">
+                    <p>Carregando álbuns em alta...</p>
+                </div>
+            {:else if hotAlbumsError}
+                <div class="error-state">
+                    <p style="color:red">{hotAlbumsError}</p>
+                </div>
+            {:else if hotAlbums.length === 0}
+                <div class="empty-state">
+                    <p>Nenhum álbum em alta encontrado no momento.</p>
+                </div>
+            {:else}
+                <div class="carousel-track" style="transform: translateX(-{hotCarouselIndex * 25}%)">
+                    {#each hotAlbums as album (album.id)}
+                    <div class="carousel-item">
+                        <button class="album-card hot-album" onclick={() => handleAlbumClick(album)}>
+                        <div class="album-cover">
+                            <img src={album.image || "/placeholder.svg"} alt="{album.title} by {album.artist}" />
+                            <div class="album-overlay">
+                            <div class="play-button">
+                                <Headphones size={24} />
+                            </div>
+                            </div>
+                            <div class="trending-badge">
+                                <TrendingUp size={12} />
+                            </div>
                         </div>
-                        </div>
-                        <div class="trending-badge">
-                        <TrendingUp size={14} />
-                        </div>
-                    </div>
-                    <div class="album-info">
-                        <h3 class="album-title" style={titleSizes[`album-${album.id}`] 
-                            ? `font-size: ${titleSizes[`album-${album.id}`].fontSize}; 
-                               font-weight: ${titleSizes[`album-${album.id}`].fontWeight}; 
-                               line-height: ${titleSizes[`album-${album.id}`].lineHeight};` 
-                            : ''}>
-                            {album.title}
-                        </h3>
-                        <p class="album-artist">
-                          <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: 2, name: album.artist})}}>
-                            {album.artist}
-                          </span>
-                          • {album.year}
-                        </p>
-                        <div class="album-rating">
-                        <div class="stars-container">
-                            {#each renderStars(album.rating).fullStars as _}
-                                <Star size={12} class="star-filled" />
-                            {/each}
-                            {#if renderStars(album.rating).hasHalfStar}
+                        <div class="album-info">
+                            <h3 class="album-title" style={titleSizes[`album-${album.id}`] 
+                                ? `font-size: ${titleSizes[`album-${album.id}`].fontSize}; 
+                                line-height: ${titleSizes[`album-${album.id}`].lineHeight};` 
+                                : ''}>
+                                {album.title}
+                            </h3>
+                            <p class="album-artist">
+                            <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: album.artistId || 1, name: album.artist})}}>
+                                {album.artist}
+                            </span>
+                            • {album.year}
+                            </p>
+                            <div class="album-rating">
+                            <div class="stars-container">
+                                {#each renderStars(album.averageRating || album.rating).fullStars as _}
+                                    <Star size={12} class="star-filled" />
+                                {/each}
+                                {#if renderStars(album.averageRating || album.rating).hasHalfStar}
                                 <div class="star-half">
                                     <Star size={12} class="star-empty" />
                                     <div class="star-half-fill">
-                                        <Star size={12} class="star-filled" />
+                                    <Star size={12} class="star-filled" />
                                     </div>
                                 </div>
-                            {/if}
-                            {#each renderStars(album.rating).emptyStars as _}
-                                <Star size={12} class="star-empty" />
-                            {/each}
+                                {/if}
+                                {#each renderStars(album.averageRating || album.rating).emptyStars as _}
+                                    <Star size={12} class="star-empty" />
+                                {/each}
+                            </div>
+                            <span class="rating-text">{album.averageRating || album.rating}</span>
+                            </div>
                         </div>
-                        <span class="rating-text">{album.rating}</span>
-                        </div>
+                        </button>
                     </div>
-                    </button>
+                    {/each}
                 </div>
-                {/each}
-            </div>
+            {/if}
             </div>
         </section>
 
@@ -793,6 +1144,9 @@
 
     .user-menu {
         position: relative;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
     }
 
     .user-avatar {
@@ -805,9 +1159,9 @@
         border-radius: 50%;
         border: 2px solid #255F85;
         overflow: hidden;
-        background: none;
+        background: #255F85;
         cursor: pointer;
-        transition: border-color 0.2s;
+        transition: all 0.2s;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -819,6 +1173,8 @@
 
     .user-avatar:hover {
         border-color: #1e4c6b;
+        background: #1e4c6b;
+        transform: scale(1.05);
     }
 
     .user-avatar img {
@@ -828,13 +1184,65 @@
         border-radius: 50%;
     }
 
+    .user-avatar-text {
+        color: white;
+        font-weight: bold;
+        font-size: 1.1rem;
+        font-family: 'Familjen Grotesk', sans-serif;
+    }
+
+    .user-name {
+        color: white;
+        font-weight: 500;
+        font-size: 0.9rem;
+        font-family: 'Familjen Grotesk', sans-serif;
+        white-space: nowrap;
+    }
+
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        margin-top: 0.5rem;
+        background: var(--color-surface, #23272f);
+        border: 1px solid var(--color-border, #353a45);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        min-width: 150px;
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .user-dropdown a,
+    .user-dropdown button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: none;
+        border: none;
+        color: var(--color-text-primary, #f8f9fa);
+        text-decoration: none;
+        font-size: 0.9rem;
+        font-family: 'Familjen Grotesk', sans-serif;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        text-align: left;
+    }
+
+    .user-dropdown a:hover,
+    .user-dropdown button:hover {
+        background: var(--color-surface-elevated, #2c313a);
+    }
+
     /* Hero Section */
     .hero-section {
         background: #255F85;
         padding: 4rem 0;
         text-align: center;
         position: relative;
-        overflow: hidden;
+        overflow: visible; /* Alterado para permitir que os elementos filhos sejam visíveis fora dos limites */
     }
 
     .hero-section::before {
@@ -863,6 +1271,7 @@
         margin: 0 auto;
         position: relative;
         z-index: 2;
+        overflow: visible; /* Permite que os filhos ultrapassem os limites */
     }
 
     .hero-title-container {
@@ -916,12 +1325,15 @@
 
     .search-form {
         margin-bottom: 2rem;
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto 2rem;
+        z-index: 1010; /* Aumentado para ficar acima de outros elementos */
     }
 
     .search-container {
         position: relative;
-        max-width: 600px;
-        margin: 0 auto;
+        width: 100%;
         display: flex;
         align-items: center;
         background: rgba(255, 255, 255, 0.1);
@@ -948,6 +1360,14 @@
             0 0 20px rgba(255, 255, 255, 0.1),
             inset 0 1px 0 rgba(255, 255, 255, 0.3);
         background: rgba(255, 255, 255, 0.15);
+        z-index: 1500; /* Garantir que o container também tenha um z-index alto quando em foco */
+    }
+
+    /* Garante que o dropdown esteja visível quando renderizado */
+    .search-results-dropdown {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: all;
     }
 
     .search-input {
@@ -978,6 +1398,7 @@
         font-family: 'Familjen Grotesk', sans-serif;
         letter-spacing: 0.025em;
         outline: none;
+        z-index: 1;
     }
 
     .search-button:hover {
@@ -987,6 +1408,27 @@
     .search-button:focus {
         outline: none;
         background: #1e4c6b;
+    }
+    
+    /* Search results dropdown */
+    .search-results-dropdown {
+        position: absolute;
+        top: calc(100% - 3px);
+        left: 0;
+        right: 0;
+        background: rgba(20, 24, 28, 0.98);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-top: none;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+        padding: 0.5rem;
+        max-height: 500px;
+        overflow-y: auto;
+        z-index: 1500; /* Valor mais alto para garantir que sobreponha tudo */
+        backdrop-filter: blur(10px);
+        transform: translateY(8px);
+        transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        pointer-events: auto; /* Garantir que os eventos de clique funcionem */
     }
 
     /* Main Content */
@@ -1176,17 +1618,7 @@
         gap: 0.25rem;
     }
 
-    .genre-badge {
-        position: absolute;
-        top: 0.5rem;
-        left: 0.5rem;
-        background: rgba(197, 40, 61, 0.9);
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-    }
+    /* Removido o seletor não utilizado .genre-badge */
 
     .album-info {
         padding: 0.5rem 0;
@@ -1564,5 +1996,212 @@
     .artist-link:hover {
         color: #FFC857;
         text-decoration: underline;
+    }
+
+    /* Estilos para resultados de busca */
+    .search-results-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .search-result-item {
+        margin-bottom: 0.25rem;
+    }
+    
+    .search-result-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .result-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        background: none;
+        border: none;
+        color: white;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .result-link:hover {
+        background: rgba(255, 255, 255, 0.08);
+        transform: translateX(3px);
+    }
+    
+    .result-img {
+        width: 45px;
+        height: 45px;
+        border-radius: 4px;
+        object-fit: cover;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
+    }
+    
+    .result-img-artist, .result-img-user {
+        border-radius: 50%;
+    }
+    
+    .result-info {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .result-title {
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin-bottom: 0.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .result-subtitle {
+        color: #9ca3af;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .result-type {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        flex-shrink: 0;
+    }
+    
+    .album-type {
+        color: #FFC857;
+        background: rgba(255, 200, 87, 0.1);
+        border: 1px solid rgba(255, 200, 87, 0.3);
+    }
+    
+    .artist-type {
+        color: #C5283D;
+        background: rgba(197, 40, 61, 0.1);
+        border: 1px solid rgba(197, 40, 61, 0.3);
+    }
+    
+    .user-type {
+        color: #255F85;
+        background: rgba(37, 95, 133, 0.1);
+        border: 1px solid rgba(37, 95, 133, 0.3);
+    }
+    
+    .search-results-loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 1rem;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .loading-spinner {
+        width: 30px;
+        height: 30px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        border-top-color: #FFC857;
+        animation: spin 1s ease-in-out infinite;
+        margin-bottom: 1rem;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    .search-results-error, .search-results-empty {
+        padding: 1.5rem;
+        text-align: center;
+        color: #ef4444;
+    }
+    
+    .search-results-empty {
+        color: rgba(255, 255, 255, 0.6);
+    }
+    
+    .results-category {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .results-category:first-child {
+        border-top: none;
+        margin-top: 0;
+        padding-top: 0;
+    }
+    
+    .results-category-title {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin: 0.5rem 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+    }
+    
+    .search-results-footer {
+        margin-top: 1rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+    
+    .view-all-results {
+        background: none;
+        border: none;
+        color: #FFC857;
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    .view-all-results:hover {
+        text-decoration: underline;
+        color: #d6a639;
+    }
+    
+    .search-results-categories {
+        padding: 0.5rem;
+    }
+
+    /* Estados de carregamento, erro e vazio */
+    .loading-state, .error-state, .empty-state {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 200px;
+        width: 100%;
+        text-align: center;
+        padding: 2rem;
+        border-radius: 8px;
+    }
+
+    .loading-state {
+        background: rgba(255, 255, 255, 0.05);
+        color: #9ca3af;
+    }
+
+    .error-state {
+        background: rgba(220, 38, 38, 0.1);
+        color: #ef4444;
+    }
+
+    .empty-state {
+        background: rgba(255, 255, 255, 0.05);
+        color: #9ca3af;
     }
 </style>
