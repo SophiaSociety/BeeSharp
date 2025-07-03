@@ -1,70 +1,76 @@
-# BeeSharp 🐝#️🎵  
+# 🐝🎵 BeeSharp   
 
 **Um diário musical para registrar e compartilhar suas experiências com álbuns.**  
+## Projeto
+BeeSharp é uma aplicação WEB realizada durante a disciplina MAC0350 - Introdução ao Desenvolvimento de Sistemas de Software do Instituto de Matemática e Estatística da Universidade de São Paulo.
 
-## 📌 Visão Geral  
-O **BeeSharp** é uma plataforma onde você pode:  
-- 📖 **Registrar** os álbuns que ouviu  
-- ⭐ **Avaliar** e resenhar seus favoritos   
-- 👥 **Seguir amigos** e curtir resenhas
-- ✨ **Receber recomendações** com base no que você ouve e curte
+## Visão Geral  
+Hoje, ainda não existe um espaço dedicado para registrar, avaliar e compartilhar experiências em relação a álbuns de música. Então, inspirado na plataforma Letterboxd, um  diário social de filmes, surge o BeeSharp, um diário social e digital de músicas.
 
-## 🛠️ Tecnologias  
+“BeeSharp” faz um trocadilho com B#, si sustenido, em inglês, B sharp. Substituímos “B” por “Bee” pela semelhança sonora, dando origem ao Beebo, nosso mascote.
+
+Nosso objetivo é oferecer um diário de música interativo e personalizável; permitir avaliações, resenhas e engajamento social em torno de álbuns; além de criar uma base de recomendações inteligentes com base nas reviews do seus amigos e mais ouvidos!
+
+## Tecnologias  
 - **Frontend:** Svelte
 - **Backend:** Ktor 
 - **Banco de Dados:** PostgreSQL
+- **Containerização:** Docker e Docker Compose
+- **API de Albums:** Integração com a API do Spotfy para obter informações detalhadas sobre os albums, para popular nosso banco de dados.
 
-## 🚀 Funcionalidades Planejadas (MVP)  
-✅ **Cadastro/login de usuários**  
-✅ **Busca e adição de álbuns** (via integração com API do Spotify/Last.fm)  
-✅ **Sistema de avaliação** (0 a 5 estrelas) e resenhas  
-✅ **Interação social** (seguir usuários, curtir resenhas)  
-✅ **Algoritmo de recomendação** (receber recomendações baseadas nos gostos do usuário)  
-🔜 **Avaliação de cada música do albúm** (avaliar não apenas álbuns, mas também suas músicas)  
-🔜 **Listas customizáveis** (álbuns favoritos, etc.)  
-🔜 **Timeline pessoal** com histórico de escutas  
-🔜 **Estatísticas pessoais** (gráficos de gêneros mais ouvidos, gráfico de notas dadas)  
+## Funcionalidades Principais  
+- Cadastro e login de usuários com autenticação JWT
+- Busca de albums, artistas e usuários 
+- Sistema de avaliação de (0 a 5 estrelas) e com resenhas  
+- Interação social, como seguir usuários e curtir resenhas
+- Favoritar albums
+- Algoritmo de recomendação baseadas nas reviews do seus amigos e mais ouvidos
+ 
+## Dependências 
 
-  
-## 🌟 Diferenciais  
-- 📈 **Algoritmo de recomendação**: receba recomendações de álbuns com base nas suas avaliações e nos seus gêneros ouvidos. 
+- Docker e Docker Compose
+- JDK 17+
+- Node.js + npm
+## Como Executar
+
+Antes de começar, clone o projeto em um diretório local. Então, execute, para inicializar o banco de dados:
+
+```bash
+docker-compose up -d
+```
+Em seguida, entre na pasta /backend e execute:
+
+```bash
+./gradlew build
+./gradlew run
+```
+
+E por fim, na pasta /frontend:
+```bash
+npm install
+npm run dev
+```
 
 ## 📂 Estrutura do Projeto  
 ```
-BeeSharp/  
-├── frontend/          # Aplicação Svelte  
-├── backend/           # Servidor Ktor  
+BeeSharp/
+├── backend/             # Backend em Kotlin com Ktor
+│ ├── models/            # Entidades do banco de dados
+│ ├── repository/        # Acesso e manipulação de dados
+│ ├── Routing.kt         # Rotas e endpoints
+│ ├── Security.kt        # Autenticação JWT
+│ └── test/              # Testes automatizados
+│
+├── frontend/            # Aplicação web com Svelte + Vite
+│
+├── db/                  # Scripts SQL e dados mock
+│
+└── docker-compose.yml 
 
 ``` 
 
-## 📄 Licença  
-GPL (mais detalhes a definir)  
+## Uso de Inteligência Artificial
+Ferramentas como ChatGPT foram utilizadas como assistentes técnicos ao longo do desenvolvimento do BeeSharp. Elas ajudaram a esclarecer dúvidas sobre arquitetura e padrões de software, sugerir e revisar trechos de código backend e frontend e apoiar na criação de testes automatizados.
 
 ---  
 **🎶 "A vida sem música seria um erro."** — Nietzsche  
-
-*Em desenvolvimento por [SophiaThaiSociety]. Previsão de lançamento: S1 2025.*  
-
----  
-
-### ✨ Preview (Futura Homepage)  
-```html  
-<div class="hero">  
-  <h1>O que você está ouvindo hoje?</h1>  
-  <SearchBar placeholder="Busque álbuns, artistas ou usuários..."/>  
-  <TrendingAlbumsCarousel/>  
-</div>  
-```  
-
----  
-*Dados de álbuns fornecidos por [Spotify API]. Ícones por [FontAwesome].*  
-
----  
-
-🔗 **Links Úteis:**  
-- [Documentação da API](https://...) *(em construção)*  
-- [Roadmap](https://...) *(em construção)*  
-
----  
-
-**PS:** Este README será atualizado conforme o projeto evolui. Sugestões são bem-vindas!
