@@ -1,12 +1,42 @@
 <script>
-    import { Award, ArrowLeft, Star, Music } from 'lucide-svelte'
+    import { Award, ArrowLeft, Star, Music, User } from 'lucide-svelte'
     import { push } from 'svelte-spa-router'
     import { onMount, afterUpdate } from 'svelte'
     import Login from '../lib/Login.svelte'
+    import { getAuthToken, isTokenExpired, getUsername, logout } from '../lib/auth'
     
     let showLoginModal = false
     function openLoginModal() { showLoginModal = true }
     function closeLoginModal() { showLoginModal = false }
+    
+    let isLoggedIn = false
+    let currentUser = ''
+    let showUserMenu = false
+    
+    // Função para verificar se o usuário está logado
+    function checkAuthStatus() {
+        const token = getAuthToken();
+        isLoggedIn = token && !isTokenExpired(token);
+        if (isLoggedIn) {
+            const username = getUsername();
+            if (username) {
+                currentUser = username;
+            }
+        }
+    }
+    
+    // Função para fazer logout
+    function handleLogout() {
+        logout();
+        isLoggedIn = false;
+        currentUser = '';
+        push('/');
+    }
+    
+    // Função para toggle do menu do usuário
+    function toggleUserMenu() {
+        showUserMenu = !showUserMenu;
+    }
     
     let topRatedAlbums = []
     let loading = true
@@ -21,6 +51,18 @@
     function handleArtistClick(artist) {
         console.log('Artist clicked:', artist.name)
         push(`/artist/${artist.id}`)
+    }
+
+    function handleLogoClick() {
+        // Se o usuário está logado, redireciona para a homepage
+        // Se não está logado, redireciona para a landing page
+        const token = getAuthToken();
+        if (token && !isTokenExpired(token)) {
+            push('/home');
+        } else {
+            push('/');
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function renderStars(rating) {
@@ -112,6 +154,9 @@
     }
 
     onMount(() => {
+        // Verificar status de autenticação
+        checkAuthStatus();
+        
         // Fetch top 100 albums
         (async () => {
             try {
@@ -141,8 +186,17 @@
         };
         window.addEventListener('resize', handleResize);
 
+        // Close user menu when clicking outside
+        const handleClickOutside = (event) => {
+            if (showUserMenu && !event.target.closest('.user-menu')) {
+                showUserMenu = false;
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+
         return () => {
             window.removeEventListener('resize', handleResize);
+            document.removeEventListener('click', handleClickOutside);
         };
     });
 
@@ -154,14 +208,58 @@
 <nav class="navbar-albums">
     <div class="navbar-container">
         <div class="logo-component">
-            <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+            <button class="logo-button" onclick={handleLogoClick} aria-label="Ir para página inicial">
                 <img src="/logocomtexto.png" alt="BeeSharp Logo" />
             </button>
         </div>
-        <div class="nav-links">
-            <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
-            <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
-        </div>
+        
+        {#if isLoggedIn}
+            <!-- Navbar para usuário logado -->
+            <div class="user-menu">
+                <button class="user-avatar" aria-label="User Profile" onclick={toggleUserMenu}>
+                    {#if currentUser}
+                        <div class="user-avatar-text">
+                            {currentUser.charAt(0).toUpperCase()}
+                        </div>
+                    {:else}
+                        <User size={20} />
+                    {/if}
+                </button>
+                {#if currentUser}
+                    <span class="user-name">{currentUser}</span>
+                {/if}
+                
+                {#if showUserMenu}
+                    <div class="user-dropdown">
+                        <a href="/profile" onclick={(e) => { 
+                            e.preventDefault(); 
+                            const username = getUsername();
+                            if (username) {
+                                push(`/profile/${username}`);
+                            }
+                            showUserMenu = false; 
+                        }}>
+                            <User size={16} />
+                            Meu Perfil
+                        </a>
+                        <button onclick={handleLogout}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16,17 21,12 16,7"/>
+                                <line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Sair
+                        </button>
+                    </div>
+                {/if}
+            </div>
+        {:else}
+            <!-- Navbar para usuário não logado -->
+            <div class="nav-links">
+                <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
+                <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
+            </div>
+        {/if}
     </div>
 </nav>
 
@@ -213,7 +311,11 @@
                                 <div class="album-info">
                                     <h3 class="album-title">{album.title}</h3>
                                     <p class="album-artist">
-                                      <span class="artist-link" onclick={(e) => {e.stopPropagation(); handleArtistClick({id: album.id, name: album.artist})}}>
+                                      <span class="artist-link" 
+                                            role="button" 
+                                            tabindex="0"
+                                            onclick={(e) => {e.stopPropagation(); handleArtistClick({id: album.id, name: album.artist})}}
+                                            onkeydown={(e) => {if (e.key === 'Enter' || e.key === ' ') {e.preventDefault(); e.stopPropagation(); handleArtistClick({id: album.id, name: album.artist})}}}>
                                         {album.artist}
                                       </span>
                                     </p>
@@ -373,6 +475,83 @@
         transition: color 0.2s;
         position: relative;
         z-index: 2;
+    }
+
+    /* User Menu Styles */
+    .user-menu {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        position: relative;
+    }
+
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: white;
+    }
+
+    .user-avatar:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-1px);
+    }
+
+    .user-avatar-text {
+        font-weight: 600;
+        font-size: 1rem;
+        color: white;
+    }
+
+    .user-name {
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        font-family: 'Familjen Grotesk', sans-serif;
+    }
+
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        padding: 0.5rem 0;
+        min-width: 180px;
+        z-index: 200;
+        margin-top: 0.5rem;
+    }
+
+    .user-dropdown a,
+    .user-dropdown button {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        background: none;
+        border: none;
+        text-decoration: none;
+        color: #1f2937;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        text-align: left;
+        font-family: inherit;
+    }
+
+    .user-dropdown a:hover,
+    .user-dropdown button:hover {
+        background: #f3f4f6;
     }
 
     .login-popup-overlay {
@@ -675,11 +854,12 @@
         padding: 0;
         text-decoration: none;
         transition: color 0.2s ease;
+        outline: none;
     }
 
-    .artist-link:hover {
+    .artist-link:hover,
+    .artist-link:focus {
         color: #FFC857;
         text-decoration: underline;
-            gap: 1rem;
     }
 </style>

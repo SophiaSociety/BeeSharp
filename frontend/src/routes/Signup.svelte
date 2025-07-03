@@ -189,7 +189,7 @@
                 const data = await response.json()
                 alert('Cadastro realizado com sucesso! Faça login para continuar.')
                 resetForm()
-                window.location.href = '/#/login'
+                openLoginModal()
             } else {
                 let errorData = {}
                 try {
@@ -503,9 +503,7 @@
 
 <!-- Login Modal -->
 {#if showLoginModal}
-    <div class="login-popup-overlay">
-        <Login onClose={closeLoginModal} isModal={true} />
-    </div>
+    <Login onClose={closeLoginModal} isModal={true} />
 {/if}
 
 <style>
@@ -827,7 +825,7 @@
     }
 
     .submit-button:hover:not(:disabled) {
-        background-color: #E9724C;
+        background-color: #D4A843;
         transform: translateY(-1px);
     }
 
@@ -985,16 +983,4 @@
         margin: 0;
     }
 
-    .login-popup-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
 </style>

@@ -114,18 +114,7 @@
         font-size: 13px;
     }
 
-    .login-popup-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.5);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+
  
 </style>
 
@@ -161,8 +150,6 @@
     </footer>
 
     {#if showLogin}
-        <div class="login-popup-overlay">
-            <Login onClose={() => showLogin = false} isModal={true} />
-        </div>
+        <Login onClose={() => showLogin = false} isModal={true} />
     {/if}
 </div>

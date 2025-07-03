@@ -4,56 +4,128 @@
   import Login from '../lib/Login.svelte'
   import ReviewSubmissionModal from './ReviewSubmissionModal.svelte'
   import { onMount } from 'svelte'
-  import { isAuthenticated } from '../lib/auth'
+  import { getAuthToken, isTokenExpired, getUsername, logout } from '../lib/auth'
 
   // Props to receive album ID from route
-  const { params = {} } = $props();
+  export let params = {}
 
-  // Simulação de usuário logado para navbar
-  let loggedUser = {
-    name: "Alex Chen",
-    username: "@alexmusic",
-    avatar: "/placeholder.svg?height=32&width=32"
+  // User authentication state
+  let isLoggedIn = false
+  let currentUser = ''
+  let showUserMenu = false
+  
+  // Função para verificar se o usuário está logado
+  function checkAuthStatus() {
+    const token = getAuthToken();
+    isLoggedIn = token && !isTokenExpired(token);
+    if (isLoggedIn) {
+      const username = getUsername();
+      if (username) {
+        currentUser = username;
+      }
+    }
   }
   
-  let showLoginModal = $state(false)
+  // Função para fazer logout
+  function handleLogout() {
+    logout();
+    isLoggedIn = false;
+    currentUser = '';
+    push('/');
+  }
+  
+  // Função para toggle do menu do usuário
+  function toggleUserMenu() {
+    showUserMenu = !showUserMenu;
+  }
+
+  let showLoginModal = false
   function openLoginModal() { showLoginModal = true }
   function closeLoginModal() { showLoginModal = false }
 
   // Check login status when component mounts
-  onMount(async () => {
-    if (!isAuthenticated()) {
+  onMount(() => {
+    console.log('Album component mounted with params:', params);
+
+    // Check authentication first
+    checkAuthStatus();
+    if (!isLoggedIn) {
       showLoginModal = true;
     }
-    
-    if (params?.id) {
-      loading = true
-      error = ''
-      try {
-        const response = await fetch(`http://localhost:8080/albums/${params.id}`)
-        if (!response.ok) throw new Error('Álbum não encontrado')
-        album = await response.json()
-      } catch (e) {
-        error = e.message
-        album = null
-      } finally {
-        loading = false
+
+    // Async logic separated from cleanup
+    (async () => {
+      if (params?.id) {
+        console.log('Loading album with ID:', params.id);
+        loading = true
+        error = ''
+        try {
+          const response = await fetch(`http://localhost:8080/albums/${params.id}`)
+          if (!response.ok) throw new Error('Erro ao buscar álbum')
+          album = await response.json()
+          
+          // Garantir que o artistId esteja definido
+          if (!album.artistId && album.artist) {
+            // Se não tiver artistId, tentar carregar o ID do artista pelo nome
+            try {
+              const artistResponse = await fetch(`http://localhost:8080/artists?name=${encodeURIComponent(album.artist)}`)
+              if (artistResponse.ok) {
+                const artists = await artistResponse.json()
+                if (artists && artists.length > 0) {
+                  album.artistId = artists[0].id
+                }
+              }
+            } catch (artistError) {
+              console.warn('Não foi possível obter o ID do artista:', artistError)
+            }
+          }
+          
+          console.log('Album loaded from API:', album);
+        } catch (e) {
+          error = e.message
+          console.error('Error fetching album:', e)
+          // Mock data for demonstration quando a API falha
+          album = {
+            id: params.id,
+            title: "Álbum de Exemplo",
+            artist: "Artista Exemplo",
+            artistId: params.id, // Adicionando artistId baseado no ID do álbum
+            image: "/imagemm.jpg",
+            averageRating: 4.2,
+            totalRatings: 8547,
+            year: 2020,
+            genre: "Rock Alternativo",
+            description: "Um álbum que explora diversos temas musicais e emocionais através de composições elaboradas e produção cuidadosa."
+          }
+          console.log('Using mock album data:', album);
+        } finally {
+          loading = false
+        }
+      } else {
+        console.log('No album ID provided in params');
+        loading = false;
+        error = 'ID do álbum não fornecido';
       }
-    }
+    })();
+
+    // Close user menu when clicking outside
+    const handleClickOutside = (event) => {
+      if (showUserMenu && !event.target.closest('.user-menu')) {
+        showUserMenu = false;
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
   })
-  
-  // Searchbar
-  let searchQuery = ''
-  function handleSearch(event) {
-    event.preventDefault()
-    // Implementar busca
-  }
   
   // Album data (inicial vazio)
   let album = null
   let loading = true
   let error = ''
-  let isFavorited = $state(false)
+  let isFavorited = false
 
   function handleFavorite() {
     isFavorited = !isFavorited
@@ -76,46 +148,25 @@
 
   // Friends' reviews e topReviews permanecem mockados por enquanto
   let friendsReviews = [
-    {
-      id: 1,
-      user: { name: "Alex Chen", username: "@alexmusic", avatar: "/imagemm.jpg" },
-      rating: 5,
-      comment: "Uma obra-prima absoluta que definiu uma geração. Cada faixa é perfeitamente elaborada e o álbum flui como uma sinfonia distópica. Radiohead no seu auge absoluto.",
-      date: "há 2 dias",
-      likes: 12,
-      dislikes: 0,
-      userLiked: true,
-      userDisliked: false
-    },
-    {
-      id: 2,
-      user: { name: "Sarah Johnson", username: "@sarahbeats", avatar: "/imagemm.jpg" },
-      rating: 4,
-      comment: "Inovador e influente, embora algumas faixas sejam um pouco experimentais demais para o meu gosto. Ainda assim, uma escuta essencial para qualquer amante da música.",
-      date: "há 1 semana",
-      likes: 8,
-      dislikes: 2,
-      userLiked: false,
-      userDisliked: false
-    },
-    {
-      id: 3,
-      user: { name: "Mike Rodriguez", username: "@mikevibes", avatar: "/imagemm.jpg" },
-      rating: 5,
-      comment: "Este álbum mudou minha perspectiva sobre o que a música poderia ser. A forma como captura a ansiedade da vida moderna é incomparável.",
-      date: "há 2 semanas",
-      likes: 15,
-      dislikes: 1,
-      userLiked: false,
-      userDisliked: false
-    }
+    // Array vazio inicialmente para demonstrar o card "sem reviews de amigos"
+    // {
+    //   id: 1,
+    //   user: { name: "Alex Chen", username: "@alexmusic", avatar: "/imagemm.jpg" },
+    //   rating: 5,
+    //   comment: "Uma obra-prima absoluta que definiu uma geração. Cada faixa é perfeitamente elaborada e o álbum flui como uma experiência completa e envolvente. O artista no seu auge criativo.",
+    //   date: "há 2 dias",
+    //   likes: 12,
+    //   dislikes: 0,
+    //   userLiked: true,
+    //   userDisliked: false
+    // }
   ]
   let topReviews = [
     {
       id: 4,
       user: { name: "Music Critic Pro", username: "@criticpro", avatar: "/imagemm.jpg" },
       rating: 5,
-      comment: "OK Computer se destaca como um dos álbuns mais prescientes já gravados. As visões paranóicas de Thom Yorke sobre alienação tecnológica só se tornaram mais relevantes com o tempo. A paleta sonora da banda se expandiu dramaticamente aqui, incorporando elementos eletrônicos que influenciariam inúmeros artistas. Desde o riff de guitarra inicial de 'Airbag' até o assombrado 'The Tourist', cada momento serve ao tema geral do álbum sobre desconexão moderna. Esta não é apenas a obra-prima do Radiohead—é um dos álbuns definidores dos anos 1990 e além.",
+      comment: "Este álbum se destaca como uma das obras mais influentes já gravadas. A visão artística expressa através das composições se tornou ainda mais relevante com o tempo. A paleta sonora se expandiu dramaticamente aqui, incorporando elementos diversos que influenciariam inúmeros artistas. Desde a faixa de abertura até o encerramento, cada momento serve ao tema geral do álbum. Esta não é apenas uma obra-prima do artista—é um dos álbuns definidores da década.",
       date: "há 1 mês",
       likes: 234,
       dislikes: 12,
@@ -127,7 +178,7 @@
       id: 5,
       user: { name: "Vinyl Collector", username: "@vinylhead", avatar: "/imagemm.jpg" },
       rating: 5,
-      comment: "Vinte e cinco anos depois, e este álbum ainda soa como se tivesse sido transmitido do futuro. A produção é imaculada, a composição é incomparável, e os temas são mais relevantes do que nunca. 'Paranoid Android' por si só vale o preço da admissão, mas cada faixa aqui é essencial. Um álbum perfeito em todos os sentidos.",
+      comment: "Anos depois, e este álbum ainda soa fresco e inovador. A produção é imaculada, a composição é incomparável, e os temas são atemporais. Cada faixa aqui é essencial e contribui para a experiência completa. Um álbum perfeito em todos os sentidos que merece estar em qualquer coleção.",
       date: "há 3 semanas",
       likes: 189,
       dislikes: 8,
@@ -244,53 +295,64 @@
   }
 
   function handleArtistClick(artist) {
-    console.log('Artist clicked:', artist.name)
-    push(`/artist/${artist.id}`)
-  }
-
-  onMount(async () => {
-    if (params?.id) {
-      loading = true
-      error = ''
-      try {
-        const response = await fetch(`http://localhost:8080/albums/${params.id}`)
-        if (!response.ok) throw new Error('Álbum não encontrado')
-        album = await response.json()
-      } catch (e) {
-        error = e.message
-        album = null
-      } finally {
-        loading = false
-      }
+    console.log('Artist clicked:', artist.name, 'ID:', artist.id)
+    if (artist && artist.id) {
+      push(`/artist/${artist.id}`)
+    } else {
+      console.error('Erro: ID do artista não encontrado')
+      // Fallback para uma pesquisa pelo nome do artista se necessário
     }
-  })
+  }
 </script>
 
 <nav class="navbar-albums">
   <div class="navbar-container">
     <div class="logo-component">
-      <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+      <button class="logo-button" onclick={() => push('/home')} aria-label="Ir para página inicial">
         <img src="/logocomtexto.png" alt="BeeSharp Logo" />
       </button>
     </div>
-    <div class="search-and-user">
-      <form class="search-form" onsubmit={handleSearch}>
-        <div class="search-container">
-          <Search size={18} />
-          <input
-            type="text"
-            class="search-input"
-            bind:value={searchQuery}
-          />
-          <button type="submit" class="search-button">Buscar</button>
-        </div>
-      </form>
+    
+    {#if isLoggedIn}
+      <!-- Navbar para usuário logado -->
       <div class="user-menu">
-        <button class="user-avatar" aria-label="Perfil do usuário" onclick={() => push('/perfil')}>
-          <img src={loggedUser.avatar} alt={loggedUser.name} />
+        <button class="user-avatar" aria-label="User Profile" onclick={toggleUserMenu}>
+          {#if currentUser}
+            <div class="user-avatar-text">
+              {currentUser.charAt(0).toUpperCase()}
+            </div>
+          {:else}
+            <User size={20} />
+          {/if}
         </button>
+        {#if currentUser}
+          <span class="user-name">{currentUser}</span>
+        {/if}
+        
+        {#if showUserMenu}
+          <div class="user-dropdown">
+            <button onclick={(e) => { e.preventDefault(); const username = getUsername(); if(username) push(`/profile/${username}`); showUserMenu = false; }}>
+              <User size={16} />
+              Meu Perfil
+            </button>
+            <button onclick={handleLogout}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16,17 21,12 16,7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sair
+            </button>
+          </div>
+        {/if}
       </div>
-    </div>
+    {:else}
+      <!-- Navbar para usuário não logado -->
+      <div class="nav-links">
+        <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
+        <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
+      </div>
+    {/if}
   </div>
 </nav>
 
@@ -323,7 +385,13 @@
               <h1 class="album-title">{album.title}</h1>
               <div class="album-meta">
                 <span class="album-artist">
-                  <span class="artist-link" onclick={() => handleArtistClick({id: album.artistId || 1, name: album.artist})}>
+                  <span 
+                    class="artist-link" 
+                    onclick={() => handleArtistClick({id: album.artistId, name: album.artist})}
+                    role="button"
+                    tabindex="0"
+                    onkeydown={(e) => e.key === 'Enter' && handleArtistClick({id: album.artistId, name: album.artist})}
+                  >
                     {album.artist}
                   </span>
                 </span>
@@ -389,11 +457,7 @@
                 </div>
               </div>
             </div>
-            {#if album.description}
-              <div class="album-description" style="margin-top:1.5rem;color:#d1d5db;">
-                <p>{album.description}</p>
-              </div>
-            {/if}
+
           </div>
         </section>
 
@@ -407,63 +471,73 @@
           </div>
           
           <div class="reviews-list">
-            {#each friendsReviews as review (review.id)}
-              <div class="review-card">
-                <div class="review-header">
-                  <div class="user-info" onclick={() => goToProfile(review.user.username)} title="Ver perfil de {review.user.name}">
-                    <img src={review.user.avatar || "/placeholder.svg"} alt={review.user.name} class="user-avatar clickable" />
-                    <div class="user-details">
-                      <h4 class="user-name clickable">{review.user.name}</h4>
-                      <p class="user-username clickable">{review.user.username}</p>
-                    </div>
-                  </div>
-                  <div class="review-rating">
-                    <div class="stars-container">
-                      {#each renderStars(review.rating) as star (star.key)}
-                        {#if star.type === 'full'}
-                          <Star size={16} class="star-filled" />
-                        {:else if star.type === 'half'}
-                          <div class="star-half-container">
-                            <Star size={16} class="star-empty" />
-                            <div class="star-half-overlay">
-                              <Star size={16} class="star-filled" />
-                            </div>
-                          </div>
-                        {:else}
-                          <Star size={16} class="star-empty" />
-                        {/if}
-                      {/each}
-                    </div>
-                    <span class="review-date">{review.date}</span>
-                  </div>
-                </div>
-                
-                {#if review.comment}
-                  <div class="review-content">
-                    <p>{review.comment}</p>
-                  </div>
-                {/if}
-                
-                <div class="review-actions">
-                  <button 
-                    class="action-btn like-btn {review.userLiked ? 'active' : ''}"
-                    onclick={() => handleLike(review.id, true)}
-                    aria-label="Curtir review"
-                  >
-                    <ThumbsUp size={16} />
-                    <span>{review.likes}</span>
-                  </button>
-                  <button 
-                    class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
-                    onclick={() => handleDislike(review.id, true)}
-                    aria-label="Não curtir review"
-                  >
-                    <ThumbsDown size={16} />
-                    <span>{review.dislikes}</span>
-                  </button>
+            {#if friendsReviews.length === 0}
+              <div class="no-reviews-card">
+                <div class="no-reviews-content">
+                  <User size={48} color="#6b7280" />
+                  <h3>Sem reviews de amigos</h3>
+                  <p>Você ainda não segue ninguém que avaliou este álbum.</p>
                 </div>
               </div>
-            {/each}
+            {:else}
+              {#each friendsReviews as review (review.id)}
+                <div class="review-card">
+                  <div class="review-header">
+                    <div class="user-info" onclick={() => goToProfile(review.user.username)} title="Ver perfil de {review.user.name}">
+                      <img src={review.user.avatar || "/placeholder.svg"} alt={review.user.name} class="user-avatar clickable" />
+                      <div class="user-details">
+                        <h4 class="user-name clickable">{review.user.name}</h4>
+                        <p class="user-username clickable">{review.user.username}</p>
+                      </div>
+                    </div>
+                    <div class="review-rating">
+                      <div class="stars-container">
+                        {#each renderStars(review.rating) as star (star.key)}
+                          {#if star.type === 'full'}
+                            <Star size={16} class="star-filled" />
+                          {:else if star.type === 'half'}
+                            <div class="star-half-container">
+                              <Star size={16} class="star-empty" />
+                              <div class="star-half-overlay">
+                                <Star size={16} class="star-filled" />
+                              </div>
+                            </div>
+                          {:else}
+                            <Star size={16} class="star-empty" />
+                          {/if}
+                        {/each}
+                      </div>
+                      <span class="review-date">{review.date}</span>
+                    </div>
+                  </div>
+                  
+                  {#if review.comment}
+                    <div class="review-content">
+                      <p>{review.comment}</p>
+                    </div>
+                  {/if}
+                  
+                  <div class="review-actions">
+                    <button 
+                      class="action-btn like-btn {review.userLiked ? 'active' : ''}"
+                      onclick={() => handleLike(review.id, true)}
+                      aria-label="Curtir review"
+                    >
+                      <ThumbsUp size={16} />
+                      <span>{review.likes}</span>
+                    </button>
+                    <button 
+                      class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
+                      onclick={() => handleDislike(review.id, true)}
+                      aria-label="Não curtir review"
+                    >
+                      <ThumbsDown size={16} />
+                      <span>{review.dislikes}</span>
+                    </button>
+                  </div>
+                </div>
+              {/each}
+            {/if}
           </div>
         </section>
 
@@ -645,141 +719,81 @@
     opacity: 0.8;
   }
   
-  .search-and-user {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-  
-  /* Search Styles */
-  .search-form {
-    margin-bottom: 0;
-  }
-
-  .search-container {
-    position: relative;
-    max-width: 400px;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    border: 2.5px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    padding-left: 1rem;
-    backdrop-filter: blur(20px);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    height: 40px;
-  }
-
-  .search-container :global(svg) {
-    color: rgba(255, 255, 255, 0.7);
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .search-container:focus-within {
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(255, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  .search-input {
-    flex: 1;
-    padding: 0.5rem;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 0.9rem;
-    outline: none;
-  }
-
-  .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-  }
-
-  .search-button {
-    padding: 0.5rem 1.5rem;
-    background: #255F85;
-    color: white;
-    border: none;
-    border-radius: 0 17px 17px 0;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Familjen Grotesk', sans-serif;
-    letter-spacing: 0.025em;
-    outline: none;
-    height: 100%;
-  }
-
-  .search-button:hover {
-    background: #1e4c6b;
-  }
-
-  .search-button:focus {
-    outline: none;
-    background: #1e4c6b;
-  }
-
   /* User Avatar Styles */
   .user-menu {
     position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
   }
 
   .user-avatar {
     width: 40px;
     height: 40px;
-    min-width: 40px;
-    min-height: 40px;
-    max-width: 40px;
-    max-height: 40px;
     border-radius: 50%;
-    border: 2px solid;
-    overflow: hidden;
-    background: none;
-    cursor: pointer;
-    transition: border-color 0.2s;
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    box-sizing: border-box;
-    flex-shrink: 0;
-    aspect-ratio: 1 / 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: white;
   }
 
   .user-avatar:hover {
-    border-color: #1e4c6b;
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
   }
 
-  .user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
+  .user-avatar-text {
+    font-weight: 600;
+    font-size: 1rem;
+    color: white;
   }
-  .nav-login-btn {
-    margin-left: 1.5rem;
-    margin-right: 3.5rem;
+
+  .user-name {
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    font-family: 'Familjen Grotesk', sans-serif;
+  }
+
+  .user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 0.5rem 0;
+    min-width: 180px;
+    z-index: 200;
+    margin-top: 0.5rem;
+  }
+
+  .user-dropdown a,
+  .user-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
     background: none;
     border: none;
-    color: white;
-    font-family: 'Familjen Grotesk', sans-serif;
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 0.1em;
-    white-space: nowrap;
+    text-decoration: none;
+    color: #1f2937;
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: color 0.2s;
-    position: relative;
-    z-index: 2;
+    transition: background-color 0.2s ease;
+    text-align: left;
+    font-family: inherit;
+  }
+
+  .user-dropdown a:hover,
+  .user-dropdown button:hover {
+    background: #f3f4f6;
   }
 
   .login-popup-overlay {
@@ -798,6 +812,21 @@
   /* Main Content */
   .main-content {
     padding: 2rem 0;
+  }
+
+  /* Loading and Error States */
+  .loading-state, .error-state {
+    text-align: center;
+    padding: 4rem 0;
+    font-size: 1.125rem;
+  }
+
+  .loading-state p {
+    color: #9ca3af;
+  }
+
+  .error-state p {
+    color: #ef4444;
   }
 
   /* Album Hero Section */
@@ -842,22 +871,23 @@
   }
 
   .favorite-btn:hover {
-    border-color: #FFC857; /* Amarelo no hover */
-    color: #FFC857;
+    border-color: #C5283D; /* Vermelho no hover */
+    color: #C5283D;
   }
 
   .favorite-btn.favorited {
-    background-color: #FFC857; /* Fundo amarelo quando favoritado */
-    border-color: #FFC857;
-    color: #14181c; /* Texto escuro */
+    background-color: #C5283D; /* Vermelho quando favoritado */
+    border-color: #C5283D;
+    color: white;
   }
 
-  .favorite-btn.favorited :global(svg) {
-    fill: #14181c;
+  .favorite-btn :global(svg) {
+    fill: none; /* Coração sempre vazio */
+    stroke: currentColor;
   }
 
   .review-btn {
-    background: #C5283D;
+    background: #255F85; /* Azul da navbar */
     color: white;
     border: none;
     padding: 0.75rem 1.5rem;
@@ -875,7 +905,7 @@
   }
 
   .review-btn:hover {
-    background: #a02030;
+    background: #1e4c6b; /* Azul mais escuro no hover */
     transform: translateY(-1px);
   }
 
@@ -1036,6 +1066,35 @@
 
   .review-card:hover {
     border-color: #4b5563;
+  }
+
+  .no-reviews-card {
+    background: #1d232a;
+    border-radius: 12px;
+    padding: 3rem 1.5rem;
+    border: 1px solid #374151;
+    text-align: center;
+  }
+
+  .no-reviews-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .no-reviews-content h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #9ca3af;
+  }
+
+  .no-reviews-content p {
+    margin: 0;
+    color: #6b7280;
+    max-width: 400px;
+    line-height: 1.5;
   }
 
 
@@ -1318,12 +1377,13 @@
       font-family: inherit;
       padding: 0;
       text-decoration: none;
-      transition: color 0.2s ease;
+      transition: color 0.2s ease, text-decoration-color 0.2s ease;
       font-weight: 600;
     }
 
     .artist-link:hover {
-      text-decoration: underline;
+      text-decoration: underline !important;
+      text-decoration-color: #FFC857 !important;
     }
   }
 </style>

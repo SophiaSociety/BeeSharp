@@ -1,39 +1,286 @@
 <script>
-  import { Star, Heart, Calendar, Music, Users, MessageSquare, ListMusic, ThumbsUp, ThumbsDown, Search } from 'lucide-svelte'
+  import { Star, Heart, Calendar, Music, Users, MessageSquare, ListMusic, ThumbsUp, ThumbsDown, Search, Edit3, Camera, User } from 'lucide-svelte'
   import { push } from 'svelte-spa-router'
   import Login from '../lib/Login.svelte'
-  import { isAuthenticated } from '../lib/auth'
+  import { isAuthenticated, getUsername, logout } from '../lib/auth'
   import { onMount } from 'svelte'
   
+  // Props to receive route parameters
+  let props = $props()
+  
+  // Extract params from props, providing fallback
+  const params = props.params || {}
+  
   // Simulação de usuário logado
-  let loggedUser = {
+  let loggedUser = $state({
     name: "Alex Chen",
     username: "@alexmusic",
     avatar: "/placeholder.svg?height=32&width=32"
-  }
+  })
+  
+  // Estado para controlar se o perfil sendo visualizado é do próprio usuário
+  let isOwnProfile = $state(false)
   let showLoginModal = $state(false)
   function openLoginModal() { showLoginModal = true }
   function closeLoginModal() { showLoginModal = false }
 
-  // Check login status when component mounts
-  onMount(() => {
+  // Check login status when component mounts and load profile
+  onMount(async () => {
     if (!isAuthenticated()) {
       showLoginModal = true;
+      return;
+    }
+    
+    console.log('ProfilePage mounted with params:', params);
+    
+    // Se temos um username nos parâmetros, usamos ele
+    // Caso contrário, usamos o username do usuário autenticado
+    const profileUsername = params.username || getUsername();
+    console.log('Loading profile for username:', profileUsername);
+    
+    // Verifica se o perfil sendo visualizado é do próprio usuário
+    const loggedInUsername = getUsername();
+    isOwnProfile = loggedInUsername === profileUsername;
+    console.log('Is own profile:', isOwnProfile);
+    
+    // Buscar os dados do usuário da API
+    try {
+      // Buscar dados básicos do usuário
+      const userResponse = await fetch(`/${profileUsername}`);
+      if (userResponse.ok) {
+        const userData = await userResponse.json();
+        loggedUser = {
+          name: userData.username, // Usando username como nome por enquanto
+          username: `@${userData.username}`,
+          avatar: userData.profileImage || "/placeholder.svg?height=32&width=32"
+        };
+        userId = userData.id;
+        
+        // Buscar descrição do usuário
+        const descResponse = await fetch(`/users/${userData.id}/description`);
+        if (descResponse.ok) {
+          const descText = await descResponse.text();
+          userBio = descText || '';
+        }
+        
+        // Carregar todos os dados do usuário
+        await loadUserData(userData.id);
+        
+        // Verificar se o usuário logado está seguindo este perfil (apenas se não for o próprio perfil)
+        if (!isOwnProfile && loggedInUsername) {
+          try {
+            // TODO: Implementar endpoint real quando estiver disponível
+            /*
+            const followResponse = await fetch(`/users/${loggedInUsername}/following/${profileUsername}`);
+            if (followResponse.ok) {
+              const followData = await followResponse.json();
+              isFollowing = followData.isFollowing || false;
+            }
+            */
+            
+            // Por enquanto, simular que não está seguindo (estado inicial)
+            isFollowing = false;
+          } catch (error) {
+            console.error('Erro ao verificar status de seguir:', error);
+          }
+        }
+        
+      } else {
+        console.error('Falha ao obter dados do usuário');
+        // Fallback com dados vazios
+        loggedUser = {
+          name: profileUsername,
+          username: `@${profileUsername}`,
+          avatar: "/placeholder.svg?height=32&width=32"
+        };
+      }
+    } catch (error) {
+      console.error('Erro ao carregar perfil:', error);
+      // Fallback com dados vazios
+      loggedUser = {
+        name: profileUsername,
+        username: `@${profileUsername}`,
+        avatar: "/placeholder.svg?height=32&width=32"
+      };
+    } finally {
+      loadingProfile = false;
     }
   })
   
-  // Searchbar
-  let searchQuery = $state('')
-  function handleSearch(event) {
-    event.preventDefault()
-    // Implementar busca
-  }
+  // Estado removido da barra de busca
 
   // Controle de seguir
   let isFollowing = $state(false)
-  function handleFollow() {
-    // Simula sucesso
-    isFollowing = !isFollowing
+  let followLoading = $state(false)
+  
+  async function handleFollow() {
+    if (followLoading) return;
+    
+    followLoading = true;
+    
+    try {
+      const profileUsername = params.username || getUsername();
+      const loggedInUsername = getUsername();
+      
+      if (!loggedInUsername || !profileUsername) {
+        alert('Erro: usuário não autenticado');
+        return;
+      }
+      
+      // Por enquanto, simular o comportamento até que os endpoints sejam implementados
+      // TODO: Implementar chamadas reais para a API quando os endpoints estiverem disponíveis
+      /*
+      const action = isFollowing ? 'unfollow' : 'follow';
+      
+      const response = await fetch(`/users/${loggedInUsername}/${action}/${profileUsername}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Falha ao ${action === 'follow' ? 'seguir' : 'deixar de seguir'} usuário`);
+      }
+      */
+      
+      // Simulação por enquanto - remover quando os endpoints estiverem prontos
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simular delay da rede
+      
+      // Atualizar estado local
+      const wasFollowing = isFollowing;
+      isFollowing = !isFollowing;
+      
+      // Atualizar contadores localmente
+      if (!wasFollowing) {
+        // Começou a seguir
+        userStats.followers += 1;
+        console.log(`${loggedInUsername} começou a seguir ${profileUsername}`);
+        
+        // TODO: Mostrar notificação de sucesso
+        // showNotification('Agora você está seguindo este usuário!', 'success');
+      } else {
+        // Parou de seguir  
+        userStats.followers -= 1;
+        console.log(`${loggedInUsername} parou de seguir ${profileUsername}`);
+        
+        // TODO: Mostrar notificação
+        // showNotification('Você deixou de seguir este usuário.', 'info');
+      }
+      
+      // TODO: Quando os endpoints estiverem prontos, recarregar os dados para ter certeza
+      // await loadUserData(userId);
+      
+    } catch (error) {
+      console.error('Erro ao seguir/deixar de seguir:', error);
+      alert('Ocorreu um erro. Por favor, tente novamente.');
+    } finally {
+      followLoading = false;
+    }
+  }
+  
+  // Estados para gerenciar a edição de perfil
+  let editingBio = $state(false);
+  let newBio = $state('');
+  let fileInput;
+  let isLoading = $state(false);
+  let userId = $state(null); // Inicializado como null
+  let userBio = $state(''); // Bio atual do usuário
+  
+  // Estados para dados reais do usuário
+  let userStats = $state({
+    totalAlbums: 0,
+    totalReviews: 0,
+    following: 0,
+    followers: 0,
+    averageRating: 0,
+    albumsThisYear: 0,
+    totalFavorites: 0
+  });
+  
+  let listenedAlbums = $state([]);
+  let favoriteAlbums = $state([]);
+  let recentReviews = $state([]);
+  
+  // Estados de carregamento
+  let loadingProfile = $state(true);
+  let loadingAlbums = $state(true);
+  let loadingReviews = $state(true);
+  
+  // Função para editar avatar
+  function handleEditAvatar() {
+    fileInput.click();
+  }
+  
+  // Função para lidar com a seleção do arquivo
+  async function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    isLoading = true;
+    
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`/upload/user-photo/${userId}`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao fazer upload da imagem');
+      }
+      
+      // Recarregar a página para mostrar a nova foto
+      location.reload();
+    } catch (error) {
+      console.error('Erro ao enviar a imagem:', error);
+      alert('Ocorreu um erro ao fazer upload da imagem. Por favor, tente novamente.');
+    } finally {
+      isLoading = false;
+    }
+  }
+  
+  // Função para iniciar a edição da bio
+  function handleEditBio() {
+    newBio = userBio;
+    editingBio = true;
+  }
+  
+  // Função para salvar a bio atualizada
+  async function saveBio() {
+    isLoading = true;
+    
+    try {
+      const response = await fetch(`/users/${userId}/description`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          description: newBio
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Falha ao atualizar a biografia');
+      }
+      
+      // Atualizar a bio localmente
+      userBio = newBio;
+      editingBio = false;
+    } catch (error) {
+      console.error('Erro ao atualizar a biografia:', error);
+      alert('Ocorreu um erro ao atualizar sua biografia. Por favor, tente novamente.');
+    } finally {
+      isLoading = false;
+    }
+  }
+  
+  // Função para cancelar a edição da bio
+  function cancelEditBio() {
+    editingBio = false;
   }
   
   // Pagination variables and functions
@@ -81,164 +328,93 @@
     return recentReviews.slice(start, end);
   }
 
-  let listenedAlbums = $state([
-    { id: 1, title: "DAMN.", artist: "Kendrick Lamar", year: "2017", rating: 4.5 },
-    { id: 2, title: "Currents", artist: "Tame Impala", year: "2015", rating: 4.0 },
-    { id: 3, title: "In Rainbows", artist: "Radiohead", year: "2007", rating: 5.0 },
-    { id: 4, title: "MBDTF", artist: "Kanye West", year: "2010", rating: 4.5 },
-    { id: 5, title: "Funeral", artist: "Arcade Fire", year: "2004", rating: 3.5 },
-    { id: 6, title: "The Suburbs", artist: "Arcade Fire", year: "2010", rating: 4.0 },
-    { id: 7, title: "OK Computer", artist: "Radiohead", year: "1997", rating: 4.5 },
-    { id: 8, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015", rating: 5.0 },
-    { id: 9, title: "The Dark Side of the Moon", artist: "Pink Floyd", year: "1973", rating: 4.5 },
-    { id: 10, title: "Blonde", artist: "Frank Ocean", year: "2016", rating: 4.0 },
-    { id: 11, title: "Abbey Road", artist: "The Beatles", year: "1969", rating: 4.8 },
-    { id: 12, title: "Rumours", artist: "Fleetwood Mac", year: "1977", rating: 4.7 },
-    { id: 13, title: "Nevermind", artist: "Nirvana", year: "1991", rating: 4.6 },
-    { id: 14, title: "Is This It", artist: "The Strokes", year: "2001", rating: 4.3 },
-    { id: 15, title: "Kid A", artist: "Radiohead", year: "2000", rating: 4.9 },
-    { id: 16, title: "Good Kid, M.A.A.D City", artist: "Kendrick Lamar", year: "2012", rating: 4.8 },
-    { id: 17, title: "Channel Orange", artist: "Frank Ocean", year: "2012", rating: 4.5 },
-    { id: 18, title: "The Queen Is Dead", artist: "The Smiths", year: "1986", rating: 4.4 },
-    { id: 19, title: "Loveless", artist: "My Bloody Valentine", year: "1991", rating: 4.7 },
-    { id: 20, title: "Blue", artist: "Joni Mitchell", year: "1971", rating: 4.9 },
-  ])
-
-  let favoriteAlbums = $state([
-    { id: 1, title: "OK Computer", artist: "Radiohead", year: "1997" },
-    { id: 2, title: "To Pimp a Butterfly", artist: "Kendrick Lamar", year: "2015" },
-    { id: 3, title: "The Dark Side of the Moon", artist: "Pink Floyd", year: "1973" },
-    { id: 4, title: "Blonde", artist: "Frank Ocean", year: "2016" },
-  ])
-
-  let recentReviews = $state([
-    {
-      id: 1,
-      title: "IGOR",
-      artist: "Tyler, The Creator",
-      year: "2019",
-      rating: 4.5,
-      review: "A bold artistic statement that showcases Tyler's growth as both a producer and songwriter. The cohesive narrative and lush production make this a standout album.",
-      date: "2 days ago",
-      liked: true,
-      likes: 15,
-      dislikes: 2,
-      userLiked: false,
-      userDisliked: false
-    },
-    {
-      id: 2,
-      title: "Folklore",
-      artist: "Taylor Swift",
-      year: "2020",
-      rating: 4,
-      review: "Swift's indie folk pivot is surprisingly successful, with introspective lyrics and stripped-down production that feels both intimate and cinematic.",
-      date: "1 week ago",
-      liked: false,
-      likes: 8,
-      dislikes: 1,
-      userLiked: false,
-      userDisliked: false
-    },
-    {
-      id: 3,
-      title: "Swimming",
-      artist: "Mac Miller",
-      year: "2018",
-      rating: 5,
-      review: "A deeply personal and vulnerable album that showcases Mac's incredible talent. Every track feels essential and the production is absolutely gorgeous.",
-      date: "2 weeks ago",
-      liked: true,
-      likes: 23,
-      dislikes: 0,
-      userLiked: true,
-      userDisliked: false
-    },
-    {
-      id: 4,
-      title: "Random Access Memories",
-      artist: "Daft Punk",
-      year: "2013",
-      rating: 4.5,
-      review: "A masterful blend of electronic and live music that takes the listener on a journey. Each track is meticulously crafted and the collaborations are top-notch.",
-      date: "1 month ago",
-      liked: false,
-      likes: 10,
-      dislikes: 0,
-      userLiked: false,
-      userDisliked: false
-    },
-    {
-      id: 5,
-      title: "25",
-      artist: "Adele",
-      year: "2015",
-      rating: 4.8,
-      review: "A powerful and emotional album that showcases Adele's incredible vocal range and songwriting skills. A modern classic.",
-      date: "2 months ago",
-      liked: true,
-      likes: 30,
-      dislikes: 5,
-      userLiked: true,
-      userDisliked: false
-    },
-    {
-      id: 6,
-      title: "Future Nostalgia",
-      artist: "Dua Lipa",
-      year: "2020",
-      rating: 4.2,
-      review: "A fun and energetic album that brings together elements of disco, pop, and funk. Dua Lipa's vocals are captivating and the production is stellar.",
-      date: "3 months ago",
-      liked: false,
-      likes: 12,
-      dislikes: 3,
-      userLiked: false,
-      userDisliked: false
-    },
-    {
-      id: 7,
-      title: "After Hours",
-      artist: "The Weeknd",
-      year: "2020",
-      rating: 4.7,
-      review: "A dark and moody album that perfectly showcases The Weeknd's unique sound and artistic vision. The production is top-notch and the features are well-placed.",
-      date: "4 months ago",
-      liked: true,
-      likes: 25,
-      dislikes: 4,
-      userLiked: true,
-      userDisliked: false
-    },
-    {
-      id: 8,
-      title: "Positions",
-      artist: "Ariana Grande",
-      year: "2020",
-      rating: 4.3,
-      review: "An album that continues to solidify Ariana's place in pop music. The production is sleek, and her vocals are as impressive as ever.",
-      date: "5 months ago",
-      liked: false,
-      likes: 18,
-      dislikes: 2,
-      userLiked: false,
-      userDisliked: false
-    },
-    {
-      id: 9,
-      title: "Justice",
-      artist: "Justin Bieber",
-      year: "2021",
-      rating: 3.8,
-      review: "A solid album with some standout tracks. Justin's growth as an artist is evident, though some songs feel less impactful.",
-      date: "6 months ago",
-      liked: true,
-      likes: 20,
-      dislikes: 10,
-      userLiked: true,
-      userDisliked: false
-    },
-  ])
+  // Função para carregar dados do usuário
+  async function loadUserData(profileUserId) {
+    try {
+      // Carregar estatísticas do usuário
+      const statsResponse = await fetch(`/users/${profileUserId}/stats`);
+      if (statsResponse.ok) {
+        userStats = await statsResponse.json();
+      }
+      
+      // Carregar álbuns favoritos
+      const favoritesResponse = await fetch(`/users/${profileUserId}/favorites`);
+      if (favoritesResponse.ok) {
+        favoriteAlbums = await favoritesResponse.json();
+      }
+      loadingAlbums = false;
+      
+      // Carregar álbuns escutados (com avaliações) e reviews
+      const [listenedResponse, reviewsResponse] = await Promise.all([
+        fetch(`/users/${profileUserId}/listened`),
+        fetch(`/users/${profileUserId}/reviews`)
+      ]);
+      
+      let listenedAlbumsData = [];
+      let reviewsData = [];
+      
+      if (listenedResponse.ok) {
+        listenedAlbumsData = await listenedResponse.json();
+      }
+      
+      if (reviewsResponse.ok) {
+        reviewsData = await reviewsResponse.json();
+        recentReviews = reviewsData;
+      }
+      
+      // Combinar álbuns escutados com álbuns que têm reviews
+      // Criar um mapa para evitar duplicatas baseado no título e artista (já que pode não ter ID consistente)
+      const albumsMap = new Map();
+      
+      // Adicionar álbuns escutados (com rating direto)
+      listenedAlbumsData.forEach(album => {
+        const key = `${album.title}-${album.artist}`.toLowerCase();
+        albumsMap.set(key, {
+          ...album,
+          rating: album.rating || album.userRating || 0,
+          source: 'listened'
+        });
+      });
+      
+      // Adicionar álbuns que têm reviews (caso não estejam já nos escutados)
+      reviewsData.forEach(review => {
+        const key = `${review.title || review.albumTitle}-${review.artist || review.albumArtist}`.toLowerCase();
+        
+        if (!albumsMap.has(key)) {
+          albumsMap.set(key, {
+            id: review.albumId || review.id,
+            title: review.title || review.albumTitle,
+            artist: review.artist || review.albumArtist,
+            year: review.year || review.albumYear,
+            coverUrl: review.coverUrl || review.albumCover,
+            rating: review.rating || review.userRating || 0,
+            source: 'review'
+          });
+        } else {
+          // Se já existe, verificar qual tem rating mais alto e manter esse
+          const existing = albumsMap.get(key);
+          const reviewRating = review.rating || review.userRating || 0;
+          if (reviewRating > existing.rating) {
+            albumsMap.set(key, {
+              ...existing,
+              rating: reviewRating,
+              source: 'both'
+            });
+          }
+        }
+      });
+      
+      // Converter o mapa de volta para array e ordenar por rating (maior primeiro)
+      listenedAlbums = Array.from(albumsMap.values()).sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      
+      loadingReviews = false;
+      
+    } catch (error) {
+      console.error('Erro ao carregar dados do usuário:', error);
+      loadingAlbums = false;
+      loadingReviews = false;
+    }
+  }
 
   function renderStars(rating) {
     const fullStars = Math.floor(rating)
@@ -290,36 +466,75 @@
 
   function handleAlbumClick(album) {
     console.log('Album clicked:', album.title)
-    // Navegar para a página do álbum
-    push('/album')
+    // Navegar para a página do álbum com o ID
+    if (album.id) {
+      push(`/album/${album.id}`)
+    } else {
+      push('/album')
+    }
+  }
+  
+  // Função para alternar a exibição do menu do usuário
+  let showUserMenu = $state(false);
+  function toggleUserMenu() {
+    showUserMenu = !showUserMenu;
+  }
+  
+  // Função para fazer logout
+  function handleLogout() {
+    logout();
+    push('/');
   }
 </script>
 
 <nav class="navbar-albums">
   <div class="navbar-container">
     <div class="logo-component">
-      <button class="logo-button" onclick={() => push('/')} aria-label="Ir para página inicial">
+      <button class="logo-button" onclick={() => push('/home')} aria-label="Ir para página inicial">
         <img src="/logocomtexto.png" alt="BeeSharp Logo" />
       </button>
     </div>
-    <div class="search-and-user">
-      <form class="search-form" onsubmit={handleSearch}>
-        <div class="search-container">
-          <Search size={18} />
-          <input
-            type="text"
-            class="search-input"
-            bind:value={searchQuery}
-          />
-          <button type="submit" class="search-button">Buscar</button>
-        </div>
-      </form>
+    
+    {#if isAuthenticated()}
+      <!-- Navbar para usuário logado -->
       <div class="user-menu">
-        <button class="user-avatar" aria-label="Perfil do usuário" onclick={() => push('/perfil')}>
-          <img src={loggedUser.avatar} alt={loggedUser.name} />
+        <button class="user-avatar" aria-label="User Profile" onclick={toggleUserMenu}>
+          {#if getUsername()}
+            <div class="user-avatar-text">
+              {getUsername().charAt(0).toUpperCase()}
+            </div>
+          {:else}
+            <User size={20} />
+          {/if}
         </button>
+        {#if getUsername()}
+          <span class="user-name">{getUsername()}</span>
+        {/if}
+        
+        {#if showUserMenu}
+          <div class="user-dropdown">
+            <button onclick={(e) => { e.preventDefault(); const username = getUsername(); if(username) push(`/profile/${username}`); showUserMenu = false; }}>
+              <User size={16} />
+              Meu Perfil
+            </button>
+            <button onclick={handleLogout}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                <polyline points="16,17 21,12 16,7"/>
+                <line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
+              Sair
+            </button>
+          </div>
+        {/if}
       </div>
-    </div>
+    {:else}
+      <!-- Navbar para usuário não logado -->
+      <div class="nav-links">
+        <a href="/criar-conta" onclick={(e) => { e.preventDefault(); push('/criar-conta') }}>CRIAR CONTA</a>
+        <button class="nav-login-btn" onclick={(e) => { e.preventDefault(); openLoginModal() }}>LOGIN</button>
+      </div>
+    {/if}
   </div>
 </nav>
 
@@ -333,43 +548,103 @@
   <!-- Header -->
   <header class="header">
     <div class="container">
-      <div class="profile-info">
-        <div class="avatar">
-          <img src="/placeholder.svg?height=96&width=96" alt="Alex Chen" />
-        </div>
-
-        <div class="user-details">
-          <div class="user-header">
-            <div class="user-name">
-              <h1>Alex Chen</h1>
-              <p class="username">@alexmusic</p>
+      <div class="profile-info">          <div class="profile-layout">
+            <div class="avatar-container">
+              <img src={userId ? `/user-photo/${userId}` : "/placeholder.svg?height=140&width=140"} 
+                   alt={loggedUser.name} />
+              {#if isOwnProfile}
+                <div class="edit-avatar-overlay">
+                  <button class="edit-avatar-btn" onclick={handleEditAvatar} aria-label="Editar foto de perfil">
+                    <Camera size={24} />
+                  </button>
+                </div>
+              {/if}
             </div>
-            <button class="follow-btn {isFollowing ? 'following' : ''}" onclick={handleFollow}>
-              {isFollowing ? 'Seguindo' : 'Seguir'}
-            </button>
-          </div>
 
-          <p class="bio">
-            Music enthusiast exploring sounds across genres. Always looking for the next album that will change my
-            perspective. Currently obsessed with experimental hip-hop and indie folk.
-          </p>
+            <div class="user-details">
+              <div class="user-header">
+                <div class="user-name-follow">
+                  <div class="user-name">
+                    <div style="display: flex; align-items: center;">
+                      <h1>{loggedUser.name}</h1>
+                      {#if isOwnProfile}
+                        <button class="edit-bio-btn" onclick={handleEditBio} aria-label="Editar biografia">
+                          <Edit3 size={20} />
+                        </button>
+                      {/if}
+                    </div>
+                    <p class="username">{loggedUser.username}</p>
+                  </div>
+                  {#if !isOwnProfile}
+                    <button class="follow-btn {isFollowing ? 'following' : ''}" onclick={handleFollow} disabled={followLoading}>
+                      {#if followLoading}
+                        Carregando...
+                      {:else}
+                        {isFollowing ? 'Seguindo' : 'Seguir'}
+                      {/if}
+                    </button>
+                  {/if}
+                </div>
+              
+                <div class="bio-container">
+                  {#if editingBio}
+                    <div class="edit-bio-form">
+                      <textarea
+                        bind:value={newBio}
+                        class="bio-textarea"
+                        placeholder="Escreva algo sobre você..."
+                        maxlength="1000"
+                      ></textarea>
+                      <div class="bio-actions">
+                        <button class="bio-btn cancel" onclick={cancelEditBio} disabled={isLoading}>
+                          Cancelar
+                        </button>
+                        <button class="bio-btn save" onclick={saveBio} disabled={isLoading}>
+                          {isLoading ? 'Salvando...' : 'Salvar'}
+                        </button>
+                      </div>
+                    </div>
+                  {:else}
+                    {#if userBio}
+                      <p class="bio">{userBio}</p>
+                    {:else}
+                      <p class="bio empty-bio">
+                        {#if isOwnProfile}
+                          Clique no botão ao lado para adicionar uma biografia.
+                        {:else}
+                          Este usuário ainda não adicionou uma biografia.
+                        {/if}
+                      </p>
+                    {/if}
+                  {/if}
+                </div>
+                
+                <!-- Input de arquivo oculto para upload de foto -->
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  style="display: none;" 
+                  bind:this={fileInput}
+                  onchange={handleFileSelect}
+                />
+              </div>
 
           <div class="stats">
             <div class="stat">
               <Music size={16} />
-              <span class="stat-number">1,247</span> álbuns
+              <span class="stat-number">{userStats.totalAlbums}</span> álbuns
             </div>
             <div class="stat">
               <MessageSquare size={16} />
-              <span class="stat-number">892</span> reviews
+              <span class="stat-number">{userStats.totalReviews}</span> reviews
             </div>
             <div class="stat">
               <Users size={16} />
-              <span class="stat-number">156</span> seguindo
+              <span class="stat-number">{userStats.following}</span> seguindo
             </div>
             <div class="stat">
               <Users size={16} />
-              <span class="stat-number">324</span> seguidores
+              <span class="stat-number">{userStats.followers}</span> seguidores
             </div>
           </div>
         </div>
@@ -382,22 +657,21 @@
       <!-- Stats Bar -->
       <section class="stats-bar">
         <div class="stat-card">
-          <div class="stat-value">4.2</div>
+          <div class="stat-value">{userStats.averageRating ? userStats.averageRating.toFixed(1) : '-'}</div>
           <div class="stat-label">Avaliação Média</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">127</div>
+          <div class="stat-value">{userStats.albumsThisYear}</div>
           <div class="stat-label">Esse Ano</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">1,247</div>
+          <div class="stat-value">{userStats.totalAlbums}</div>
           <div class="stat-label">Total</div>
         </div>
         <div class="stat-card">
-          <div class="stat-value">24</div>
+          <div class="stat-value">{userStats.totalFavorites}</div>
           <div class="stat-label">Favoritos</div>
         </div>
-
       </section>
 
       <!-- Favorite Albums -->
@@ -409,28 +683,46 @@
           </div>
         </div>
 
-        <div class="albums-grid">
-          {#each favoriteAlbums as album (album.id)}
-            <button class="album-card" onclick={() => handleAlbumClick(album)}>
-              <div class="album-cover">
-                <img src="/placeholder.svg?height=200&width=200" alt="{album.title} by {album.artist}" />
-                <div class="album-overlay">
-                  <div class="play-button">
-                    <Heart size={24} />
+        {#if loadingAlbums}
+          <div class="loading-state">
+            <p>Carregando álbuns favoritos...</p>
+          </div>
+        {:else if favoriteAlbums.length === 0}
+          <div class="empty-state">
+            <Heart size={48} class="empty-icon" />
+            <h3>Não há álbuns favoritos</h3>
+            <p>
+              {#if isOwnProfile}
+                Você ainda não marcou nenhum álbum como favorito. Explore novos álbuns e adicione seus favoritos!
+              {:else}
+                Este usuário ainda não marcou nenhum álbum como favorito.
+              {/if}
+            </p>
+          </div>
+        {:else}
+          <div class="albums-grid">
+            {#each favoriteAlbums as album (album.id)}
+              <button class="album-card" onclick={() => handleAlbumClick(album)}>
+                <div class="album-cover">
+                  <img src={album.coverUrl || "/placeholder.svg?height=200&width=200"} alt="{album.title} by {album.artist}" />
+                  <div class="album-overlay">
+                    <div class="play-button">
+                      <Heart size={24} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="album-info">
-                <p class="album-title">{album.title}</p>
-                <p class="album-artist">{album.artist} • {album.year}</p>
-              </div>
-            </button>
-          {/each}
-        </div>
+                <div class="album-info">
+                  <p class="album-title">{album.title}</p>
+                  <p class="album-artist">{album.artist} • {album.year}</p>
+                </div>
+              </button>
+            {/each}
+          </div>
+        {/if}
       </section>
 
       <!-- Listened Albums -->
-      <section class="section">
+      <section class="section listened-albums-section">
         <div class="section-header">
           <div class="section-title">
             <Music size={20} />
@@ -438,63 +730,81 @@
           </div>
         </div>
 
-        <div class="albums-grid">
-          {#each getCurrentAlbumsPage() as album (album.id)}
-            <button class="album-card" onclick={() => handleAlbumClick(album)}>
-              <div class="album-cover">
-                <img src="/placeholder.svg?height=200&width=200" alt="{album.title} by {album.artist}" />
-                <div class="album-overlay">
-                  <div class="play-button">
-                    <Music size={24} />
+        {#if loadingAlbums}
+          <div class="loading-state">
+            <p>Carregando álbuns escutados...</p>
+          </div>
+        {:else if listenedAlbums.length === 0}
+          <div class="empty-state">
+            <Music size={48} class="empty-icon" />
+            <h3>Não há álbuns escutados</h3>
+            <p>
+              {#if isOwnProfile}
+                Você ainda não avaliou nenhum álbum. Comece explorando e deixe sua opinião sobre os álbuns que você escuta!
+              {:else}
+                Este usuário ainda não avaliou nenhum álbum.
+              {/if}
+            </p>
+          </div>
+        {:else}
+          <div class="albums-grid">
+            {#each getCurrentAlbumsPage() as album (album.id)}
+              <button class="album-card" onclick={() => handleAlbumClick(album)}>
+                <div class="album-cover">
+                  <img src={album.coverUrl || "/placeholder.svg?height=200&width=200"} alt="{album.title} by {album.artist}" />
+                  <div class="album-overlay">
+                    <div class="play-button">
+                      <Music size={24} />
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="album-info">
-                <p class="album-title">{album.title}</p>
-                <p class="album-artist">{album.artist} • {album.year}</p>
-                <div class="album-rating">
-                  <div class="stars-small">
-                    {#each renderStars(album.rating).fullStars as _}
-                      <Star size={14} class="star-filled" />
-                    {/each}
-                    {#if renderStars(album.rating).hasHalfStar}
-                      <div class="star-half-small">
-                        <Star size={14} class="star-empty" />
-                        <div class="star-half-fill-small">
-                          <Star size={14} class="star-filled" />
+                <div class="album-info">
+                  <p class="album-title">{album.title}</p>
+                  <p class="album-artist">{album.artist} • {album.year}</p>
+                  <div class="album-rating">
+                    <div class="stars-small">
+                      {#each renderStars(album.rating).fullStars as _}
+                        <Star size={14} class="star-filled" />
+                      {/each}
+                      {#if renderStars(album.rating).hasHalfStar}
+                        <div class="star-half-small">
+                          <Star size={14} class="star-empty" />
+                          <div class="star-half-fill-small">
+                            <Star size={14} class="star-filled" />
+                          </div>
                         </div>
-                      </div>
-                    {/if}
-                    {#each renderStars(album.rating).emptyStars as _}
-                      <Star size={14} class="star-empty" />
-                    {/each}
+                      {/if}
+                      {#each renderStars(album.rating).emptyStars as _}
+                        <Star size={14} class="star-empty" />
+                      {/each}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          {/each}
-        </div>
-
-        {#if listenedAlbums.length > ITEMS_PER_PAGE}
-          <div class="pagination">
-            {#if currentAlbumsPage > 1}
-              <button class="pagination-button" onclick={() => goToAlbumsPage(currentAlbumsPage - 1)}>
-                ‹ Anterior
-              </button>
-            {/if}
-
-            {#each Array(getTotalAlbumsPages()) as _, i (i)}
-              <button class="pagination-button {currentAlbumsPage === i + 1 ? 'active' : ''}" onclick={() => goToAlbumsPage(i + 1)}>
-                {i + 1}
               </button>
             {/each}
-
-            {#if currentAlbumsPage < getTotalAlbumsPages()}
-              <button class="pagination-button" onclick={() => goToAlbumsPage(currentAlbumsPage + 1)}>
-                Próxima ›
-              </button>
-            {/if}
           </div>
+
+          {#if listenedAlbums.length > ITEMS_PER_PAGE}
+            <div class="pagination">
+              {#if currentAlbumsPage > 1}
+                <button class="pagination-button" onclick={() => goToAlbumsPage(currentAlbumsPage - 1)}>
+                  ‹ Anterior
+                </button>
+              {/if}
+
+              {#each Array(getTotalAlbumsPages()) as _, i (i)}
+                <button class="pagination-button {currentAlbumsPage === i + 1 ? 'active' : ''}" onclick={() => goToAlbumsPage(i + 1)}>
+                  {i + 1}
+                </button>
+              {/each}
+
+              {#if currentAlbumsPage < getTotalAlbumsPages()}
+                <button class="pagination-button" onclick={() => goToAlbumsPage(currentAlbumsPage + 1)}>
+                  Próxima ›
+                </button>
+              {/if}
+            </div>
+          {/if}
         {/if}
       </section>
 
@@ -509,95 +819,113 @@
           </div>
         </div>
 
-        <div class="reviews-list">
-          {#each getCurrentReviewsPage() as review (review.id)}
-            <div class="review-card">
-              <div class="review-layout">
-                <div class="album-info-review">
-                  <button class="album-image-button" onclick={() => handleAlbumClick(review)} aria-label="Ver álbum {review.title}">
-                    <img src="/placeholder.svg?height=120&width=120" alt="{review.title} by {review.artist}" class="album-avatar" />
-                  </button>
-                </div>
-                
-                <div class="review-content-wrapper">
-                  <div class="review-header">
-                    <div class="album-details">
-                      <button class="album-name-button" onclick={() => handleAlbumClick(review)} aria-label="Ver álbum {review.title}">
-                        <h4 class="album-name">{review.title}</h4>
-                      </button>
-                      <p class="album-artist-year">{review.artist} • {review.year}</p>
-                    </div>
-                    <div class="review-rating">
-                      <div class="stars-container">
-                        {#each renderStars(review.rating).fullStars as _}
-                          <Star size={16} class="star-filled" />
-                        {/each}
-                        {#if renderStars(review.rating).hasHalfStar}
-                          <div class="star-half-container">
-                            <Star size={16} class="star-empty" />
-                            <div class="star-half-overlay">
-                              <Star size={16} class="star-filled" />
-                            </div>
-                          </div>
-                        {/if}
-                        {#each renderStars(review.rating).emptyStars as _}
-                          <Star size={16} class="star-empty" />
-                        {/each}
-                      </div>
-                      <span class="review-date">{review.date}</span>
-                    </div>
+        {#if loadingReviews}
+          <div class="loading-state">
+            <p>Carregando reviews...</p>
+          </div>
+        {:else if recentReviews.length === 0}
+          <div class="empty-state">
+            <MessageSquare size={48} class="empty-icon" />
+            <h3>Não há reviews</h3>
+            <p>
+              {#if isOwnProfile}
+                Você ainda não escreveu nenhum review. Comece explorando álbuns e compartilhe suas opiniões!
+              {:else}
+                Este usuário ainda não escreveu nenhum review.
+              {/if}
+            </p>
+          </div>
+        {:else}
+          <div class="reviews-list">
+            {#each getCurrentReviewsPage() as review (review.id)}
+              <div class="review-card">
+                <div class="review-layout">
+                  <div class="album-info-review">
+                    <button class="album-image-button" onclick={() => handleAlbumClick(review)} aria-label="Ver álbum {review.title}">
+                      <img src={review.coverUrl || "/placeholder.svg?height=120&width=120"} alt="{review.title} by {review.artist}" class="album-avatar" />
+                    </button>
                   </div>
                   
-                  {#if review.review}
-                    <div class="review-content">
-                      <p>{review.review}</p>
+                  <div class="review-content-wrapper">
+                    <div class="review-header">
+                      <div class="album-details">
+                        <button class="album-name-button" onclick={() => handleAlbumClick(review)} aria-label="Ver álbum {review.title}">
+                          <h4 class="album-name">{review.title}</h4>
+                        </button>
+                        <p class="album-artist-year">{review.artist} • {review.year}</p>
+                      </div>
+                      <div class="review-rating">
+                        <div class="stars-container">
+                          {#each renderStars(review.rating).fullStars as _}
+                            <Star size={16} class="star-filled" />
+                          {/each}
+                          {#if renderStars(review.rating).hasHalfStar}
+                            <div class="star-half-container">
+                              <Star size={16} class="star-empty" />
+                              <div class="star-half-overlay">
+                                <Star size={16} class="star-filled" />
+                              </div>
+                            </div>
+                          {/if}
+                          {#each renderStars(review.rating).emptyStars as _}
+                            <Star size={16} class="star-empty" />
+                          {/each}
+                        </div>
+                        <span class="review-date">{review.date}</span>
+                      </div>
                     </div>
-                  {/if}
-                  
-                  <div class="review-actions">
-                    <button 
-                      class="action-btn like-btn {review.userLiked ? 'active' : ''}"
-                      onclick={() => handleLike(review.id)}
-                      aria-label="Curtir review"
-                    >
-                      <ThumbsUp size={16} />
-                      <span>{review.likes}</span>
-                    </button>
-                    <button 
-                      class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
-                      onclick={() => handleDislike(review.id)}
-                      aria-label="Não curtir review"
-                    >
-                      <ThumbsDown size={16} />
-                      <span>{review.dislikes}</span>
-                    </button>
+                    
+                    {#if review.review}
+                      <div class="review-content">
+                        <p>{review.review}</p>
+                      </div>
+                    {/if}
+                    
+                    <div class="review-actions">
+                      <button 
+                        class="action-btn like-btn {review.userLiked ? 'active' : ''}"
+                        onclick={() => handleLike(review.id)}
+                        aria-label="Curtir review"
+                      >
+                        <ThumbsUp size={16} />
+                        <span>{review.likes}</span>
+                      </button>
+                      <button 
+                        class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
+                        onclick={() => handleDislike(review.id)}
+                        aria-label="Não curtir review"
+                      >
+                        <ThumbsDown size={16} />
+                        <span>{review.dislikes}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          {/each}
-        </div>
-
-        {#if recentReviews.length > ITEMS_PER_PAGE}
-          <div class="pagination">
-            {#if currentReviewsPage > 1}
-              <button class="pagination-button" onclick={() => goToReviewsPage(currentReviewsPage - 1)}>
-                ‹ Anterior
-              </button>
-            {/if}
-
-            {#each Array(getTotalReviewsPages()) as _, i (i)}
-              <button class="pagination-button {currentReviewsPage === i + 1 ? 'active' : ''}" onclick={() => goToReviewsPage(i + 1)}>
-                {i + 1}
-              </button>
             {/each}
-
-            {#if currentReviewsPage < getTotalReviewsPages()}
-              <button class="pagination-button" onclick={() => goToReviewsPage(currentReviewsPage + 1)}>
-                Próxima ›
-              </button>
-            {/if}
           </div>
+
+          {#if recentReviews.length > ITEMS_PER_PAGE}
+            <div class="pagination">
+              {#if currentReviewsPage > 1}
+                <button class="pagination-button" onclick={() => goToReviewsPage(currentReviewsPage - 1)}>
+                  ‹ Anterior
+                </button>
+              {/if}
+
+              {#each Array(getTotalReviewsPages()) as _, i (i)}
+                <button class="pagination-button {currentReviewsPage === i + 1 ? 'active' : ''}" onclick={() => goToReviewsPage(i + 1)}>
+                  {i + 1}
+                </button>
+              {/each}
+
+              {#if currentReviewsPage < getTotalReviewsPages()}
+                <button class="pagination-button" onclick={() => goToReviewsPage(currentReviewsPage + 1)}>
+                  Próxima ›
+                </button>
+              {/if}
+            </div>
+          {/if}
         {/if}
       </section>
     </div>
@@ -678,92 +1006,15 @@
     opacity: 0.8;
   }
   
-  .search-and-user {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
+  /* Estilo removido pois não está sendo utilizado */
   
-  /* Search Styles */
-  .search-form {
-    margin-bottom: 0;
-  }
-
-  .search-container {
-    position: relative;
-    max-width: 400px;
-    display: flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 20px;
-    border: 2.5px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    padding-left: 1rem;
-    backdrop-filter: blur(20px);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 1px 0 rgba(255, 255, 255, 0.2);
-    height: 40px;
-  }
-
-  .search-container :global(svg) {
-    color: rgba(255, 255, 255, 0.7);
-    margin-right: 0.75rem;
-    flex-shrink: 0;
-  }
-
-  .search-container:focus-within {
-    border-color: rgba(255, 255, 255, 0.5);
-    box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        0 0 20px rgba(255, 255, 255, 0.1),
-        inset 0 1px 0 rgba(255, 255, 255, 0.3);
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  .search-input {
-    flex: 1;
-    padding: 0.5rem;
-    background: transparent;
-    border: none;
-    color: white;
-    font-size: 0.9rem;
-    outline: none;
-  }
-
-  .search-input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
-    font-family: 'Roboto', sans-serif;
-    font-weight: 500;
-  }
-
-  .search-button {
-    padding: 0.5rem 1.5rem;
-    background: #255F85;
-    color: white;
-    border: none;
-    border-radius: 0 17px 17px 0;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: 'Familjen Grotesk', sans-serif;
-    letter-spacing: 0.025em;
-    outline: none;
-    height: 100%;
-  }
-
-  .search-button:hover {
-    background: #1e4c6b;
-  }
-
-  .search-button:focus {
-    outline: none;
-    background: #1e4c6b;
-  }
+  /* Estilos de busca removidos */
 
   /* User Avatar Styles */
   .user-menu {
     position: relative;
+    display: flex;
+    align-items: center;
   }
 
   .user-avatar {
@@ -774,9 +1025,9 @@
     max-width: 40px;
     max-height: 40px;
     border-radius: 50%;
-    border: 2px solid;
+    border: 2px solid rgba(255, 255, 255, 0.3);
     overflow: hidden;
-    background: none;
+    background-color: rgba(30, 76, 107, 0.8);
     cursor: pointer;
     transition: border-color 0.2s;
     display: flex;
@@ -789,15 +1040,10 @@
   }
 
   .user-avatar:hover {
-    border-color: #1e4c6b;
+    border-color: #FFC857;
   }
 
-  .user-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-  }
+
   
   /* Botão seguir/seguindo */
   .follow-btn {
@@ -826,6 +1072,11 @@
   
   .follow-btn.following:hover {
     background-color: #72152b;
+  }
+  
+  .follow-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
   
   .login-popup-overlay {
@@ -861,21 +1112,27 @@
   }
 
     .profile-info {
+        padding: 1rem 0;
+    }
+    
+    .profile-layout {
         display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
+        gap: 2rem;
+        align-items: flex-start;
     }
 
-    .avatar {
-        width: 96px;
-        height: 96px;
+    .avatar-container {
+        position: relative;
+        width: 140px;
+        height: 140px;
         border-radius: 50%;
-        border: 2px solid #FFC857;
         overflow: hidden;
+        border: 3px solid #FFC857;
         background-color: #2c3440;
+        flex-shrink: 0;
     }
 
-    .avatar img {
+    .avatar-container img {
         width: 100%;
         height: 100%;
         object-fit: cover;
@@ -883,18 +1140,27 @@
 
     .user-details {
         flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 
     .user-header {
         display: flex;
         flex-direction: column;
-        gap: 1rem;
         margin-bottom: 1rem;
+    }
+    
+    .user-name-follow {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
     }
 
     .user-name h1 {
         margin: 0;
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         font-weight: bold;
         font-family: 'Familjen Grotesk', sans-serif;
     }
@@ -902,12 +1168,13 @@
     .username {
         margin: 0;
         color: #9ca3af;
+        font-size: 1.1rem;
     }
 
     .bio {
         color: #d1d5db;
         margin-bottom: 1rem;
-        max-width: 32rem;
+        max-width: 100%;
         line-height: 1.5;
         text-align: justify
     }
@@ -990,11 +1257,19 @@
     color: #9ca3af;
   }
 
-  /* Albums Grid - styled like AlbumsOverview.svelte */
+  /* Albums Grid para Favoritos */
   .albums-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  
+  /* Albums Grid para Álbuns Escutados - 5 por linha */
+  /* Use a specific class for the listened albums section instead of :has() and :contains() */
+  .listened-albums-section .albums-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.8rem;
   }
 
   .album-card {
@@ -1013,11 +1288,22 @@
   .album-cover {
     position: relative;
     aspect-ratio: 1;
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 6px;
     background-color: #374151;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Tamanho reduzido para Álbuns Escutados */
+  /* Use a specific class for the listened albums section instead of :has() and :contains() */
+  .listened-albums-section .album-cover {
+    width: 100%;
+    aspect-ratio: 1;
+  }
+  
+  .listened-albums-section .album-info {
+    font-size: 0.9rem;
   }
 
   .album-cover img {
@@ -1049,8 +1335,8 @@
   .play-button {
     background: #255F85;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1318,14 +1604,7 @@
     background: rgba(239, 68, 68, 0.1);
   }
 
-  /* Searchbar menor para perfil */
-  .profile-search {
-    margin-bottom: 0;
-    margin-left: 2rem;
-    margin-right: 2rem;
-    flex: 1;
-    max-width: 350px;
-  }
+
 
   /* Pagination Styles */
   .pagination {
@@ -1372,5 +1651,269 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  /* Avatar com edição */
+  
+  .edit-avatar-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    border-radius: 50%;
+  }
+  
+  .avatar-container:hover .edit-avatar-overlay {
+    opacity: 1;
+  }
+  
+  .edit-avatar-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  /* Bio com edição */
+  .bio-container {
+    width: 100%;
+    margin-top: 0.75rem;
+    display: flex;
+    align-items: center;
+    padding-left: 7px;
+  }
+  
+  .bio {
+    flex: 1;
+    margin: 0;
+    line-height: 1.5;
+    color: #e2e8f0;
+  }
+  
+  .edit-bio-btn {
+    background-color: rgba(255, 200, 87, 0.1);
+    border: 1px solid rgba(255, 200, 87, 0.3);
+    color: #FFC857;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-left: 12px;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    position: relative;
+    top: 2px;
+  }
+  
+  .edit-bio-btn:hover {
+    transform: scale(1.1);
+    background-color: rgba(255, 200, 87, 0.25);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Estilos para a edição da bio */
+  .edit-bio-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .bio-textarea {
+    width: 100%;
+    min-height: 120px;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    background-color: #1e2732;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+    font-family: inherit;
+    transition: border-color 0.2s ease;
+  }
+  
+  .bio-textarea:focus {
+    border-color: #FFC857;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(255, 200, 87, 0.2);
+  }
+  
+  .bio-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+  
+  .bio-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .bio-btn.cancel {
+    background-color: transparent;
+    border: 1px solid #4b5563;
+    color: #e2e8f0;
+  }
+  
+  .bio-btn.cancel:hover {
+    background-color: #2c3440;
+    border-color: #6b7280;
+  }
+  
+  .bio-btn.save {
+    background-color: #255F85;
+    border: 1px solid #255F85;
+    color: white;
+  }
+  
+  .bio-btn.save:hover {
+    background-color: #1e4c6b;
+  }
+  
+  .bio-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  /* Estados vazios e de carregamento */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+    color: #9ca3af;
+  }
+  
+  .empty-state :global(.empty-icon) {
+    margin-bottom: 1rem;
+    opacity: 0.5;
+  }
+  
+  .empty-state h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    color: #d1d5db;
+  }
+  
+  .empty-state p {
+    margin: 0;
+    line-height: 1.5;
+    max-width: 400px;
+  }
+  
+  .loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    color: #9ca3af;
+  }
+  
+  .empty-bio {
+    color: #9ca3af;
+    font-style: italic;
+  }
+
+  /* User menu dropdown */
+  .user-avatar-text {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+    color: white;
+  }
+  
+  .user-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 180px;
+    background: #1e4c6b;
+    border-radius: 8px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    margin-top: 0.5rem;
+    z-index: 100;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .user-dropdown button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: white;
+    transition: background 0.2s;
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+  }
+  
+  .user-dropdown button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Navbar links para usuário não logado */
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+  
+  .nav-links a {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: opacity 0.2s;
+  }
+  
+  .nav-links a:hover {
+    opacity: 0.8;
+  }
+  
+  .nav-login-btn {
+    padding: 0.5rem 1.2rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .nav-login-btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+  }
+  
+  .user-name {
+    font-size: 0.9rem;
+    color: white;
+    margin-left: 0.5rem;
   }
 </style>

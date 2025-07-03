@@ -19,7 +19,19 @@ export function getUsername(): string | null {
 }
 
 export function isAuthenticated(): boolean {
-    return getAuthToken() !== null;
+    const token = getAuthToken();
+    return token !== null && !isTokenExpired(token);
+}
+
+export function isTokenExpired(token: string | null): boolean {
+    if (!token) return true;
+    try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        // exp está em segundos desde epoch
+        return (payload.exp * 1000) < Date.now();
+    } catch (e) {
+        return true;
+    }
 }
 
 export function logout(): void {
