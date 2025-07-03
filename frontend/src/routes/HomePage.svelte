@@ -400,7 +400,7 @@
                 throw new Error('Token de autenticação não encontrado')
             }
             
-            const response = await fetch('http://localhost:8080/user/recommendations', {
+            const response = await fetch('http://localhost:8080/recommendations', {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

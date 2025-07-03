@@ -17,7 +17,8 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     install(CORS) {
-        anyHost() // Para desenvolvimento. Em produção, especifique os domínios permitidos!
+        anyHost() // Para desenvolvimento. Em produção, use allowHost("seu-dominio.com")
+        allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
         allowMethod(HttpMethod.Get)
         allowMethod(HttpMethod.Post)
