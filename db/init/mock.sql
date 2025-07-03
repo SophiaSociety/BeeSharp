@@ -21,7 +21,8 @@ INSERT INTO Users (username, password_hash, email, description) VALUES
 ('grace',  '6c72a0f18b5230ecc4ff7e278991e5c5',  'grace@example.com', 'Especialista em música eletrônica.'),
 ('heidi',  '35e8b4b7776fc46cc10e7970935f2ca6',  'heidi@example.com', 'Aficionada por trilhas de filmes e games.'),
 ('ivan',   '1167fa03beba0659fdabc33b4620599d',  'ivan@example.com', 'Baterista e fã de metal progressivo.'),
-('judy',   '162de50854fb25ea3fd8640282cb67b4', 'judy@example.com', 'Cantora amadora e compositora indie.');
+('judy',   '162de50854fb25ea3fd8640282cb67b4', 'judy@example.com', 'Cantora amadora e compositora indie.'),
+('thainara', 'e922d2b276b7a234b78770fbea3289f1', 'thainara@ime.br', 'musica eh top. eu amo musica');
 
 INSERT INTO UserSessions (user_id, start_time, end_time) VALUES 
 (1, '2025-04-20 08:00:00+00','2025-04-20 09:00:00+00'),
@@ -45,7 +46,17 @@ INSERT INTO UserFollows (user_id, follower_id) VALUES
 (7,8),
 (8,9),
 (9,10),
-(10,1);
+(10,1),
+(1, 11),
+(2, 11),
+(3, 11),
+(4, 11),
+(5, 11),
+(6, 11),
+(7, 11),
+(8, 11),
+(9, 11),
+(10, 11);
 
 
 -- Agora inclui todos os campos esperados pelo backend e frontend:
@@ -181,7 +192,16 @@ INSERT INTO AlbumFavorites (album_id1, album_id2, album_id3, album_id4, user_id)
 (7,8,9,10,7),
 (8,9,10,1,8),
 (9,10,1,2,9),
-(10,1,2,3,10);
+(10,1,2,3,10),
+(1, 2, 3, 4, 2),   -- bob
+(5, 6, 7, 8, 3),   -- carol
+(9, 10, 11, 12, 4),-- dave
+(13, 14, 15, 16, 5),-- eve
+(17, 18, 19, 20, 6),-- frank
+(21, 22, 23, 24, 7),-- grace
+(25, 26, 27, 28, 8),-- heidi
+(29, 30, 31, 32, 9),-- ivan
+(33, 34, 35, 36, 10);-- judy
 
 INSERT INTO ListeningHistory (user_id, album_id) VALUES
 (1,1),
