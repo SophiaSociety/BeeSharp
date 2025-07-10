@@ -46,7 +46,7 @@
     // Buscar os dados do usuário da API
     try {
       // Buscar dados básicos do usuário
-      const userResponse = await fetch(`/${profileUsername}`);
+      const userResponse = await fetch(`http://localhost:8080/${profileUsername}`);
       if (userResponse.ok) {
         const userData = await userResponse.json();
         loggedUser = {
@@ -57,11 +57,16 @@
         userId = userData.id;
         
         // Buscar descrição do usuário
-        const descResponse = await fetch(`/users/${userData.id}/description`);
+        const descResponse = await fetch(`http://localhost:8080/users/${userData.id}/description`);
         if (descResponse.ok) {
-          const descText = await descResponse.text();
-          userBio = descText || '';
+          console.log('Descrição encontrada');
+          const descJson = await descResponse.json();
+          console.log('descrição: ', descJson.description);
+          userBio = descJson.description || '';
+        } else {
+          console.log('Falha ao buscar descrição');
         }
+
         
         // Carregar todos os dados do usuário
         await loadUserData(userData.id);
@@ -332,13 +337,13 @@
   async function loadUserData(profileUserId) {
     try {
       // Carregar estatísticas do usuário
-      const statsResponse = await fetch(`/users/${profileUserId}/stats`);
+      const statsResponse = await fetch(`http://localhost:8080/users/${profileUserId}/stats`);
       if (statsResponse.ok) {
         userStats = await statsResponse.json();
       }
       
       // Carregar álbuns favoritos
-      const favoritesResponse = await fetch(`/users/${profileUserId}/favorites`);
+      const favoritesResponse = await fetch(`http://localhost:8080/users/${profileUserId}/favorites`);
       if (favoritesResponse.ok) {
         favoriteAlbums = await favoritesResponse.json();
       }
@@ -346,8 +351,8 @@
       
       // Carregar álbuns escutados (com avaliações) e reviews
       const [listenedResponse, reviewsResponse] = await Promise.all([
-        fetch(`/users/${profileUserId}/listened`),
-        fetch(`/users/${profileUserId}/reviews`)
+        fetch(`http://localhost:8080/users/${profileUserId}/listened`),
+        fetch(`http://localhost:8080/users/${profileUserId}/reviews`)
       ]);
       
       let listenedAlbumsData = [];
@@ -371,7 +376,7 @@
         const key = `${album.title}-${album.artist}`.toLowerCase();
         albumsMap.set(key, {
           ...album,
-          rating: album.rating || album.userRating || 0,
+          rating: album.averageRating || 0, // Usar averageRating se existir, senão 0
           source: 'listened'
         });
       });
@@ -382,11 +387,11 @@
         
         if (!albumsMap.has(key)) {
           albumsMap.set(key, {
-            id: review.albumId || review.id,
+            id: review.id ?? key, // corrigido!
             title: review.title || review.albumTitle,
             artist: review.artist || review.albumArtist,
             year: review.year || review.albumYear,
-            coverUrl: review.coverUrl || review.albumCover,
+            image: review.coverUrl || review.albumCover,
             rating: review.rating || review.userRating || 0,
             source: 'review'
           });
@@ -406,6 +411,8 @@
       
       // Converter o mapa de volta para array e ordenar por rating (maior primeiro)
       listenedAlbums = Array.from(albumsMap.values()).sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+      console.log('Álbuns escutados carregados:', listenedAlbums);
       
       loadingReviews = false;
       
@@ -416,17 +423,18 @@
     }
   }
 
-  function renderStars(rating) {
-    const fullStars = Math.floor(rating)
-    const hasHalfStar = rating % 1 !== 0
-    const emptyStars = 5 - Math.ceil(rating)
-    
-    return {
-      fullStars: Array(fullStars).fill(0),
-      hasHalfStar,
-      emptyStars: Array(emptyStars).fill(0)
-    }
-  }
+function renderStars(rating) {
+  // Converte de 0-10 para 0-5
+  const fiveStarRating = Number.isFinite(rating) ? rating / 2 : 0;
+  const fullStars = Math.floor(fiveStarRating);
+  const hasHalfStar = fiveStarRating % 1 >= 0.5;
+  const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+  return {
+    fullStars: Array(Math.max(0, fullStars)).fill(0),
+    hasHalfStar,
+    emptyStars: Array(Math.max(0, emptyStars)).fill(0)
+  };
+}
 
   function handleLike(reviewId) {
     const review = recentReviews.find(r => r.id === reviewId)
@@ -441,24 +449,6 @@
         }
         review.likes++
         review.userLiked = true
-      }
-      recentReviews = [...recentReviews]
-    }
-  }
-
-  function handleDislike(reviewId) {
-    const review = recentReviews.find(r => r.id === reviewId)
-    if (review) {
-      if (review.userDisliked) {
-        review.dislikes--
-        review.userDisliked = false
-      } else {
-        if (review.userLiked) {
-          review.likes--
-          review.userLiked = false
-        }
-        review.dislikes++
-        review.userDisliked = true
       }
       recentReviews = [...recentReviews]
     }
@@ -701,10 +691,10 @@
           </div>
         {:else}
           <div class="albums-grid">
-            {#each favoriteAlbums as album (album.id)}
+            {#each favoriteAlbums as album, i (album.id ?? i)}
               <button class="album-card" onclick={() => handleAlbumClick(album)}>
                 <div class="album-cover">
-                  <img src={album.coverUrl || "/placeholder.svg?height=200&width=200"} alt="{album.title} by {album.artist}" />
+                  <img src={album.image || "/placeholder.svg?height=200&width=200"} alt="{album.title} by {album.artist}" />
                   <div class="album-overlay">
                     <div class="play-button">
                       <Heart size={24} />
@@ -748,10 +738,10 @@
           </div>
         {:else}
           <div class="albums-grid">
-            {#each getCurrentAlbumsPage() as album (album.id)}
+            {#each getCurrentAlbumsPage() as album, i (album.id ?? i)}
               <button class="album-card" onclick={() => handleAlbumClick(album)}>
                 <div class="album-cover">
-                  <img src={album.coverUrl || "/placeholder.svg?height=200&width=200"} alt="{album.title} by {album.artist}" />
+                  <img src={album.image || "/placeholder.svg?height=200&width=200"} alt="{album.title} by {album.artist}" />
                   <div class="album-overlay">
                     <div class="play-button">
                       <Music size={24} />
@@ -875,9 +865,9 @@
                       </div>
                     </div>
                     
-                    {#if review.review}
+                    {#if review.content}
                       <div class="review-content">
-                        <p>{review.review}</p>
+                        <p>{review.content}</p>
                       </div>
                     {/if}
                     
@@ -888,15 +878,7 @@
                         aria-label="Curtir review"
                       >
                         <ThumbsUp size={16} />
-                        <span>{review.likes}</span>
-                      </button>
-                      <button 
-                        class="action-btn dislike-btn {review.userDisliked ? 'active' : ''}"
-                        onclick={() => handleDislike(review.id)}
-                        aria-label="Não curtir review"
-                      >
-                        <ThumbsDown size={16} />
-                        <span>{review.dislikes}</span>
+                        <span>{review.likesCount}</span>
                       </button>
                     </div>
                   </div>

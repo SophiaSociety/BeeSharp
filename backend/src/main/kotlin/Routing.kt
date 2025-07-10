@@ -23,19 +23,37 @@ import com.beesharp.backend.repository.ArtistRepository
 import com.beesharp.backend.*
 import com.beesharp.backend.models.Users
 import com.beesharp.backend.models.Album
+import com.beesharp.backend.models.ListeningHistory
+import com.beesharp.backend.models.Reviews
+import com.beesharp.backend.models.UserFollows
+import com.beesharp.backend.models.AlbumFavorites
+import com.beesharp.backend.models.ListeningHistoryEntry
 import kotlinx.serialization.Serializable
 
 import io.ktor.http.content.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.statements.api.ExposedBlob
+import com.beesharp.backend.dto.*
 
 @Serializable
 data class UserProfileResponse(
+    val id: Int, // <-- adicione este campo
     val username: String,
     val email: String,
     val albums: List<Int>,
     val following: List<String>
+)
+
+@kotlinx.serialization.Serializable
+data class UserStatsResponse(
+    val totalAlbums: Int,
+    val totalReviews: Int,
+    val following: Int,
+    val followers: Int,
+    val averageRating: Double,
+    val albumsThisYear: Int,
+    val totalFavorites: Int
 )
 
 var hotAlbumsCache: Pair<Long, List<Album>>? = null
@@ -71,11 +89,13 @@ fun Application.configureRouting() {
 
             // Montar resposta
             val response = UserProfileResponse(
+                id = user.id, // <-- adicione este campo
                 username = user.username,
                 email = user.email,
                 albums = albums,
                 following = following
             )
+            println("Perfil do usuário: $response")
 
             call.respond(response) 
         }
@@ -121,10 +141,108 @@ fun Application.configureRouting() {
 
                     if (description != null) {
                         call.respond(HttpStatusCode.OK, mapOf("description" to description))
+                        println("Descrição encontrada: $description")
                     } else {
-                        call.respond(HttpStatusCode.NotFound, "User not found")
+                        call.respond(HttpStatusCode.NotFound, mapOf("error" to "User not found"))
                     }
                 }
+            }
+
+            get("/{id}/stats") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                    return@get
+                }
+
+                val stats = transaction {
+                    val totalAlbums = ListeningHistory.select { ListeningHistory.userId eq userId }.count().toInt()
+                    val totalReviews = Reviews.select { Reviews.userId eq userId }.count().toInt()
+                    val following = UserFollows.select { UserFollows.followerId eq userId }.count().toInt()
+                    val followers = UserFollows.select { UserFollows.userId eq userId }.count().toInt()
+                    val ratings = Reviews.slice(Reviews.rating).select { Reviews.userId eq userId }.map { it[Reviews.rating] }
+                    val averageRating = if (ratings.isNotEmpty()) ratings.average() else 0.0
+                    val totalFavorites = AlbumFavorites.select { AlbumFavorites.userId eq userId }
+                        .map {
+                            listOfNotNull(
+                                it[AlbumFavorites.albumId1],
+                                it[AlbumFavorites.albumId2],
+                                it[AlbumFavorites.albumId3],
+                                it[AlbumFavorites.albumId4]
+                            )
+                        }.flatten().size
+                    val albumsThisYear = 0 // Ajuste se houver campo de data
+
+                    UserStatsResponse(
+                        totalAlbums = totalAlbums,
+                        totalReviews = totalReviews,
+                        following = following,
+                        followers = followers,
+                        averageRating = averageRating,
+                        albumsThisYear = albumsThisYear,
+                        totalFavorites = totalFavorites
+                    )
+                }
+
+                call.respond(HttpStatusCode.OK, stats)
+            }
+
+            get("/{id}/favorites") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                    return@get
+                }
+                // Busca os álbuns favoritos do usuário (usando UserRepository)
+                val favoriteIds = userRepo.getFavoriteAlbums(userId)
+                val favoriteAlbums = favoriteIds.mapNotNull { albumRepo.getAlbumById(it) }
+
+                call.respond(HttpStatusCode.OK, favoriteAlbums)
+            }
+
+            get("/{id}/listened") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                    return@get
+                }
+                // Busca os IDs dos álbuns escutados
+                val listenedIds = transaction {
+                    ListeningHistory
+                        .select { ListeningHistory.userId eq userId }
+                        .map { it[ListeningHistory.albumId] }
+                        .distinct()
+                }
+                // Busca os dados completos dos álbuns
+                val listenedAlbums = listenedIds.mapNotNull { albumRepo.getAlbumById(it) }
+                call.respond(HttpStatusCode.OK, listenedAlbums)
+            }
+
+            get("/{id}/reviews") {
+                val userId = call.parameters["id"]?.toIntOrNull()
+                if (userId == null) {
+                    call.respond(HttpStatusCode.BadRequest, "Invalid user ID")
+                    return@get
+                }
+                val reviews = reviewRepo.getAllReviews().filter { it.userId == userId }
+                val reviewsWithAlbum = reviews.map { review ->
+                    val album = albumRepo.getAlbumById(review.albumId)
+                    ReviewWithAlbumDTO(
+                        id = review.id,
+                        userId = review.userId,
+                        username = review.username,
+                        albumId = review.albumId,
+                        title = album?.title ?: "",
+                        artist = album?.artist ?: "",
+                        year = album?.year?.toIntOrNull(), // <-- aqui está a correção
+                        coverUrl = album?.image,
+                        content = review.content,
+                        rating = review.rating,
+                        createdAt = review.createdAt.toString(),
+                        likesCount = review.likesCount
+                    )
+                }
+                call.respond(HttpStatusCode.OK, reviewsWithAlbum)
             }
         }
 
