@@ -23,3 +23,19 @@ data class ReviewFullDTO(
     @Contextual val createdAt: LocalDateTime,
     val likesCount: Int
 )
+
+@Serializable
+data class ReviewWithAlbumDTO(
+    val id: Int,
+    val userId: Int,
+    val username: String,
+    val albumId: Int,
+    val title: String,
+    val artist: String,
+    val year: Int?,
+    val coverUrl: String?,
+    val content: String,
+    val rating: Int,
+    val createdAt: String,
+    val likesCount: Int
+)
